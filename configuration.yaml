@@ -14,12 +14,12 @@ scene: !include scenes.yaml
 knx:
   event:
     - address: '8/5/0'         # Garage door pulse
-    - address: 9/1/0           # Glaspanel Küche – Kochen Toggle
-    - address: 9/1/1           # Glaspanel Wohnzimmer – TV Toggle
-    - address: 9/1/2           # Smart 55 – Nächste Szene
-    - address: 9/1/3           # Smart 55 – Vorherige Szene
-    - address: 9/1/4           # Smart 55 – Reset
-    - address: 9/1/5           # Smart 55 – Default Szene A (TBD)
+    - address: "9/1/0 "          # Glaspanel Küche – Kochen Toggle
+    - address: "9/1/1"           # Glaspanel Wohnzimmer – TV Toggle
+    - address: "9/1/2"           # Smart 55 – Nächste Szene
+    - address: "9/1/3"           # Smart 55 – Vorherige Szene
+    - address: "9/1/4 "          # Smart 55 – Reset
+    - address: "9/1/5"           # Smart 55 – Default Szene A (TBD)
   light:
     - name: "Büro Licht"
       address: "1/3/30"
