@@ -270,6 +270,12 @@
     - platform: time
       at: 06:00:00
     - platform: time
+      at: '08:00:00'
+    - platform: time
+      at: '12:00:00'
+    - platform: time
+      at: '14:00:00'
+    - platform: time
       at: '18:00:00'
     - platform: time
       at: '20:00:00'
@@ -277,8 +283,19 @@
       at: '22:00:00'
     - platform: time
       at: '23:00:00'
+    condition:
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_kochen
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_tv
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_szene
+        state: 'off'
     action:
     - choose:
+      # --- WERKTAG ---
       - conditions:
         - condition: state
           entity_id: binary_sensor.workday_sensor
@@ -315,6 +332,68 @@
           data:
             entity_id: input_select.wohnkueche_lichtmodus
             option: werktag_relax
+      # --- WOCHENENDE ---
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'off'
+        - condition: time
+          after: '08:00:00'
+          before: '12:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: fruehstueck
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'off'
+        - condition: time
+          after: '12:00:00'
+          before: '14:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: wochenende_tag
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'off'
+        - condition: time
+          after: '14:00:00'
+          before: '18:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: wochenende_nachmittag
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'off'
+        - condition: time
+          after: '18:00:00'
+          before: '20:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: werktag_abend_aktiv
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'off'
+        - condition: time
+          after: '20:00:00'
+          before: '22:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: wochenende_abend
+      # --- BEIDE ---
       - conditions:
         - condition: time
           after: '22:00:00'
@@ -340,6 +419,16 @@
     trigger:
       - platform: state
         entity_id: binary_sensor.praesenzmelder_wohnzimmer
+    condition:
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_kochen
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_tv
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_szene
+        state: 'off'
     action:
       - choose:
           - conditions:
@@ -387,6 +476,33 @@
                 state: nacht
             sequence:
               - service: script.wohnkueche_nacht
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: wochenende_tag
+            sequence:
+              - service: script.wohnkueche_wochenende_tag
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: wochenende_nachmittag
+            sequence:
+              - service: script.wochenende_nachmittag
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: wochenende_abend
+            sequence:
+              - service: script.wohnkueche_wochenende_abend
         default:
           - service: light.turn_off
             target:
@@ -575,6 +691,210 @@
     - service: switch.turn_off
       target:
         entity_id: switch.handtuchheizkoerper
+  - id: glaspanel_kueche_toggle
+    alias: Glaspanel Küche – Kochen Toggle
+    description: KNX 9/1/0
+    trigger:
+      - platform: event
+        event_type: knx_event
+        event_data:
+          destination: '9/1/0'
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_kochen
+                state: 'off'
+            sequence:
+              - service: input_boolean.turn_on
+                target:
+                  entity_id: input_boolean.wohnkueche_override_kochen
+              - service: input_boolean.turn_off
+                target:
+                  entity_id:
+                    - input_boolean.wohnkueche_override_tv
+                    - input_boolean.wohnkueche_override_szene
+              - service: script.wohnkueche_werktag_abend_aktiv
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_kochen
+                state: 'on'
+            sequence:
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.wohnkueche_override_kochen
+              - service: script.wohnkueche_lichtmodus_ausfuehren
+    mode: single
+
+  - id: glaspanel_wohnzimmer_toggle
+    alias: Glaspanel Wohnzimmer – TV Toggle
+    description: KNX 9/1/1
+    trigger:
+      - platform: event
+        event_type: knx_event
+        event_data:
+          destination: '9/1/1'
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_tv
+                state: 'off'
+            sequence:
+              - service: input_boolean.turn_on
+                target:
+                  entity_id: input_boolean.wohnkueche_override_tv
+              - service: input_boolean.turn_off
+                target:
+                  entity_id:
+                    - input_boolean.wohnkueche_override_kochen
+                    - input_boolean.wohnkueche_override_szene
+              - service: script.wohnkueche_wochenende_abend
+          - conditions:
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_tv
+                state: 'on'
+            sequence:
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.wohnkueche_override_tv
+              - service: script.wohnkueche_lichtmodus_ausfuehren
+    mode: single
+
+  - id: smart55_next_scene
+    alias: Smart 55 – Nächste Szene
+    description: KNX 9/1/2
+    trigger:
+      - platform: event
+        event_type: knx_event
+        event_data:
+          destination: '9/1/2'
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.wohnkueche_override_szene
+      - service: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.wohnkueche_override_kochen
+            - input_boolean.wohnkueche_override_tv
+      - variables:
+          werktag_list:
+            - fruehstueck
+            - werktag_abend_aktiv
+            - werktag_relax
+            - spaetabend
+            - nacht
+          wochenende_list:
+            - fruehstueck
+            - wochenende_tag
+            - wochenende_nachmittag
+            - wochenende_abend
+            - spaetabend
+            - nacht
+          scene_list: >
+            {% if is_state('binary_sensor.workday_sensor', 'on') %}
+              {{ werktag_list }}
+            {% else %}
+              {{ wochenende_list }}
+            {% endif %}
+          current: "{{ states('input_select.wohnkueche_lichtmodus') }}"
+          current_index: "{{ scene_list.index(current) if current in scene_list else 0 }}"
+          next_index: "{{ (current_index | int + 1) % (scene_list | length) }}"
+          next_scene: "{{ scene_list[next_index | int] }}"
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.wohnkueche_lichtmodus
+          option: "{{ next_scene }}"
+      - service: script.wohnkueche_lichtmodus_ausfuehren
+    mode: single
+
+  - id: smart55_last_scene
+    alias: Smart 55 – Vorherige Szene
+    description: KNX 9/1/3
+    trigger:
+      - platform: event
+        event_type: knx_event
+        event_data:
+          destination: '9/1/3'
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.wohnkueche_override_szene
+      - service: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.wohnkueche_override_kochen
+            - input_boolean.wohnkueche_override_tv
+      - variables:
+          werktag_list:
+            - fruehstueck
+            - werktag_abend_aktiv
+            - werktag_relax
+            - spaetabend
+            - nacht
+          wochenende_list:
+            - fruehstueck
+            - wochenende_tag
+            - wochenende_nachmittag
+            - wochenende_abend
+            - spaetabend
+            - nacht
+          scene_list: >
+            {% if is_state('binary_sensor.workday_sensor', 'on') %}
+              {{ werktag_list }}
+            {% else %}
+              {{ wochenende_list }}
+            {% endif %}
+          current: "{{ states('input_select.wohnkueche_lichtmodus') }}"
+          current_index: "{{ scene_list.index(current) if current in scene_list else 0 }}"
+          prev_index: "{{ (current_index | int - 1) % (scene_list | length) }}"
+          prev_scene: "{{ scene_list[prev_index | int] }}"
+      - service: input_select.select_option
+        data:
+          entity_id: input_select.wohnkueche_lichtmodus
+          option: "{{ prev_scene }}"
+      - service: script.wohnkueche_lichtmodus_ausfuehren
+    mode: single
+
+  - id: smart55_default_a
+    alias: Smart 55 – Default Szene A
+    description: KNX 9/1/5 – noch zu definieren
+    trigger:
+      - platform: event
+        event_type: knx_event
+        event_data:
+          destination: '9/1/5'
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.wohnkueche_override_szene
+      - service: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.wohnkueche_override_kochen
+            - input_boolean.wohnkueche_override_tv
+      # TODO: Szene A hier definieren – z.B. input_select setzen + script aufrufen
+    mode: single
+
+  - id: smart55_default_b_reset
+    alias: Smart 55 – Default Szene B (Reset)
+    description: KNX 9/1/4 – Setzt alle Overrides zurück
+    trigger:
+      - platform: event
+        event_type: knx_event
+        event_data:
+          destination: '9/1/4'
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id:
+            - input_boolean.wohnkueche_override_kochen
+            - input_boolean.wohnkueche_override_tv
+            - input_boolean.wohnkueche_override_szene
+      - service: script.wohnkueche_lichtmodus_ausfuehren
+    mode: single
+
   - id: "knx_luftfeuchtigkeit_7_3_21"
     alias: "Luftfeuchtigkeit auf KNX schreiben"
     description: "Sendet den Wert von sensor.bthome_sensor_5447_humidity auf KNX GA 7/3/21 bei jeder Änderung"

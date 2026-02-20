@@ -5,6 +5,65 @@
 #########################################################
 
 #########################################################
+# LICHTMODUS AUSFÜHREN – führt den aktuellen input_select aus
+# Wird von Overrides und Reset verwendet
+#########################################################
+wohnkueche_lichtmodus_ausfuehren:
+  alias: Wohnküche – Aktuellen Lichtmodus ausführen
+  mode: restart
+  sequence:
+    - choose:
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: fruehstueck
+          sequence:
+            - service: script.wohnkueche_fruehstueck
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: werktag_abend_aktiv
+          sequence:
+            - service: script.wohnkueche_werktag_abend_aktiv
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: werktag_relax
+          sequence:
+            - service: script.wohnkueche_werktag_relax
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: spaetabend
+          sequence:
+            - service: script.wohnkueche_spaetabend
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: nacht
+          sequence:
+            - service: script.wohnkueche_nacht
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: wochenende_tag
+          sequence:
+            - service: script.wohnkueche_wochenende_tag
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: wochenende_nachmittag
+          sequence:
+            - service: script.wochenende_nachmittag
+        - conditions:
+            - condition: state
+              entity_id: input_select.wohnkueche_lichtmodus
+              state: wochenende_abend
+          sequence:
+            - service: script.wohnkueche_wochenende_abend
+
+
+#########################################################
 # WERKTAG – FRÜHSTÜCK (06:00–08:00)
 #########################################################
 wohnkueche_fruehstueck:
@@ -111,7 +170,7 @@ wohnkueche_werktag_relax:
       target:
         entity_id: light.licht_kueche_fenster
       data:
-        brightness_pct: 15
+        brightness_pct: 30
 
     - service: light.turn_off
       target:
@@ -129,7 +188,7 @@ wohnkueche_spaetabend:
       target:
         entity_id: light.licht_kueche_fenster
       data:
-        brightness_pct: 10
+        brightness_pct: 25
 
     - service: light.turn_on
       target:
@@ -157,20 +216,49 @@ wohnkueche_nacht:
   alias: Wohnküche Nacht
   mode: restart
   sequence:
-    - service: light.turn_on
-      target:
-        entity_id: light.licht_kueche_fenster
-      data:
-        brightness_pct: 7
-
     - service: light.turn_off
       target:
         entity_id:
           - light.esszimmer_licht
+          - light.licht_kueche_fenster
           - light.licht_kueche_fenster_2
           - light.licht_spuele_kueche
           - light.licht_vitrine_kueche
           - light.livingroom_main_light_2
+          - light.livingroom_reading_light
+
+
+#########################################################
+# WOCHENENDE – NACHMITTAG (14:00–18:00)
+#########################################################
+wochenende_nachmittag:
+  alias: Wohnküche Wochenende Nachmittag
+  mode: restart
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.esszimmer_licht
+      data:
+        brightness_pct: 45
+
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster
+      data:
+        brightness_pct: 30
+
+    - service: light.turn_on
+      target:
+        entity_id: light.livingroom_main_light_2
+      data:
+        brightness_pct: 30
+
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.licht_kueche_fenster_2
+          - light.licht_spuele_kueche
+          - light.licht_vitrine_kueche
           - light.livingroom_reading_light
 
 

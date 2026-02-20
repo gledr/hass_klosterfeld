@@ -376,6 +376,14 @@ knx:
     - name: "Praesenzmelder Wohnzimmer"
       state_address: "5/2/20"
       device_class: presence   # oder presence, siehe unte
+input_boolean:
+  wohnkueche_override_kochen:
+    name: Wohnküche Override Kochen
+  wohnkueche_override_tv:
+    name: Wohnküche Override TV
+  wohnkueche_override_szene:
+    name: Wohnküche Override Szene (Smart 55)
+
 input_select:
   wohnkueche_lichtmodus:
     name: Wohnküche Lichtmodus
@@ -386,4 +394,5 @@ input_select:
       - spaetabend
       - nacht
       - wochenende_tag
+      - wochenende_nachmittag
       - wochenende_abend
