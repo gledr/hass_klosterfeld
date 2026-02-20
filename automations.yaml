@@ -693,7 +693,6 @@
         entity_id: switch.handtuchheizkoerper
   - id: glaspanel_kueche_toggle
     alias: Glaspanel Küche – Kochen Toggle
-    description: KNX 9/1/0
     trigger:
       - platform: event
         event_type: knx_event
@@ -728,7 +727,6 @@
 
   - id: glaspanel_wohnzimmer_toggle
     alias: Glaspanel Wohnzimmer – TV Toggle
-    description: KNX 9/1/1
     trigger:
       - platform: event
         event_type: knx_event
