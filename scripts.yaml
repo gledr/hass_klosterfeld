@@ -1,0 +1,301 @@
+#########################################################
+# WOHNKÜCHE – LICHTMODI (SCRIPT-BASIERT)
+# Präsenz + Zeit + Werktag steuern diese Scripts
+# Erweiterbar um Beschattung, Musik, Heizung
+#########################################################
+
+#########################################################
+# WERKTAG – FRÜHSTÜCK (06:00–08:00)
+#########################################################
+wohnkueche_fruehstueck:
+  alias: Wohnküche Frühstück
+  mode: restart
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.esszimmer_licht
+      data:
+        brightness_pct: 50
+
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster
+      data:
+        brightness_pct: 30
+
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.licht_kueche_fenster_2
+          - light.licht_spuele_kueche
+          - light.licht_vitrine_kueche
+          - light.livingroom_main_light_2
+          - light.livingroom_reading_light
+
+
+#########################################################
+# WERKTAG – ABEND AKTIV (18:00–20:00)
+# Kochen, Putzen, Aufräumen
+#########################################################
+wohnkueche_werktag_abend_aktiv:
+  alias: Wohnküche Werktag Abend Aktiv
+  mode: restart
+  sequence:
+    # Küche Arbeitslicht
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster_2
+      data:
+        brightness_pct: 85
+
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_spuele_kueche
+
+    # Esszimmer
+    - service: light.turn_on
+      target:
+        entity_id: light.esszimmer_licht
+      data:
+        brightness_pct: 70
+
+    # Orientierung
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster
+      data:
+        brightness_pct: 40
+
+    # Alles andere aus
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.livingroom_main_light_2
+          - light.livingroom_reading_light
+          - light.licht_vitrine_kueche
+
+
+#########################################################
+# WERKTAG – RELAX (ab 20:00)
+#########################################################
+wohnkueche_werktag_relax:
+  alias: Wohnküche Werktag Relax
+  mode: restart
+  sequence:
+    # Küche aus
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.licht_kueche_fenster_2
+          - light.licht_spuele_kueche
+
+    # Akzent & Wohnlicht
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_vitrine_kueche
+
+    - service: light.turn_on
+      target:
+        entity_id: light.esszimmer_licht
+      data:
+        brightness_pct: 55
+
+    - service: light.turn_on
+      target:
+        entity_id: light.livingroom_reading_light
+      data:
+        brightness_pct: 50
+
+    # Orientierung
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster
+      data:
+        brightness_pct: 15
+
+    - service: light.turn_off
+      target:
+        entity_id: light.livingroom_main_light_2
+
+
+#########################################################
+# SPÄTABEND (22:00–23:00)
+#########################################################
+wohnkueche_spaetabend:
+  alias: Wohnküche Spätabend
+  mode: restart
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster
+      data:
+        brightness_pct: 10
+
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_vitrine_kueche
+
+    - service: light.turn_on
+      target:
+        entity_id: light.livingroom_reading_light
+      data:
+        brightness_pct: 30
+
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.esszimmer_licht
+          - light.licht_kueche_fenster_2
+          - light.licht_spuele_kueche
+          - light.livingroom_main_light_2
+
+
+#########################################################
+# NACHT (23:00–06:00)
+#########################################################
+wohnkueche_nacht:
+  alias: Wohnküche Nacht
+  mode: restart
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster
+      data:
+        brightness_pct: 7
+
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.esszimmer_licht
+          - light.licht_kueche_fenster_2
+          - light.licht_spuele_kueche
+          - light.licht_vitrine_kueche
+          - light.livingroom_main_light_2
+          - light.livingroom_reading_light
+
+
+#########################################################
+# WOCHENENDE – TAG
+#########################################################
+wohnkueche_wochenende_tag:
+  alias: Wohnküche Wochenende Tag
+  mode: restart
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_kueche_fenster_2
+      data:
+        brightness_pct: 70
+
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_spuele_kueche
+
+    - service: light.turn_on
+      target:
+        entity_id: light.esszimmer_licht
+      data:
+        brightness_pct: 60
+
+    - service: light.turn_on
+      target:
+        entity_id: light.livingroom_main_light_2
+      data:
+        brightness_pct: 40
+
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.livingroom_reading_light
+          - light.licht_vitrine_kueche
+
+
+#########################################################
+# WOCHENENDE – ABEND
+#########################################################
+wohnkueche_wochenende_abend:
+  alias: Wohnküche Wochenende Abend
+  mode: restart
+  sequence:
+    - service: light.turn_on
+      target:
+        entity_id: light.licht_vitrine_kueche
+
+    - service: light.turn_on
+      target:
+        entity_id: light.esszimmer_licht
+      data:
+        brightness_pct: 60
+
+    - service: light.turn_on
+      target:
+        entity_id: light.livingroom_reading_light
+      data:
+        brightness_pct: 50
+
+    - service: light.turn_off
+      target:
+        entity_id:
+          - light.licht_kueche_fenster_2
+          - light.licht_spuele_kueche
+          - light.livingroom_main_light_2
+
+#########################################################
+# RAUCHALARM – BENACHRICHTIGUNGEN
+#########################################################
+
+notify_smoke_alarm:
+  alias: Rauchalarm Benachrichtigung
+  description: Sendet Rauchalarm an alle Geräte
+  mode: parallel
+  fields:
+    location:
+      description: Ort des Rauchmelders (z.B. Keller Hobbyraum)
+      example: Hobbyraum Keller
+
+  sequence:
+    - service: notify.mobile_app_ipad_von_sebastian
+      data:
+        message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
+
+    - service: notify.mobile_app_iphone_von_sebastian
+      data:
+        message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
+
+    - service: notify.mobile_app_macbook_von_sebastian
+      data:
+        message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
+
+    - service: notify.mobile_app_sebastians_company_macbook_pro
+      data:
+        message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
+
+#########################################################
+# HAUS – MORGENMODUS (ROLLOS ÖFFNEN)
+# Wird durch Haus-Tagesmodus getriggert
+# Erweiterbar: Licht, Heizung, Musik
+#########################################################
+
+house_morning_workday:
+  alias: Haus – Morgen Werktag
+  mode: single
+  sequence:
+    - service: cover.open_cover
+      target:
+        entity_id:
+          - cover.bedroom_shutter
+          - cover.guest_shutter
+          - cover.office_shutter
+
+
+house_morning_weekend:
+  alias: Haus – Morgen Wochenende
+  mode: single
+  sequence:
+    - service: cover.open_cover
+      target:
+        entity_id:
+          - cover.bedroom_shutter
+          - cover.guest_shutter
+          - cover.office_shutter
+

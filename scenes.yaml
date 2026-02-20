@@ -1,0 +1,121 @@
+- id: '1763282588191'
+  name: Küche Aus
+  entities:
+    light.licht_spuele_kueche:
+      supported_color_modes:
+      - onoff
+      color_mode:
+      friendly_name: Licht Spüle
+      supported_features: 0
+      state: 'off'
+    light.licht_kueche_fenster_2:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Licht Küche Fenster
+      supported_features: 0
+      state: 'off'
+    light.licht_kueche_fenster:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Licht Küche Stiege
+      supported_features: 0
+      state: 'off'
+    media_player.kuche_2:
+      friendly_name: Küche
+      supported_features: 448439
+      state: paused
+  metadata:
+    light.licht_spuele_kueche:
+      entity_only: true
+    light.licht_kueche_fenster_2:
+      entity_only: true
+    light.licht_kueche_fenster:
+      entity_only: true
+    media_player.kuche_2:
+      entity_only: true
+- id: '1763285319679'
+  name: Esszimmer Aus
+  entities:
+    light.livingroom_main_light:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Licht Esszimmer
+      supported_features: 0
+      state: 'off'
+  metadata:
+    light.livingroom_main_light:
+      entity_only: true
+- id: '1763285428458'
+  name: Wohnzimmer Aus
+  entities:
+    light.livingroom_main_light_2:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Licht Wohnzimmer
+      supported_features: 0
+      state: 'off'
+    light.livingroom_reading_light:
+      supported_color_modes:
+      - brightness
+      color_mode:
+      brightness:
+      friendly_name: Leselicht Wohnzimmer
+      supported_features: 0
+      state: 'off'
+  metadata:
+    light.livingroom_main_light_2:
+      entity_only: true
+    light.livingroom_reading_light:
+      entity_only: true
+- id: '1764223070683'
+  name: Guten Morgen Neue Szene
+  entities:
+    cover.wc_eg_blinds:
+      current_position: 0
+      current_tilt_position: 0
+      device_class: blind
+      friendly_name: Raffstore WC Erdgeschoss
+      supported_features: 207
+      state: closed
+    cover.office_shutter:
+      current_position: 0
+      friendly_name: Rollos Buero
+      supported_features: 15
+      state: closed
+    cover.bedroom_shutter:
+      current_position: 0
+      icon: mdi:blinds
+      friendly_name: Rollos Schlafzimmer
+      supported_features: 15
+      state: closed
+    cover.guest_shutter:
+      current_position: 0
+      friendly_name: Rollos Gast
+      supported_features: 15
+      state: closed
+    cover.bathroom_blinds:
+      current_position: 0
+      current_tilt_position: 0
+      device_class: blind
+      friendly_name: Raffstore Badezimmer
+      supported_features: 207
+      state: closed
+  metadata:
+    cover.wc_eg_blinds:
+      entity_only: true
+    cover.office_shutter:
+      entity_only: true
+    cover.bedroom_shutter:
+      entity_only: true
+    cover.guest_shutter:
+      entity_only: true
+    cover.bathroom_blinds:
+      entity_only: true

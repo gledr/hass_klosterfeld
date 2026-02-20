@@ -1,0 +1,591 @@
+  - id: all_shutter_down_after_sunset
+    alias: Rollos – gestreut runter nach Sonnenuntergang
+    trigger:
+    - platform: sun
+      event: sunset
+      offset: 00:30:00
+    action:
+    - delay:
+        minutes: '{{ range(0, 5) | random }}'
+    - service: cover.close_cover
+      target:
+        entity_id: cover.bedroom_shutter
+    - delay:
+        minutes: '{{ range(0, 5) | random }}'
+    - service: cover.close_cover
+      target:
+        entity_id: cover.guest_shutter
+    - delay:
+        minutes: '{{ range(0, 5) | random }}'
+    - service: cover.close_cover
+      target:
+        entity_id: cover.office_shutter
+    mode: single
+  - id: shutters_open_morning
+    alias: Rollos öffnen – morgens
+    trigger:
+    - platform: time
+      at: 07:00:00
+      id: werktag
+    - platform: time
+      at: '10:00:00'
+      id: wochenende
+    action:
+    - choose:
+      - conditions:
+        - condition: trigger
+          id: werktag
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'on'
+        sequence:
+        - service: script.house_morning_workday
+      - conditions:
+        - condition: trigger
+          id: wochenende
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'off'
+        sequence:
+        - service: script.house_morning_weekend
+    mode: single
+  - id: blinds_down_after_sunset
+    alias: Raffstore – Alle runter 15 Minuten nach Sonnenuntergang
+    triggers:
+    - event: sunset
+      offset: 00:30:00
+      trigger: sun
+    actions:
+    - target:
+        entity_id:
+        - cover.wardrobe_blinds
+        - cover.shelf_blinds
+        - cover.wc_eg_blinds
+        - cover.wc_og_blinds
+        - cover.livingroom_blinds
+        - cover.terrace_blinds
+        - cover.terrace_blinds_2
+        - cover.dining_blinds
+        - cover.kitchen_blinds
+        - cover.bathroom_blinds
+      action: cover.close_cover
+      data: {}
+    mode: single
+  - id: slats_open_sunrise_all
+    alias: Raffstore Lamellen – Alle öffnen bei Sonnenaufgang
+    trigger:
+    - platform: sun
+      event: sunrise
+      offset: 00:05:00
+    action:
+    - service: knx.send
+      data:
+        address: 4/1/24
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/1/4
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/1/44
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/2/24
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/2/4
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/1/64
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/1/84
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/1/104
+        payload: 30
+        type: '5.001'
+    - service: knx.send
+      data:
+        address: 4/1/124
+        payload: 30
+        type: '5.001'
+    mode: single
+  - id: slats_close_sunset_all
+    alias: Raffstore Lamellen – Alle schließen nach Sonnenuntergang
+    triggers:
+    - event: sunset
+      offset: 00:35:00
+      trigger: sun
+    actions:
+    - data:
+        address: 4/1/24
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/1/4
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/1/44
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/2/24
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/2/4
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/1/64
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/1/84
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/1/104
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    - data:
+        address: 4/1/124
+        payload: 100
+        type: '5.001'
+      action: knx.send
+    mode: single
+  - id: knx_nachtmodus
+    alias: KNX Nachtmodus ein
+    trigger:
+    - platform: sun
+      event: sunset
+    action:
+    - service: knx.send
+      data:
+        address: 8/4/0
+        payload: 0
+  - id: knx_tagmodus
+    alias: KNX Tagmodus ein
+    trigger:
+    - platform: sun
+      event: sunrise
+    action:
+    - service: knx.send
+      data:
+        address: 8/4/0
+        payload: 1
+  - id: garage_position_sync
+    alias: Garage door position sync to KNX
+    trigger:
+    - platform: state
+      entity_id: sensor.garage_door_garage_door_position
+    condition:
+    - condition: template
+      value_template: '{{ states(''sensor.garage_door_garage_door_position'') | is_number
+        }}'
+    action:
+    - service: knx.send
+      data:
+        address: 8/5/1
+        type: '5.010'
+        payload: '{{ ((100 - states("sensor.garage_door_garage_door_position") | float(0))
+          * 2.55) | round(0) }}'
+    mode: restart
+  - id: knx_garage_pulse
+    alias: KNX Garage Door Pulse
+    trigger:
+    - platform: event
+      event_type: knx_event
+      event_data:
+        destination: 8/5/0
+    action:
+    - choose:
+      - conditions: '{{ trigger.event.data.data == 0 }}'
+        sequence:
+        - service: cover.open_cover
+          target:
+            entity_id: cover.garage_door_garage_door
+      - conditions: '{{ trigger.event.data.data == 1 }}'
+        sequence:
+        - service: cover.close_cover
+          target:
+            entity_id: cover.garage_door_garage_door
+    mode: single
+  - id: keller_treppe_licht_auto_aus
+    alias: Keller & EG–OG Treppe Licht Auto-Aus
+    trigger:
+    - platform: state
+      entity_id:
+      - light.stairs_kg_eg_light_eg
+      - light.stairway_eg_og_light_2
+      to: 'on'
+      for:
+        minutes: 10
+    action:
+    - service: light.turn_off
+      target:
+        entity_id: '{{ trigger.entity_id }}'
+    mode: restart
+  - id: wc_lights_auto_off
+    alias: WC Licht automatisch aus nach 30 Minuten
+    trigger:
+    - platform: state
+      entity_id:
+      - light.wc_eg_light
+      - light.wc_og_light
+      to: 'on'
+      for:
+        minutes: 30
+    action:
+    - service: light.turn_off
+      target:
+        entity_id: '{{ trigger.entity_id }}'
+    mode: restart
+  - id: wohnkueche_lichtmodus_setzen
+    alias: Wohnküche Lichtmodus setzen
+    trigger:
+    - platform: time
+      at: 06:00:00
+    - platform: time
+      at: '18:00:00'
+    - platform: time
+      at: '20:00:00'
+    - platform: time
+      at: '22:00:00'
+    - platform: time
+      at: '23:00:00'
+    action:
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'on'
+        - condition: time
+          after: 06:00:00
+          before: 08:00:00
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: fruehstueck
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'on'
+        - condition: time
+          after: '18:00:00'
+          before: '20:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: werktag_abend_aktiv
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.workday_sensor
+          state: 'on'
+        - condition: time
+          after: '20:00:00'
+          before: '22:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: werktag_relax
+      - conditions:
+        - condition: time
+          after: '22:00:00'
+          before: '23:00:00'
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: spaetabend
+      - conditions:
+        - condition: time
+          after: '23:00:00'
+          before: 06:00:00
+        sequence:
+        - service: input_select.select_option
+          data:
+            entity_id: input_select.wohnkueche_lichtmodus
+            option: nacht
+    mode: single
+  - id: wohnkueche_licht_master
+    alias: Wohnküche Licht – Master
+    mode: restart
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.praesenzmelder_wohnzimmer
+    action:
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: fruehstueck
+            sequence:
+              - service: script.wohnkueche_fruehstueck
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: werktag_abend_aktiv
+            sequence:
+              - service: script.wohnkueche_werktag_abend_aktiv
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: werktag_relax
+            sequence:
+              - service: script.wohnkueche_werktag_relax
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: spaetabend
+            sequence:
+              - service: script.wohnkueche_spaetabend
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: nacht
+            sequence:
+              - service: script.wohnkueche_nacht
+        default:
+          - service: light.turn_off
+            target:
+              entity_id:
+                - light.licht_kueche_fenster
+                - light.licht_kueche_fenster_2
+                - light.licht_spuele_kueche
+                - light.licht_vitrine_kueche
+                - light.esszimmer_licht
+                - light.livingroom_main_light
+                - light.livingroom_reading_light
+  - alias: Keller Luftfeuchte Warnungen
+    description: Mehrstufige Warnungen bei erhöhter Keller-Luftfeuchte
+    mode: single
+    trigger:
+    - platform: numeric_state
+      entity_id:
+      - sensor.hobby_humidity
+      - sensor.engineering_humidity
+      - sensor.storage_humidity
+      above: 60
+      for: 01:00:00
+    - platform: numeric_state
+      entity_id:
+      - sensor.hobby_humidity
+      - sensor.engineering_humidity
+      - sensor.storage_humidity
+      above: 65
+      for: 03:00:00
+    - platform: numeric_state
+      entity_id:
+      - sensor.hobby_humidity
+      - sensor.engineering_humidity
+      - sensor.storage_humidity
+      above: 70
+      for: 01:00:00
+    action:
+    - variables:
+        raeume:
+          sensor.hobby_humidity: Hobbyraum
+          sensor.engineering_humidity: Technikraum
+          sensor.storage_humidity: Lager
+        feuchte: '{{ states(trigger.entity_id) | float }}'
+    - choose:
+      - conditions:
+        - condition: template
+          value_template: '{{ feuchte >= 60 and feuchte < 65 }}'
+        sequence:
+        - service: notify.mobile_app_iphone_von_sebastian
+          data:
+            title: Keller – Hinweis
+            message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
+              60 % (aktuell {{ feuchte }} %). Lüften prüfen.
+
+              '
+      - conditions:
+        - condition: template
+          value_template: '{{ feuchte >= 65 and feuchte < 70 }}'
+        sequence:
+        - service: notify.mobile_app_iphone_von_sebastian
+          data:
+            title: Keller – Warnung
+            message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 3 Stunden über
+              65 % (aktuell {{ feuchte }} %). Handeln empfohlen.
+
+              '
+      - conditions:
+        - condition: template
+          value_template: '{{ feuchte >= 70 }}'
+        sequence:
+        - service: notify.mobile_app_iphone_von_sebastian
+          data:
+            title: Keller – ALARM
+            message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
+              70 % (aktuell {{ feuchte }} %). Sofort reagieren!
+
+              '
+    id: 027fd1bab8584ef983ec272a503c870e
+  - id: '1767284686170'
+    alias: Licht Haustür
+    description: ''
+    use_blueprint:
+      path: homeassistant/motion_light.yaml
+      input:
+        motion_entity: binary_sensor.bthome_sensor_ea3b_motion
+        light_target:
+          entity_id: light.main_door_light
+  - id: wc_og_licht_nachts_bewegung
+    alias: WC OG Licht nachts bei Bewegung
+    description: Schaltet das WC-Licht nachts gedimmt ein, wenn der Bewegungsmelder
+      in der Galerie auslöst
+    triggers:
+    - entity_id: binary_sensor.bewegungsmelder_galerie_og
+      to: 'on'
+      trigger: state
+    - entity_id: binary_sensor.bewegungsmelder_galerie_og
+      to: 'off'
+      trigger: state
+    conditions:
+    - condition: time
+      after: '23:00:00'
+      before: 06:00:00
+    actions:
+    - choose:
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.bewegungsmelder_galerie_og
+          state: 'on'
+        sequence:
+        - target:
+            entity_id: light.wc_og_light
+          data:
+            brightness_pct: 42
+            transition: 1
+          action: light.turn_on
+      - conditions:
+        - condition: state
+          entity_id: binary_sensor.bewegungsmelder_galerie_og
+          state: 'off'
+        sequence:
+        - delay: 00:05:00
+        - target:
+            entity_id: light.wc_og_light
+          data:
+            transition: 2
+          action: light.turn_off
+    mode: restart
+  - id: bathroom_privacy_mode
+    alias: Badezimmer Privacy Modus
+    description: Setzt die Lamellen im Badezimmer auf Position 70, sobald sie geöffnet
+      werden und der Raffstore unten ist
+    mode: restart
+    trigger:
+    - platform: state
+      entity_id: cover.bathroom_blinds
+      attribute: current_tilt_position
+    condition:
+    - condition: numeric_state
+      entity_id: cover.bathroom_blinds
+      attribute: current_position
+      below: 100
+    - condition: numeric_state
+      entity_id: cover.bathroom_blinds
+      attribute: current_tilt_position
+      above: 50
+      below: 100
+    action:
+    - service: cover.set_cover_tilt_position
+      target:
+        entity_id: cover.bathroom_blinds
+      data:
+        tilt_position: 50
+  - id: handtuchheizkoerper_dusche_feuchte
+    alias: Handtuchheizkoerper Dusche
+    mode: single
+    trigger:
+    - platform: numeric_state
+      entity_id: sensor.bthome_sensor_5447_humidity
+      above: 70
+      for:
+        minutes: 2
+    condition:
+    - condition: state
+      entity_id: switch.handtuchheizkoerper
+      state: 'off'
+    action:
+    - service: switch.turn_on
+      target:
+        entity_id: switch.handtuchheizkoerper
+    - delay:
+        hours: 1
+    - service: switch.turn_off
+      target:
+        entity_id: switch.handtuchheizkoerper
+  - id: handtuchheizkoerper_manuell_timeout
+    alias: Handtuchheizkoerper Manuell Auto-Aus
+    mode: restart
+    trigger:
+    - platform: state
+      entity_id: switch.handtuchheizkoerper
+      from: 'off'
+      to: 'on'
+    action:
+    - delay:
+        hours: 1
+    - service: switch.turn_off
+      target:
+        entity_id: switch.handtuchheizkoerper
+  - id: "knx_luftfeuchtigkeit_7_3_21"
+    alias: "Luftfeuchtigkeit auf KNX schreiben"
+    description: "Sendet den Wert von sensor.bthome_sensor_5447_humidity auf KNX GA 7/3/21 bei jeder Änderung"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: sensor.bthome_sensor_5447_humidity
+    action:
+      - service: knx.send
+        data:
+          address: "7/3/21"
+          type: "9.007"   # KNX DPT für Luftfeuchtigkeit (%)
+          payload: "{{ states('sensor.bthome_sensor_5447_humidity') | float }}"
+
