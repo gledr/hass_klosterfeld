@@ -893,6 +893,38 @@
       - service: script.wohnkueche_lichtmodus_ausfuehren
     mode: single
 
+  - id: smart55_szene_anzeige
+    alias: Smart 55 – Szene Anzeige
+    description: Sendet den aktuellen Szenennamen (kurz) an GA 9/1/6 zur Anzeige am Smart55
+    trigger:
+      - platform: state
+        entity_id: input_select.wohnkueche_lichtmodus
+      - platform: state
+        entity_id: binary_sensor.praesenzmelder_wohnzimmer
+        to: 'off'
+    action:
+      - variables:
+          szene_name: >
+            {% if is_state('binary_sensor.praesenzmelder_wohnzimmer', 'off') %}
+              Aus
+            {% else %}
+              {% set m = {
+                'fruehstueck': 'Fruehstueck',
+                'werktag_abend_aktiv': 'Abend aktiv',
+                'werktag_relax': 'Relax',
+                'spaetabend': 'Spaetabend',
+                'nacht': 'Nacht',
+                'wochenende_tag': 'WE Tag',
+                'wochenende_nachmittag': 'WE Nachmittag',
+                'wochenende_abend': 'WE Abend'
+              } %}
+              {{ m[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
+            {% endif %}
+      - service: notify.smart55_szene
+        data:
+          message: "{{ szene_name }}"
+    mode: single
+
   - id: "knx_luftfeuchtigkeit_7_3_21"
     alias: "Luftfeuchtigkeit auf KNX schreiben"
     description: "Sendet den Wert von sensor.bthome_sensor_5447_humidity auf KNX GA 7/3/21 bei jeder Änderung"
