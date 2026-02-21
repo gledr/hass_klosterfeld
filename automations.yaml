@@ -714,6 +714,11 @@
                     - input_boolean.wohnkueche_override_tv
                     - input_boolean.wohnkueche_override_szene
               - service: script.wohnkueche_werktag_abend_aktiv
+              - service: knx.send
+                data:
+                  address: "9/1/6"
+                  type: "string"
+                  payload: "Abend aktiv"
           - conditions:
               - condition: state
                 entity_id: input_boolean.wohnkueche_override_kochen
@@ -723,6 +728,12 @@
                 target:
                   entity_id: input_boolean.wohnkueche_override_kochen
               - service: script.wohnkueche_lichtmodus_ausfuehren
+              - service: knx.send
+                data:
+                  address: "9/1/6"
+                  type: "string"
+                  payload: >-
+                    {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
     mode: single
 
   - id: glaspanel_wohnzimmer_toggle
@@ -748,6 +759,11 @@
                     - input_boolean.wohnkueche_override_kochen
                     - input_boolean.wohnkueche_override_szene
               - service: script.wohnkueche_wochenende_abend
+              - service: knx.send
+                data:
+                  address: "9/1/6"
+                  type: "string"
+                  payload: "WE Abend"
           - conditions:
               - condition: state
                 entity_id: input_boolean.wohnkueche_override_tv
@@ -757,6 +773,12 @@
                 target:
                   entity_id: input_boolean.wohnkueche_override_tv
               - service: script.wohnkueche_lichtmodus_ausfuehren
+              - service: knx.send
+                data:
+                  address: "9/1/6"
+                  type: "string"
+                  payload: >-
+                    {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
     mode: single
 
   - id: smart55_next_scene
