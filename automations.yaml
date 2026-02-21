@@ -731,7 +731,7 @@
       - platform: event
         event_type: knx_event
         event_data:
-          destination: 9/1/1
+          address: 9/1/1
     action:
       - choose:
           - conditions:
