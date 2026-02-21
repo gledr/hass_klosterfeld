@@ -805,6 +805,12 @@
           entity_id: input_select.wohnkueche_lichtmodus
           option: "{{ next_scene }}"
       - service: script.wohnkueche_lichtmodus_ausfuehren
+      - service: knx.send
+        data:
+          address: "9/1/6"
+          type: "string"
+          payload: >-
+            {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[next_scene] | default('?') }}
     mode: single
 
   - id: smart55_last_scene
@@ -853,6 +859,12 @@
           entity_id: input_select.wohnkueche_lichtmodus
           option: "{{ prev_scene }}"
       - service: script.wohnkueche_lichtmodus_ausfuehren
+      - service: knx.send
+        data:
+          address: "9/1/6"
+          type: "string"
+          payload: >-
+            {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[prev_scene] | default('?') }}
     mode: single
 
   - id: smart55_default_a
