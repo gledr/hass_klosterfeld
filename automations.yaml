@@ -904,27 +904,13 @@
         to: 'off'
     action:
       - variables:
-          szene_name: >
-            {% if is_state('binary_sensor.praesenzmelder_wohnzimmer', 'off') %}
-              Aus
-            {% else %}
-              {% set m = {
-                'fruehstueck': 'Fruehstueck',
-                'werktag_abend_aktiv': 'Abend aktiv',
-                'werktag_relax': 'Relax',
-                'spaetabend': 'Spaetabend',
-                'nacht': 'Nacht',
-                'wochenende_tag': 'WE Tag',
-                'wochenende_nachmittag': 'WE Nachmittag',
-                'wochenende_abend': 'WE Abend'
-              } %}
-              {{ m[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
-            {% endif %}
+          szene_name: >-
+            {% if is_state('binary_sensor.praesenzmelder_wohnzimmer', 'off') %}Aus{% else %}{{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}{% endif %}
       - service: knx.send
         data:
           address: "9/1/6"
-          type: "16.001"
-          payload: "{{ szene_name | trim }}"
+          type: "string"
+          payload: "{{ szene_name }}"
     mode: single
 
   - id: "knx_luftfeuchtigkeit_7_3_21"
