@@ -920,9 +920,11 @@
               } %}
               {{ m[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
             {% endif %}
-      - service: notify.smart55_szene
+      - service: knx.send
         data:
-          message: "{{ szene_name }}"
+          address: "9/1/6"
+          type: "16.001"
+          payload: "{{ szene_name | trim }}"
     mode: single
 
   - id: "knx_luftfeuchtigkeit_7_3_21"
