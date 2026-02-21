@@ -61,6 +61,12 @@ wohnkueche_lichtmodus_ausfuehren:
               state: wochenende_abend
           sequence:
             - service: script.wohnkueche_wochenende_abend
+    - service: knx.send
+      data:
+        address: "9/1/6"
+        type: "string"
+        payload: >-
+          {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
 
 
 #########################################################
