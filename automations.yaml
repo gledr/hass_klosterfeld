@@ -955,7 +955,6 @@
           address: "7/3/21"
           type: "9.007"   # KNX DPT für Luftfeuchtigkeit (%)
           payload: "{{ states('sensor.bthome_sensor_5447_humidity') | float }}"
-  
   - id: badezimmer_raffstore_licht_an_001
     alias: Badezimmer Raffstore schließen bei Licht AN
     trigger:
