@@ -956,3 +956,45 @@
           type: "9.007"   # KNX DPT für Luftfeuchtigkeit (%)
           payload: "{{ states('sensor.bthome_sensor_5447_humidity') | float }}"
 
+- id: badezimmer_raffstore_licht_an_001
+  alias: Badezimmer Raffstore schließen bei Licht AN
+  description: Schließt den Raffstore, wenn das Licht eingeschaltet wird, und speichert den aktuellen Zustand
+  trigger:
+    - platform: state
+      entity_id:
+        - light.bathroom_main_light
+        - light.bathroom_mirror_light
+      to: "on"
+  action:
+    - service: input_number.set_value
+      target:
+        entity_id: input_number.raffstore_badezimmer_vorher
+      data:
+        value: "{{ state_attr('cover.bathroom_blinds', 'current_position') }}"
+    - service: cover.close_cover
+      target:
+        entity_id: cover.bathroom_blinds
+  mode: single
+
+- id: badezimmer_raffstore_licht_aus_002
+  alias: Badezimmer Raffstore zurück bei Licht AUS
+  description: Setzt den Raffstore auf den vorherigen Zustand, wenn alle Badezimmerlichter aus sind
+  trigger:
+    - platform: state
+      entity_id:
+        - light.bathroom_main_light
+        - light.bathroom_mirror_light
+      to: "off"
+  condition:
+    - condition: template
+      value_template: >
+        {{ states('light.bathroom_main_light') == 'off' and
+           states('light.bathroom_mirror_light') == 'off' }}
+  action:
+    - service: cover.set_cover_position
+      target:
+        entity_id: cover.bathroom_blinds
+      data:
+        position: "{{ states('input_number.raffstore_badezimmer_vorher') | int }}"
+  mode: single
+
