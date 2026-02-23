@@ -420,15 +420,22 @@
       - platform: state
         entity_id: binary_sensor.praesenzmelder_wohnzimmer
     condition:
-      - condition: state
-        entity_id: input_boolean.wohnkueche_override_kochen
-        state: 'off'
-      - condition: state
-        entity_id: input_boolean.wohnkueche_override_tv
-        state: 'off'
-      - condition: state
-        entity_id: input_boolean.wohnkueche_override_szene
-        state: 'off'
+      - condition: or
+        conditions:
+          - condition: state
+            entity_id: binary_sensor.praesenzmelder_wohnzimmer
+            state: 'off'
+          - condition: and
+            conditions:
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_kochen
+                state: 'off'
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_tv
+                state: 'off'
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_szene
+                state: 'off'
     action:
       - choose:
           - conditions:
@@ -504,6 +511,12 @@
             sequence:
               - service: script.wohnkueche_wochenende_abend
         default:
+          - service: input_boolean.turn_off
+            target:
+              entity_id:
+                - input_boolean.wohnkueche_override_kochen
+                - input_boolean.wohnkueche_override_tv
+                - input_boolean.wohnkueche_override_szene
           - service: light.turn_off
             target:
               entity_id:
@@ -963,6 +976,11 @@
           - light.bathroom_main_light
           - light.bathroom_mirror_light
         to: "on"
+    condition:
+      - condition: template
+        value_template: >
+          {{ states('light.bathroom_main_light') == 'off' or
+             states('light.bathroom_mirror_light') == 'off' }}
     action:
       - service: input_number.set_value
         target:
