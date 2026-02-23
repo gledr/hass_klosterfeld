@@ -942,17 +942,38 @@
 
   - id: smart55_szene_anzeige
     alias: Smart 55 – Szene Anzeige
-    description: Sendet "Aus" an GA 9/1/6 wenn Präsenzmelder ausschaltet
+    description: Sendet Modusname an GA 9/1/6 wenn Präsenzmelder angeht, "Aus" wenn er ausgeht
     trigger:
       - platform: state
         entity_id: binary_sensor.praesenzmelder_wohnzimmer
-        to: 'off'
     action:
-      - service: knx.send
-        data:
-          address: "9/1/6"
-          type: "string"
-          payload: "Aus"
+      - choose:
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+            sequence:
+              - service: knx.send
+                data:
+                  address: "9/1/6"
+                  type: "string"
+                  payload: >-
+                    {{ {
+                      'fruehstueck':          'Fruehstueck',
+                      'werktag_abend_aktiv':  'Abend aktiv',
+                      'werktag_relax':        'Relax',
+                      'spaetabend':           'Spaetabend',
+                      'nacht':                'Nacht',
+                      'wochenende_tag':       'WE Tag',
+                      'wochenende_nachmittag':'WE Nachmittag',
+                      'wochenende_abend':     'WE Abend'
+                    }[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
+        default:
+          - service: knx.send
+            data:
+              address: "9/1/6"
+              type: "string"
+              payload: "Aus"
     mode: single
 
   - id: smart55_lichtmodus_anzeige_aktuell
