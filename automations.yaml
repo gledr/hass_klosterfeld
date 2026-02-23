@@ -955,6 +955,40 @@
           payload: "Aus"
     mode: single
 
+  - id: smart55_lichtmodus_anzeige_aktuell
+    alias: Smart 55 – Lichtmodus Anzeige aktualisieren
+    description: Sendet den aktuellen Lichtmodus an GA 9/1/6 wenn er sich ändert
+    trigger:
+      - platform: state
+        entity_id: input_select.wohnkueche_lichtmodus
+    condition:
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_szene
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_kochen
+        state: 'off'
+      - condition: state
+        entity_id: input_boolean.wohnkueche_override_tv
+        state: 'off'
+    action:
+      - service: knx.send
+        data:
+          address: "9/1/6"
+          type: "string"
+          payload: >-
+            {{ {
+              'fruehstueck':          'Fruehstueck',
+              'werktag_abend_aktiv':  'Abend aktiv',
+              'werktag_relax':        'Relax',
+              'spaetabend':           'Spaetabend',
+              'nacht':                'Nacht',
+              'wochenende_tag':       'WE Tag',
+              'wochenende_nachmittag':'WE Nachmittag',
+              'wochenende_abend':     'WE Abend'
+            }[trigger.to_state.state] | default('?') }}
+    mode: single
+
   - id: "knx_luftfeuchtigkeit_7_3_21"
     alias: "Luftfeuchtigkeit auf KNX schreiben"
     description: "Sendet den Wert von sensor.bthome_sensor_5447_humidity auf KNX GA 7/3/21 bei jeder Änderung"
