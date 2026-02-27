@@ -1,3 +1,44 @@
+  - id: garage_venting_control
+    alias: "Garage – Lüftung Taupunkt-Steuerung"
+    description: >
+      Schaltet die Garagenlüftung ein wenn der Außen-Taupunkt mindestens 2°C
+      unter dem Garagen-Taupunkt liegt, es nicht Nacht ist (07:00–21:00),
+      die Außentemperatur mind. 5°C beträgt und das Garagentor geschlossen ist.
+    trigger:
+      - platform: time_pattern
+        minutes: "/15"
+    variables:
+      t_out: "{{ states('sensor.outdoor_temperature') | float(0) }}"
+      h_out: "{{ states('sensor.outdoor_humidity') | float(0) }}"
+      t_gar: "{{ states('sensor.garagentor_garage_temperature') | float(0) }}"
+      h_gar: "{{ states('sensor.garagentor_garage_humidity') | float(0) }}"
+      dp_out: >
+        {{ t_out - ((100 - h_out) / 5) }}
+      dp_gar: >
+        {{ t_gar - ((100 - h_gar) / 5) }}
+      garage_closed: "{{ states('sensor.garage_door_garage_door_position') | int(0) == 0 }}"
+      is_daytime: "{{ now().hour >= 7 and now().hour < 21 }}"
+      warm_enough: "{{ t_out >= 5 }}"
+      dew_point_ok: "{{ dp_out < (dp_gar - 2) }}"
+      should_vent: "{{ garage_closed and is_daytime and warm_enough and dew_point_ok }}"
+    action:
+      - choose:
+          - conditions:
+              - condition: template
+                value_template: "{{ should_vent }}"
+            sequence:
+              - service: switch.turn_on
+                target:
+                  entity_id: switch.garage_door_garage_door_vent
+          - conditions:
+              - condition: template
+                value_template: "{{ not should_vent }}"
+            sequence:
+              - service: switch.turn_off
+                target:
+                  entity_id: switch.garage_door_garage_door_vent
+    mode: single
+
   - id: all_shutter_down_after_sunset
     alias: Rollos – gestreut runter nach Sonnenuntergang
     trigger:
