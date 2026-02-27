@@ -418,4 +418,5 @@ template:
         unit_of_measurement: "%"
         state_class: measurement
         device_class: humidity
+        availability: "{{ states('weather.forcecast_home') not in ['unknown', 'unavailable'] }}"
         state: "{{ state_attr('weather.forcecast_home', 'humidity') }}"
