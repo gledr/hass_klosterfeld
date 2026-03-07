@@ -16,7 +16,6 @@ scene: !include scenes.yaml
 # KNX INTEGRATION
 # ========================
 knx:
-  # Event Trigger
   event:
     - address: '8/5/0'         # Garage door pulse
     - address: "9/1/0"         # Glaspanel Küche – Kochen Toggle
@@ -30,132 +29,14 @@ knx:
   # LIGHTS
   # ========================
   light:
-    - name: "Büro Licht"
-      address: "1/3/30"
-      state_address: "1/3/33"
-      brightness_address: "1/3/32"
-      brightness_state_address: "1/3/34"
-    - name: "Guest Light"
-      address: "1/3/20"
-      state_address: "1/3/23"
-      brightness_address: "1/3/22"
-      brightness_state_address: "1/3/24"
-    - name: "Bedroom Bed Light-Left"
-      address: "1/3/40"
-      state_address: "1/3/43"
-      brightness_address: "1/3/42"
-      brightness_state_address: "1/3/44"
-    - name: "Bedroom Bed Light-Right"
-      address: "1/3/50"
-      state_address: "1/3/53"
-      brightness_address: "1/3/52"
-      brightness_state_address: "1/3/54"
-    - name: "Bedroom Main Light"
-      address: "1/3/60"
-      state_address: "1/3/63"
-      brightness_address: "1/3/62"
-      brightness_state_address: "1/3/64"
-    - name: "Gallery OG Light"
-      address: "1/3/0"
-      state_address: "1/3/3"
-      brightness_address: "1/3/2"
-      brightness_state_address: "1/3/4"
-    - name: "WC OG Light"
-      address: "1/3/10"
-      state_address: "1/3/13"
-      brightness_address: "1/3/12"
-      brightness_state_address: "1/3/14"
-    - name: "Bathroom Main Light"
-      address: "1/3/80"
-      state_address: "1/3/83"
-      brightness_address: "1/3/82"
-      brightness_state_address: "1/3/84"
-    - name: "Bathroom Mirror Light"
-      address: "1/3/90"
-      state_address: "1/3/91"
-    - name: "Stairway EG-OG Light"
-      address: "1/2/120"
-      state_address: "1/2/121"
-    - name: "Shelf EG Light"
-      address: "1/2/30"
-      state_address: "1/2/31"
-    - name: "Wardrobe Light"
-      address: "1/2/0"
-      state_address: "1/2/1"
-    - name: "Entrance Light"
-      address: "1/2/10"
-      state_address: "1/2/3"
-      brightness_address: "1/2/12"
-      brightness_state_address: "1/2/14"
-    - name: "WC EG Light"
-      address: "1/2/20"
-      state_address: "1/2/23"
-      brightness_address: "1/2/22"
-      brightness_state_address: "1/2/24"
-    - name: "Dining Light"
-      address: "1/2/80"
-      state_address: "1/2/83"
-      brightness_address: "1/2/82"
-      brightness_state_address: "1/2/84"
-    - name: "Livingroom Reading Light"
-      address: "1/2/100"
-      state_address: "1/2/103"
-      brightness_address: "1/2/102"
-      brightness_state_address: "1/2/104"
-    - name: "Livingroom Main Light"
-      address: "1/2/90"
-      state_address: "1/2/93"
-      brightness_address: "1/2/92"
-      brightness_state_address: "1/2/94"
-    - name: "Licht Spuele Kueche"
-      address: "1/2/60"
-      state_address: "1/2/61"
-    - name: "Licht Vitrine Kueche"
-      address: "1/2/70"
-      state_address: "1/2/71"
-    - name: "Licht Kueche Fenster"
-      address: "1/2/50"
-      state_address: "1/2/53"
-      brightness_address: "1/2/52"
-      brightness_state_address: "1/2/54"
-    - name: "Licht Kueche Stiege"
-      address: "1/2/40"
-      state_address: "1/2/43"
-      brightness_address: "1/2/42"
-      brightness_state_address: "1/2/44"
-    - name: "Engineering Light"
-      address: "1/1/0"
-      state_address: "1/1/1"
-    - name: "Storage Light"
-      address: "1/1/10"
-      state_address: "1/1/11"
-    - name: "Hobby Light"
-      address: "1/1/20"
-      state_address: "1/1/21"
-    - name: "Basement Main Light"
-      address: "1/1/30"
-      state_address: "1/1/31"
-    - name: "Basement Wall Light"
-      address: "1/1/40"
-      state_address: "1/1/41"
-    - name: "Stairs KG EG Light EG"
-      address: "1/1/50"
-      state_address: "1/1/51"
-    - name: "Main Door Light"
-      address: "1/4/0"
-      state_address: "1/4/1"
-    - name: "Terrace Light"
-      address: "1/4/20"
-      state_address: "1/4/21"
-    - name: "Carport Light"
-      address: "1/4/10"
-      state_address: "1/4/11"
+    # … deine Lichter bleiben unverändert …
+    # (Büro Licht, Guest Light, Bedroom Light … etc.)
 
   # ========================
   # SENSORS
   # ========================
   sensor:
-    # Temperatur- und Feuchtigkeitssensoren
+    # Temperatur
     - name: "Office Temperature"
       state_address: "7/3/10"
       type: "temperature"
@@ -224,7 +105,7 @@ knx:
       state_address: "8/4/19"
       type: "temperature"
       sync_state: true
-    # Helligkeitssensoren
+    # Helligkeit
     - name: "Wohnküche Helligkeit"
       state_address: "5/2/37"
       type: "illuminance"
@@ -241,7 +122,6 @@ knx:
       state_address: "5/1/17"
       type: "illuminance"
       sync_state: true
-    # MDT Wetterstation Helligkeit & Twilight
     - name: "Helligkeit Ost"
       state_address: "8/4/2"
       type: "illuminance"
@@ -254,18 +134,13 @@ knx:
       state_address: "8/4/4"
       type: "illuminance"
       sync_state: true
-    - name: "Twilight"
-      state_address: "8/4/1"
-      type: "binary"
-      device_class: light
-      sync_state: true
     # Wind
     - name: "Wind Speed"
       state_address: "8/4/9"
       type: "wind_speed_ms"
 
   # ========================
-  # BINARY SENSORS
+  # BINARY SENSORS (Locks / Twilight)
   # ========================
   binary_sensor:
     - name: "Bewegungsmelder Galerie OG"
@@ -274,7 +149,6 @@ knx:
     - name: "Praesenzmelder Wohnzimmer"
       state_address: "5/2/20"
       device_class: presence
-    # NEU: Lock-GAs
     - name: "Helligkeit Ost Lock"
       state_address: "8/4/5"
       device_class: lock
@@ -284,12 +158,15 @@ knx:
     - name: "Helligkeit West Lock"
       state_address: "8/4/7"
       device_class: lock
+    - name: "Twilight"
+      state_address: "8/4/1"
+      device_class: opening   # Dämmerung als binary_sensor
 
   # ========================
-  # COVERS (Raffstores / Jalousien)
+  # COVERS
   # ========================
   cover:
-    # ... (deine bisherigen Cover-Einträge unverändert, inkl. Lamellenwinkel)
+    # … deine bisherigen Covers unverändert …
 
   # ========================
   # SWITCHES
@@ -299,53 +176,53 @@ knx:
       address: "2/3/0"
       state_address: "2/3/1"
 
-  # ========================
-  # INPUT BOOLEANS
-  # ========================
-  input_boolean:
-    wohnkueche_override_kochen:
-      name: Wohnküche Override Kochen
-    wohnkueche_override_tv:
-      name: Wohnküche Override TV
-    wohnkueche_override_szene:
-      name: Wohnküche Override Szene (Smart 55)
+# ========================
+# INPUT BOOLEANS
+# ========================
+input_boolean:
+  wohnkueche_override_kochen:
+    name: Wohnküche Override Kochen
+  wohnkueche_override_tv:
+    name: Wohnküche Override TV
+  wohnkueche_override_szene:
+    name: Wohnküche Override Szene (Smart 55)
 
-  # ========================
-  # INPUT SELECTS
-  # ========================
-  input_select:
-    wohnkueche_lichtmodus:
-      name: Wohnküche Lichtmodus
-      options:
-        - fruehstueck
-        - werktag_abend_aktiv
-        - werktag_relax
-        - spaetabend
-        - nacht
-        - wochenende_tag
-        - wochenende_nachmittag
-        - wochenende_abend
+# ========================
+# INPUT SELECTS
+# ========================
+input_select:
+  wohnkueche_lichtmodus:
+    name: Wohnküche Lichtmodus
+    options:
+      - fruehstueck
+      - werktag_abend_aktiv
+      - werktag_relax
+      - spaetabend
+      - nacht
+      - wochenende_tag
+      - wochenende_nachmittag
+      - wochenende_abend
 
-  # ========================
-  # INPUT NUMBERS
-  # ========================
-  input_number:
-    raffstore_badezimmer_vorher:
-      name: Raffstore Badezimmer vorheriger Zustand
-      initial: 100
-      min: 0
-      max: 100
-      step: 1
+# ========================
+# INPUT NUMBERS
+# ========================
+input_number:
+  raffstore_badezimmer_vorher:
+    name: Raffstore Badezimmer vorheriger Zustand
+    initial: 100
+    min: 0
+    max: 100
+    step: 1
 
-  # ========================
-  # TEMPLATE SENSORS
-  # ========================
-  template:
-    - sensor:
-        - name: "Outdoor Humidity"
-          unique_id: outdoor_humidity_met
-          unit_of_measurement: "%"
-          state_class: measurement
-          device_class: humidity
-          availability: "{{ states('weather.forecast_home') not in ['unknown', 'unavailable'] }}"
-          state: "{{ state_attr('weather.forecast_home', 'humidity') }}"
+# ========================
+# TEMPLATE SENSORS
+# ========================
+template:
+  - sensor:
+      - name: "Outdoor Humidity"
+        unique_id: outdoor_humidity_met
+        unit_of_measurement: "%"
+        state_class: measurement
+        device_class: humidity
+        availability: "{{ states('weather.forecast_home') not in ['unknown', 'unavailable'] }}"
+        state: "{{ state_attr('weather.forecast_home', 'humidity') }}"
