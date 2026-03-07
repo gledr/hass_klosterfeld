@@ -31,7 +31,7 @@ knx:
   # LIGHTS
   # ========================
   light:
-    # … deine bisherigen Lichter unverändert …
+    # …deine bisherigen Lichter bleiben unverändert…
 
   # ========================
   # SENSORS
@@ -102,6 +102,10 @@ knx:
       state_address: "7/2/15"
       type: "temperature"
       sync_state: true
+    - name: "Outdoor Temperature"
+      state_address: "8/4/19"
+      type: "temperature"
+      sync_state: true
 
     # HUMIDITY (Luftfeuchte)
     - name: "Office Humidity"
@@ -168,6 +172,10 @@ knx:
       state_address: "7/2/16"
       type: "humidity"
       sync_state: true
+    - name: "Outdoor Humidity"
+      state_address: "8/4/18"
+      type: "humidity"
+      sync_state: true
 
     # ILLUMINANCE / Helligkeit
     - name: "Helligkeit Süd"
@@ -199,14 +207,14 @@ knx:
       type: "illuminance"
       sync_state: true
 
-    # Wind
+    # WIND
     - name: "Wind Speed"
       state_address: "8/4/9"
       type: "wind_speed_ms"
       sync_state: true
 
   # ========================
-  # BINARY SENSORS
+  # BINARY SENSORS – ALLE EXISTIERENDEN PLUS WINDALARM
   # ========================
   binary_sensor:
     # Bewegungsmelder / Präsenz / Locks / Twilight
