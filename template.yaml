@@ -51,22 +51,38 @@ sensor:
     device_class: humidity
     state: "{{ state_attr('weather.forecast_home', 'humidity') }}"
 
-binary_sensor:
-
-  - name: "Technikraum Lüften sinnvoll"
-    unique_id: ventilation_technikraum
+  - name: "Lüftung Technikraum"
+    unique_id: ventilation_technikraum_level
     state: >
-      {{ states('sensor.taupunkt_aussen') | float
-         < states('sensor.taupunkt_technikraum') | float }}
+      {% set delta = (states('sensor.taupunkt_technikraum') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
 
-  - name: "Hobby Lüften sinnvoll"
-    unique_id: ventilation_hobby
+  - name: "Lüftung Hobbyraum"
+    unique_id: ventilation_hobby_level
     state: >
-      {{ states('sensor.taupunkt_aussen') | float
-         < states('sensor.taupunkt_hobby') | float }}
+      {% set delta = (states('sensor.taupunkt_hobby') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
 
-  - name: "Lager Lüften sinnvoll"
-    unique_id: ventilation_lager
+  - name: "Lüftung Lager"
+    unique_id: ventilation_lager_level
     state: >
-      {{ states('sensor.taupunkt_aussen') | float
-         < states('sensor.taupunkt_lager') | float }}
+      {% set delta = (states('sensor.taupunkt_lager') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
