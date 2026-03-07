@@ -245,3 +245,30 @@ knx:
     - name: "Windalarm Schwelle 2"
       state_address: "8/4/11"
       device_class: safety
+      
+# ========================
+# INPUT BOOLEANS
+# ========================
+input_boolean:
+  wohnkueche_override_kochen:
+    name: Wohnküche Override Kochen
+  wohnkueche_override_tv:
+    name: Wohnküche Override TV
+  wohnkueche_override_szene:
+    name: Wohnküche Override Szene (Smart 55)
+
+# ========================
+# INPUT SELECTS
+# ========================
+input_select:
+  wohnkueche_lichtmodus:
+    name: Wohnküche Lichtmodus
+    options:
+      - fruehstueck
+      - werktag_abend_aktiv
+      - werktag_relax
+      - spaetabend
+      - nacht
+      - wochenende_tag
+      - wochenende_nachmittag
+      - wochenende_abend
