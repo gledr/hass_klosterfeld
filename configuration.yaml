@@ -161,6 +161,15 @@ knx:
     - name: "Twilight"
       state_address: "8/4/1"
       device_class: opening
+  # ========================
+  # WINDALARME
+  # ========================
+    - name: "Windalarm Schwelle 1"
+      state_address: "8/4/10"
+      device_class: safety
+    - name: "Windalarm Schwelle 2"
+      state_address: "8/4/11"
+      device_class: safety
 
   # ========================
   # COVERS
