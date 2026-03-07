@@ -1,6 +1,7 @@
-# ========================
+#########################################################
 # DEFAULT CONFIG
-# ========================
+#########################################################
+
 default_config:
 
 # Frontend Themes
@@ -12,9 +13,10 @@ automation: !include automations.yaml
 script: !include scripts.yaml
 scene: !include scenes.yaml
 
-# ========================
+#########################################################
 # KNX INTEGRATION
-# ========================
+#########################################################
+
 knx:
   event:
     - address: '8/5/0'         # Garage door pulse
@@ -29,14 +31,13 @@ knx:
   # LIGHTS
   # ========================
   light:
-    # … alle deine bisherigen Lichter bleiben hier unverändert …
-    # (Büro Licht, Guest Light, Bedroom Light … etc.)
+    # … deine bisherigen Lichter unverändert …
 
   # ========================
   # SENSORS
   # ========================
   sensor:
-    # Temperatur
+    # TEMPERATURE
     - name: "Office Temperature"
       state_address: "7/3/10"
       type: "temperature"
@@ -101,21 +102,84 @@ knx:
       state_address: "7/2/15"
       type: "temperature"
       sync_state: true
-    - name: "Outdoor Temperature"
-      state_address: "8/4/19"
-      type: "temperature"
+
+    # HUMIDITY (Luftfeuchte)
+    - name: "Office Humidity"
+      state_address: "7/3/11"
+      type: "humidity"
       sync_state: true
-    # Helligkeit – nach Hausseiten gemappt
-    - name: "Helligkeit Süd"      # Süd-Raffstores
-      state_address: "8/4/4"      # West-Messung
+    - name: "Guest Room Humidity"
+      state_address: "7/3/6"
+      type: "humidity"
+      sync_state: true
+    - name: "Bedroom Humidity"
+      state_address: "7/3/16"
+      type: "humidity"
+      sync_state: true
+    - name: "Bathroom Humidity"
+      state_address: "7/3/21"
+      type: "humidity"
+      sync_state: true
+    - name: "WC OG Humidity"
+      state_address: "7/3/26"
+      type: "humidity"
+      sync_state: true
+    - name: "Gallery OG Humidity"
+      state_address: "7/3/1"
+      type: "humidity"
+      sync_state: true
+    - name: "Engineering Humidity"
+      state_address: "7/1/1"
+      type: "humidity"
+      sync_state: true
+    - name: "Hobby Humidity"
+      state_address: "7/1/11"
+      type: "humidity"
+      sync_state: true
+    - name: "Storage Humidity"
+      state_address: "7/1/6"
+      type: "humidity"
+      sync_state: true
+    - name: "Basement Hallway Humidity"
+      state_address: "7/1/16"
+      type: "humidity"
+      sync_state: true
+    - name: "Wardrobe Humidity"
+      state_address: "7/2/11"
+      type: "humidity"
+      sync_state: true
+    - name: "Utility Humidity"
+      state_address: "7/2/6"
+      type: "humidity"
+      sync_state: true
+    - name: "WC GF Humidity"
+      state_address: "7/2/1"
+      type: "humidity"
+      sync_state: true
+    - name: "Stairs EG-OG Humidity-EG"
+      state_address: "7/2/26"
+      type: "humidity"
+      sync_state: true
+    - name: "Stairs KG-EG Humidity-EG"
+      state_address: "7/2/21"
+      type: "humidity"
+      sync_state: true
+    - name: "Kitchen Humidity"
+      state_address: "7/2/16"
+      type: "humidity"
+      sync_state: true
+
+    # ILLUMINANCE / Helligkeit
+    - name: "Helligkeit Süd"
+      state_address: "8/4/4"
       type: "illuminance"
       sync_state: true
-    - name: "Helligkeit West"     # West-Raffstores
-      state_address: "8/4/3"      # Süd-Messung
+    - name: "Helligkeit West"
+      state_address: "8/4/3"
       type: "illuminance"
       sync_state: true
-    - name: "Helligkeit Nord"     # Nord-Raffstores
-      state_address: "8/4/2"      # Ost-Messung
+    - name: "Helligkeit Nord"
+      state_address: "8/4/2"
       type: "illuminance"
       sync_state: true
     - name: "Keller Vorraum Helligkeit"
@@ -134,15 +198,18 @@ knx:
       state_address: "5/3/17"
       type: "illuminance"
       sync_state: true
+
     # Wind
     - name: "Wind Speed"
       state_address: "8/4/9"
       type: "wind_speed_ms"
+      sync_state: true
 
   # ========================
-  # BINARY SENSORS (Locks / Twilight)
+  # BINARY SENSORS
   # ========================
   binary_sensor:
+    # Bewegungsmelder / Präsenz / Locks / Twilight
     - name: "Bewegungsmelder Galerie OG"
       state_address: "5/3/0"
       device_class: motion
@@ -161,77 +228,11 @@ knx:
     - name: "Twilight"
       state_address: "8/4/1"
       device_class: opening
-  # ========================
-  # WINDALARME
-  # ========================
+
+    # WINDALARME NEU
     - name: "Windalarm Schwelle 1"
       state_address: "8/4/10"
       device_class: safety
     - name: "Windalarm Schwelle 2"
       state_address: "8/4/11"
       device_class: safety
-
-  # ========================
-  # COVERS
-  # ========================
-  cover:
-    # … deine bisherigen Covers unverändert …
-
-  # ========================
-  # SWITCHES
-  # ========================
-  switch:
-    - name: "Bathroom Handtuchheizkoerper"
-      address: "2/3/0"
-      state_address: "2/3/1"
-
-# ========================
-# INPUT BOOLEANS
-# ========================
-input_boolean:
-  wohnkueche_override_kochen:
-    name: Wohnküche Override Kochen
-  wohnkueche_override_tv:
-    name: Wohnküche Override TV
-  wohnkueche_override_szene:
-    name: Wohnküche Override Szene (Smart 55)
-
-# ========================
-# INPUT SELECTS
-# ========================
-input_select:
-  wohnkueche_lichtmodus:
-    name: Wohnküche Lichtmodus
-    options:
-      - fruehstueck
-      - werktag_abend_aktiv
-      - werktag_relax
-      - spaetabend
-      - nacht
-      - wochenende_tag
-      - wochenende_nachmittag
-      - wochenende_abend
-
-# ========================
-# INPUT NUMBERS
-# ========================
-input_number:
-  raffstore_badezimmer_vorher:
-    name: Raffstore Badezimmer vorheriger Zustand
-    initial: 100
-    min: 0
-    max: 100
-    step: 1
-
-# ========================
-# TEMPLATE SENSORS
-# ========================
-template:
-  - sensor:
-      - name: "Outdoor Humidity"
-        unique_id: outdoor_humidity_met
-        unit_of_measurement: "%"
-        state_class: measurement
-        device_class: humidity
-        availability: "{{ states('weather.forecast_home') not in ['unknown', 'unavailable'] }}"
-        state: "{{ state_attr('weather.forecast_home', 'humidity') }}"
