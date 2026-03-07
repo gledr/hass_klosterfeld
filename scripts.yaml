@@ -359,6 +359,39 @@ notify_smoke_alarm:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
 #########################################################
+# WINDALARM – BENACHRICHTIGUNGEN
+#########################################################
+
+notify_wind_alarm:
+  alias: Windalarm Benachrichtigung
+  description: Sendet Windalarm an alle Geräte
+  mode: parallel
+  fields:
+    alarm_name:
+      description: Name des Windalarms (z.B. Schwelle 1)
+      example: Schwelle 1
+    state:
+      description: Status des Alarms
+      example: aktiviert
+
+  sequence:
+    - service: notify.mobile_app_ipad_von_sebastian
+      data:
+        message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
+
+    - service: notify.mobile_app_iphone_von_sebastian
+      data:
+        message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
+
+    - service: notify.mobile_app_macbook_von_sebastian
+      data:
+        message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
+
+    - service: notify.mobile_app_sebastians_company_macbook_pro
+      data:
+        message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
+
+#########################################################
 # HAUS – MORGENMODUS (ROLLOS ÖFFNEN)
 # Wird durch Haus-Tagesmodus getriggert
 # Erweiterbar: Licht, Heizung, Musik

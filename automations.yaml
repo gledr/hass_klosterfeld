@@ -1076,3 +1076,16 @@
         data:
           position: "{{ states('input_number.raffstore_badezimmer_vorher') | int }}"
     mode: single
+
+  - id: windalarm_notification_1
+    alias: "Windalarm Notification"
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.windalarm_schwelle_1
+      - platform: state
+        entity_id: binary_sensor.windalarm_schwelle_2
+    action:
+      - service: script.notify_wind_alarm
+        data:
+          alarm_name: "{{ trigger.to_state.name }}"
+          state: "{{ 'aktiviert' if trigger.to_state.state == 'on' else 'deaktiviert' }}"
