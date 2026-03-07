@@ -44,6 +44,13 @@ sensor:
       {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
       {{ ((b*alpha)/(a-alpha)) | round(2) }}
 
+  - name: "Outdoor Humidity"
+    unique_id: outdoor_humidity_met
+    unit_of_measurement: "%"
+    state_class: measurement
+    device_class: humidity
+    state: "{{ state_attr('weather.forecast_home', 'humidity') }}"
+
 binary_sensor:
 
   - name: "Technikraum Lüften sinnvoll"
