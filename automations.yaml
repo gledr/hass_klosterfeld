@@ -1094,4 +1094,4 @@
       - service: script.notify_wind_alarm
         data:
           alarm_name: "{{ trigger.to_state.name }}"
-          state: "{{ 'aktiviert' if trigger.to_state.state == 'on' else 'deaktiviert' }}" }}"
+          state: "{{ 'aktiviert' if trigger.to_state.state == 'on' else 'deaktiviert' }}"
