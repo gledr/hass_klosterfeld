@@ -289,11 +289,7 @@ knx:
       type: "humidity"
       sync_state: true
     - name: "Kitchen Humidity"
-      state_address: "7/2/16"
-      type: "humidity"
-      sync_state: true
-    - name: "Outdoor Humidity"
-      state_address: "8/4/18"
+      state_address: "7/2/31"
       type: "humidity"
       sync_state: true
 
@@ -332,6 +328,47 @@ knx:
       state_address: "8/4/9"
       type: "wind_speed_ms"
       sync_state: true
+
+    # Energie
+    - name: "Netz Spannung L1"
+      state_address: "2/0/0"
+      type: "electric_potential"      # Home Assistant KNX sensor type
+      device_class: "voltage"
+    - name: "Netz Spannung L2"
+      state_address: "2/0/1"
+      type: "electric_potential"      # Home Assistant KNX sensor type
+      device_class: "voltage"
+    - name: "Netz Spannung L3"
+      state_address: "2/0/2"
+      type: "electric_potential"      # Home Assistant KNX sensor type
+      device_class: "voltage"
+    - name: "Leistung Phase L1"
+      state_address: "2/0/3"
+      type: "power"      # Home Assistant KNX sensor type
+    - name: "Leistung Phase L2"
+      state_address: "2/0/4"
+      type: "power"      # Home Assistant KNX sensor type
+    - name: "Leistung Phase L3"
+      state_address: "2/0/5"
+      type: "power"      # Home Assistant KNX sensor type
+    - name: "Verbrauch: Strom Phase L1"
+      state_address: "2/0/6"
+      type: "current"      # Home Assistant KNX sensor type
+    - name: "Verbrauch: Strom Phase L2"
+      state_address: "2/0/7"
+      type: "current"      # Home Assistant KNX sensor type
+    - name: "Verbrauch: Strom Phase L3"
+      state_address: "2/0/8"
+      type: "current"      # Home Assistant KNX sensor type
+    - name: "Einspeisung: Strom Phase L1"
+      state_address: "2/0/9"
+      type: "current"      # Home Assistant KNX sensor type
+    - name: "Einspeisung: Strom Phase L2"
+      state_address: "2/0/10"
+      type: "current"      # Home Assistant KNX sensor type
+    - name: "Einspeisung: Strom Phase L3"
+      state_address: "2/0/11"
+      type: "current"      # Home Assistant KNX sensor type
 
   cover:
     - name: "Rollos Buero"
