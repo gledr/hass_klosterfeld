@@ -32,7 +32,48 @@ knx:
   # LIGHTS
   # ========================
   light:
-    # …deine bisherigen Lichter bleiben unverändert…
+    - name: "Büro Licht"
+      address: "1/0/1"
+      state_address: "1/0/2"
+    - name: "Guest Light"
+      address: "1/0/3"
+      state_address: "1/0/4"
+    - name: "Bedroom Light"
+      address: "1/0/5"
+      state_address: "1/0/6"
+    - name: "Bathroom Light"
+      address: "1/0/7"
+      state_address: "1/0/8"
+    - name: "Kitchen Light"
+      address: "1/0/9"
+      state_address: "1/0/10"
+    - name: "Wohnzimmer Deckenlicht"
+      address: "1/0/11"
+      state_address: "1/0/12"
+    - name: "Wohnzimmer Sideboard Light"
+      address: "1/0/13"
+      state_address: "1/0/14"
+    - name: "Garderobe Licht"
+      address: "1/0/15"
+      state_address: "1/0/16"
+    - name: "Gallery OG Licht"
+      address: "1/0/17"
+      state_address: "1/0/18"
+    - name: "Stairs EG-OG Licht"
+      address: "1/0/19"
+      state_address: "1/0/20"
+    - name: "Stairs KG-EG Licht"
+      address: "1/0/21"
+      state_address: "1/0/22"
+    - name: "Hobbyraum Licht"
+      address: "1/0/23"
+      state_address: "1/0/24"
+    - name: "Technikraum Licht"
+      address: "1/0/25"
+      state_address: "1/0/26"
+    - name: "Lager Licht"
+      address: "1/0/27"
+      state_address: "1/0/28"
 
   # ========================
   # SENSORS
@@ -214,6 +255,11 @@ knx:
       type: "wind_speed_ms"
       sync_state: true
 
+  switch:
+    - name: "Bathroom Handtuchheizkoerper"
+      address: "2/3/0"
+      state_address: "2/3/1"
+
   # ========================
   # BINARY SENSORS – ALLE EXISTIERENDEN PLUS WINDALARM
   # ========================
@@ -245,7 +291,7 @@ knx:
     - name: "Windalarm Schwelle 2"
       state_address: "8/4/11"
       device_class: safety
-      
+
 # ========================
 # INPUT BOOLEANS
 # ========================
@@ -272,3 +318,11 @@ input_select:
       - wochenende_tag
       - wochenende_nachmittag
       - wochenende_abend
+
+input_number:
+  raffstore_badezimmer_vorher:
+    name: Raffstore Badezimmer vorheriger Zustand
+    initial: 100
+    min: 0
+    max: 100
+    step: 1
