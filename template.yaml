@@ -1,0 +1,65 @@
+sensor:
+
+  - name: "Taupunkt Aussen"
+    unique_id: taupunkt_aussen
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.outdoor_temperature') | float %}
+      {% set RH = states('sensor.outdoor_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Taupunkt Technikraum"
+    unique_id: taupunkt_technikraum
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.engineering_temperature') | float %}
+      {% set RH = states('sensor.engineering_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Taupunkt Hobby"
+    unique_id: taupunkt_hobby
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.hobby_temperature') | float %}
+      {% set RH = states('sensor.hobby_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Taupunkt Lager"
+    unique_id: taupunkt_lager
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.storage_temperature') | float %}
+      {% set RH = states('sensor.storage_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+binary_sensor:
+
+  - name: "Technikraum Lüften sinnvoll"
+    unique_id: ventilation_technikraum
+    state: >
+      {{ states('sensor.taupunkt_aussen') | float
+         < states('sensor.taupunkt_technikraum') | float }}
+
+  - name: "Hobby Lüften sinnvoll"
+    unique_id: ventilation_hobby
+    state: >
+      {{ states('sensor.taupunkt_aussen') | float
+         < states('sensor.taupunkt_hobby') | float }}
+
+  - name: "Lager Lüften sinnvoll"
+    unique_id: ventilation_lager
+    state: >
+      {{ states('sensor.taupunkt_aussen') | float
+         < states('sensor.taupunkt_lager') | float }}
