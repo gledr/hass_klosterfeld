@@ -29,7 +29,7 @@ knx:
   # LIGHTS
   # ========================
   light:
-    # … deine Lichter bleiben unverändert …
+    # … alle deine bisherigen Lichter bleiben hier unverändert …
     # (Büro Licht, Guest Light, Bedroom Light … etc.)
 
   # ========================
@@ -105,7 +105,23 @@ knx:
       state_address: "8/4/19"
       type: "temperature"
       sync_state: true
-    # Helligkeit
+    # Helligkeit – umgeleitet nach Hausseiten
+    - name: "Helligkeit Süd"
+      state_address: "8/4/4"        # ursprünglich West
+      type: "illuminance"
+      sync_state: true
+    - name: "Helligkeit West"
+      state_address: "8/4/3"        # ursprünglich Süd
+      type: "illuminance"
+      sync_state: true
+    - name: "Helligkeit Ost"
+      state_address: "8/4/2"        # ursprünglich Ost
+      type: "illuminance"
+      sync_state: true
+    - name: "Keller Vorraum Helligkeit"
+      state_address: "5/1/17"
+      type: "illuminance"
+      sync_state: true
     - name: "Wohnküche Helligkeit"
       state_address: "5/2/37"
       type: "illuminance"
@@ -116,22 +132,6 @@ knx:
       sync_state: true
     - name: "Gallerie Helligkeit"
       state_address: "5/3/17"
-      type: "illuminance"
-      sync_state: true
-    - name: "Keller Vorraum Helligkeit"
-      state_address: "5/1/17"
-      type: "illuminance"
-      sync_state: true
-    - name: "Helligkeit Ost"
-      state_address: "8/4/2"
-      type: "illuminance"
-      sync_state: true
-    - name: "Helligkeit Süd"
-      state_address: "8/4/3"
-      type: "illuminance"
-      sync_state: true
-    - name: "Helligkeit West"
-      state_address: "8/4/4"
       type: "illuminance"
       sync_state: true
     # Wind
