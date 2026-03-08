@@ -86,3 +86,26 @@ sensor:
       {% else %}
         Nicht lüften
       {% endif %}
+
+  - name: "Taupunkt Garage"
+    unique_id: taupunkt_garage
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.garagentor_garage_temperature') | float %}
+      {% set RH = states('sensor.garagentor_garage_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Lüftung Garage"
+    unique_id: ventilation_garage_level
+    state: >
+      {% set delta = (states('sensor.taupunkt_garage') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
