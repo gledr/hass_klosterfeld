@@ -54,8 +54,11 @@ sensor:
   - name: "Lüftung Technikraum"
     unique_id: ventilation_technikraum_level
     state: >
+      {% set RH = states('sensor.engineering_humidity') | float(0) %}
       {% set delta = (states('sensor.taupunkt_technikraum') | float) - (states('sensor.taupunkt_aussen') | float) %}
-      {% if delta > 2 %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
         Lüften stark
       {% elif delta > 0 %}
         Lüften wenig
@@ -66,8 +69,11 @@ sensor:
   - name: "Lüftung Hobbyraum"
     unique_id: ventilation_hobby_level
     state: >
+      {% set RH = states('sensor.hobby_humidity') | float(0) %}
       {% set delta = (states('sensor.taupunkt_hobby') | float) - (states('sensor.taupunkt_aussen') | float) %}
-      {% if delta > 2 %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
         Lüften stark
       {% elif delta > 0 %}
         Lüften wenig
@@ -78,8 +84,11 @@ sensor:
   - name: "Lüftung Lager"
     unique_id: ventilation_lager_level
     state: >
+      {% set RH = states('sensor.storage_humidity') | float(0) %}
       {% set delta = (states('sensor.taupunkt_lager') | float) - (states('sensor.taupunkt_aussen') | float) %}
-      {% if delta > 2 %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
         Lüften stark
       {% elif delta > 0 %}
         Lüften wenig
@@ -101,8 +110,11 @@ sensor:
   - name: "Lüftung Garage"
     unique_id: ventilation_garage_level
     state: >
+      {% set RH = states('sensor.garagentor_garage_humidity') | float(0) %}
       {% set delta = (states('sensor.taupunkt_garage') | float) - (states('sensor.taupunkt_aussen') | float) %}
-      {% if delta > 2 %}
+      {% if RH < 50 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
         Lüften stark
       {% elif delta > 0 %}
         Lüften wenig
