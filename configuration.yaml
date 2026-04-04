@@ -513,6 +513,7 @@ input_select:
       - wochenende_tag
       - wochenende_nachmittag
       - wochenende_abend
+      - alles_aus
 
 input_number:
   raffstore_badezimmer_vorher:

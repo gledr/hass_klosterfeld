@@ -313,6 +313,8 @@
     - platform: time
       at: '08:00:00'
     - platform: time
+      at: '09:00:00'
+    - platform: time
       at: '12:00:00'
     - platform: time
       at: '14:00:00'
@@ -379,7 +381,7 @@
           entity_id: binary_sensor.workday_sensor
           state: 'off'
         - condition: time
-          after: '08:00:00'
+          after: '09:00:00'
           before: '12:00:00'
         sequence:
         - service: input_select.select_option
@@ -416,18 +418,6 @@
           state: 'off'
         - condition: time
           after: '18:00:00'
-          before: '20:00:00'
-        sequence:
-        - service: input_select.select_option
-          data:
-            entity_id: input_select.wohnkueche_lichtmodus
-            option: werktag_abend_aktiv
-      - conditions:
-        - condition: state
-          entity_id: binary_sensor.workday_sensor
-          state: 'off'
-        - condition: time
-          after: '20:00:00'
           before: '22:00:00'
         sequence:
         - service: input_select.select_option
@@ -551,6 +541,15 @@
                 state: wochenende_abend
             sequence:
               - service: script.wohnkueche_wochenende_abend
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_select.wohnkueche_lichtmodus
+                state: alles_aus
+            sequence:
+              - service: script.wohnkueche_alles_aus
         default:
           - service: input_boolean.turn_off
             target:
