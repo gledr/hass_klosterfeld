@@ -122,6 +122,31 @@
       action: cover.close_cover
       data: {}
     mode: single
+  # Sichtschutz-Räume: Raffstore bei Sunrise unten sicherstellen
+  - id: sichtschutz_blinds_down_sunrise
+    alias: "Sichtschutz – Raffstore runter bei Sonnenaufgang"
+    description: >
+      Sichtschutz-Räume: Raffstore müssen tagsüber
+      zum Sichtschutz unten bleiben. Position runterfahren bei Sunrise,
+      Lamellen werden separat von slats_open_sunrise_all geöffnet.
+    trigger:
+      - platform: sun
+        event: sunrise
+    action:
+      - service: cover.set_cover_position
+        target:
+          entity_id:
+            - cover.shelf_blinds
+            - cover.wardrobe_blinds
+            - cover.wc_eg_blinds
+            - cover.wc_og_blinds
+            - cover.bathroom_blinds
+            - cover.livingroom_blinds
+            - cover.kitchen_blinds
+            - cover.dining_blinds
+        data:
+          position: 0
+    mode: single
   - id: slats_open_sunrise_all
     alias: Raffstore Lamellen – Alle öffnen bei Sonnenaufgang
     trigger:
@@ -1165,8 +1190,8 @@
         attribute: elevation
         above: 0
     action:
-      # Raffstore: Position hoch
-      - service: cover.open_cover
+      # Sichtschutz-Räume: Position bleibt unten, nur Lamellen öffnen
+      - service: cover.set_cover_tilt_position
         target:
           entity_id:
             - cover.shelf_blinds
@@ -1174,6 +1199,8 @@
             - cover.wc_eg_blinds
             - cover.wc_og_blinds
             - cover.bathroom_blinds
+        data:
+          tilt_position: 50
       # Rollos: Position hoch
       - service: cover.open_cover
         target:
@@ -1278,10 +1305,17 @@
         attribute: elevation
         above: 0
     action:
-      - service: cover.open_cover
+      # Wohnzimmer: Sichtschutz – nur Lamellen öffnen
+      - service: cover.set_cover_tilt_position
         target:
           entity_id:
             - cover.livingroom_blinds
+        data:
+          tilt_position: 50
+      # Terrasse + Büro: voll öffnen
+      - service: cover.open_cover
+        target:
+          entity_id:
             - cover.terrace_blinds
             - cover.terrace_blinds_2
             - cover.office_shutter
@@ -1391,12 +1425,19 @@
         attribute: elevation
         above: 0
     action:
-      - service: cover.open_cover
+      # Küche + Esszimmer: Sichtschutz – nur Lamellen öffnen
+      - service: cover.set_cover_tilt_position
         target:
           entity_id:
             - cover.kitchen_blinds
-            - cover.raffstore_kueche
             - cover.dining_blinds
+        data:
+          tilt_position: 50
+      # Raffstore Küche (kein Sichtschutz): voll öffnen
+      - service: cover.open_cover
+        target:
+          entity_id:
+            - cover.raffstore_kueche
     mode: single
 
   # C1: Terrasse Abend – Nachholen um 22:00 wenn noch offen
