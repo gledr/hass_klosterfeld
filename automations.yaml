@@ -109,11 +109,12 @@
         - cover.bathroom_blinds
       action: cover.close_cover
       data: {}
-    # Terrasse separat: nur schließen wenn kalt
+    # Terrasse separat: nur schließen wenn kalt UND Override OFF
     - condition: template
       value_template: >
         {{ states('sensor.outdoor_temperature') | float(0)
-           < states('input_number.beschattung_terrasse_abend') | float(18) }}
+           < states('input_number.beschattung_terrasse_abend') | float(18)
+           and is_state('input_boolean.beschattung_terrasse_override', 'off') }}
     - target:
         entity_id:
         - cover.terrace_blinds
@@ -476,6 +477,10 @@
               - condition: state
                 entity_id: input_boolean.wohnkueche_override_szene
                 state: 'off'
+              # Outdoor-Lux: kein Licht wenn draußen hell genug
+              - condition: numeric_state
+                entity_id: sensor.helligkeit_sued
+                below: input_number.wohnkueche_licht_outdoor_lux
     action:
       - choose:
           - conditions:
@@ -1203,17 +1208,46 @@
                 target:
                   entity_id:
                     - cover.livingroom_blinds
-                    - cover.terrace_blinds
-                    - cover.terrace_blinds_2
               - service: cover.close_cover
                 target:
                   entity_id: cover.office_shutter
+              # Terrasse nur wenn Override OFF
+              - condition: state
+                entity_id: input_boolean.beschattung_terrasse_override
+                state: "off"
+              - service: cover.close_cover
+                target:
+                  entity_id:
+                    - cover.terrace_blinds
+                    - cover.terrace_blinds_2
         # Mild: Tilt halb (Licht rein, kein Blenden)
         default:
           - service: cover.set_cover_position
             target:
               entity_id:
                 - cover.livingroom_blinds
+            data:
+              position: 0
+          - delay:
+              seconds: 5
+          - service: cover.set_cover_tilt_position
+            target:
+              entity_id:
+                - cover.livingroom_blinds
+            data:
+              tilt_position: 50
+          - service: cover.set_cover_position
+            target:
+              entity_id: cover.office_shutter
+            data:
+              position: 40
+          # Terrasse nur wenn Override OFF
+          - condition: state
+            entity_id: input_boolean.beschattung_terrasse_override
+            state: "off"
+          - service: cover.set_cover_position
+            target:
+              entity_id:
                 - cover.terrace_blinds
                 - cover.terrace_blinds_2
             data:
@@ -1223,16 +1257,10 @@
           - service: cover.set_cover_tilt_position
             target:
               entity_id:
-                - cover.livingroom_blinds
                 - cover.terrace_blinds
                 - cover.terrace_blinds_2
             data:
               tilt_position: 50
-          - service: cover.set_cover_position
-            target:
-              entity_id: cover.office_shutter
-            data:
-              position: 40
     mode: single
 
   # B2: Süd Sonnenschutz Ende
@@ -1280,13 +1308,22 @@
         target:
           entity_id:
             - cover.livingroom_blinds
-            - cover.terrace_blinds
-            - cover.terrace_blinds_2
         data:
           tilt_position: 0
       - service: cover.close_cover
         target:
           entity_id: cover.office_shutter
+      # Terrasse nur wenn Override OFF
+      - condition: state
+        entity_id: input_boolean.beschattung_terrasse_override
+        state: "off"
+      - service: cover.set_cover_tilt_position
+        target:
+          entity_id:
+            - cover.terrace_blinds
+            - cover.terrace_blinds_2
+        data:
+          tilt_position: 0
     mode: single
 
   # B4: West Sonnenschutz – Sonne trifft Westfassade
@@ -1371,6 +1408,9 @@
       - platform: time
         at: "22:00:00"
     condition:
+      - condition: state
+        entity_id: input_boolean.beschattung_terrasse_override
+        state: "off"
       - condition: or
         conditions:
           - condition: state
@@ -1385,4 +1425,45 @@
           entity_id:
             - cover.terrace_blinds
             - cover.terrace_blinds_2
+    mode: single
+
+  # ========================
+  # TERRASSE OVERRIDE
+  # ========================
+
+  # Override erkennen: Terrasse manuell geöffnet während Sonne sie geschlossen halten will
+  - id: beschattung_terrasse_override_setzen
+    alias: "Beschattung – Terrasse Override setzen"
+    description: >
+      Wenn Terrasse geöffnet wird während sonne_trifft_sued ON ist,
+      wurde sie manuell geöffnet → Override setzen.
+    trigger:
+      - platform: state
+        entity_id: cover.terrace_blinds
+        to: "open"
+      - platform: state
+        entity_id: cover.terrace_blinds_2
+        to: "open"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.beschattung_terrasse_override
+    mode: single
+
+  # Override Reset bei Sunrise
+  - id: beschattung_terrasse_override_reset
+    alias: "Beschattung – Terrasse Override Reset"
+    description: >
+      Override morgens bei Sunrise zurücksetzen (frischer Start).
+    trigger:
+      - platform: sun
+        event: sunrise
+    action:
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_terrasse_override
     mode: single

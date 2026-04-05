@@ -497,6 +497,8 @@ input_boolean:
     name: Wohnküche Override TV
   wohnkueche_override_szene:
     name: Wohnküche Override Szene (Smart 55)
+  beschattung_terrasse_override:
+    name: Beschattung Terrasse Override
 
 # ========================
 # INPUT SELECTS
@@ -543,3 +545,10 @@ input_number:
     step: 1
     initial: 18
     unit_of_measurement: "°C"
+  wohnkueche_licht_outdoor_lux:
+    name: Wohnküche Licht – Outdoor Lux Schwelle
+    min: 1000
+    max: 30000
+    step: 500
+    initial: 5000
+    unit_of_measurement: "lx"
