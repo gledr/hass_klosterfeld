@@ -1165,12 +1165,6 @@
             - cover.wc_eg_blinds
             - cover.wc_og_blinds
             - cover.bathroom_blinds
-      # Rollo: Position zu
-      - service: cover.close_cover
-        target:
-          entity_id:
-            - cover.bedroom_shutter
-            - cover.guest_shutter
     mode: single
 
   # A2: Threshold-Räume – Öffnen bei Abkühlung (< 23°C)
@@ -1201,12 +1195,6 @@
             - cover.bathroom_blinds
         data:
           tilt_position: 50
-      # Rollos: Position hoch
-      - service: cover.open_cover
-        target:
-          entity_id:
-            - cover.bedroom_shutter
-            - cover.guest_shutter
     mode: single
 
   # B1: Süd Sonnenschutz – Sonne trifft Südfassade
@@ -1574,4 +1562,150 @@
       - service: cover.open_cover
         target:
           entity_id: cover.office_shutter
+    mode: single
+
+  # ========================
+  # GÄSTEZIMMER + SCHLAFZIMMER (Rollos, sonnenbasiert)
+  # ========================
+
+  # Gästezimmer (Süd): Rollo zu wenn Sonne auf Süd trifft
+  - id: gaestezimmer_sonne_zu
+    alias: "Gästezimmer – Rollo zu bei Sonne Süd"
+    description: >
+      Gästezimmer liegt auf der Südseite. Rollo schließen wenn
+      Sonne auf Südfassade trifft.
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        to: "on"
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.guest_shutter
+    mode: single
+
+  # Gästezimmer (Süd): Rollo zu bei Hitze (auch ohne direkte Sonne)
+  - id: gaestezimmer_hitze_zu
+    alias: "Gästezimmer – Rollo zu bei Hitze"
+    description: >
+      Gästezimmer Rollo schließen wenn Temperatur über Schwelle steigt,
+      auch ohne direkte Sonneneinstrahlung (Hitzeschutz).
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.outdoor_temperature
+        above: input_number.beschattung_threshold_niedrig
+        for:
+          minutes: 10
+    condition:
+      - condition: numeric_state
+        entity_id: sun.sun
+        attribute: elevation
+        above: 0
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.guest_shutter
+    mode: single
+
+  # Gästezimmer (Süd): Rollo auf wenn Sonne weg UND kühl genug
+  - id: gaestezimmer_sonne_auf
+    alias: "Gästezimmer – Rollo auf wenn Sonne weg + kühl"
+    description: >
+      Gästezimmer Rollo öffnen wenn Sonne die Südfassade verlässt,
+      aber nur wenn Temperatur auch unter Schwelle ist.
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        to: "off"
+      - platform: numeric_state
+        entity_id: sensor.outdoor_temperature
+        below: input_number.beschattung_threshold_niedrig
+        for:
+          minutes: 10
+    condition:
+      - condition: numeric_state
+        entity_id: sun.sun
+        attribute: elevation
+        above: 0
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "off"
+      - condition: numeric_state
+        entity_id: sensor.outdoor_temperature
+        below: input_number.beschattung_threshold_niedrig
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.guest_shutter
+    mode: single
+
+  # Schlafzimmer (Nord): Rollo zu wenn Sonne auf Nord trifft
+  - id: schlafzimmer_sonne_zu
+    alias: "Schlafzimmer – Rollo zu bei Sonne Nord"
+    description: >
+      Schlafzimmer liegt auf der Nordseite. Rollo schließen wenn
+      Sonne auf Nordfassade trifft.
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        to: "on"
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.bedroom_shutter
+    mode: single
+
+  # Schlafzimmer (Nord): Rollo zu bei Hitze (auch ohne direkte Sonne)
+  - id: schlafzimmer_hitze_zu
+    alias: "Schlafzimmer – Rollo zu bei Hitze"
+    description: >
+      Schlafzimmer Rollo schließen wenn Temperatur über Schwelle steigt,
+      auch ohne direkte Sonneneinstrahlung (Hitzeschutz).
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.outdoor_temperature
+        above: input_number.beschattung_threshold_niedrig
+        for:
+          minutes: 10
+    condition:
+      - condition: numeric_state
+        entity_id: sun.sun
+        attribute: elevation
+        above: 0
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.bedroom_shutter
+    mode: single
+
+  # Schlafzimmer (Nord): Rollo auf wenn Sonne weg UND kühl genug
+  - id: schlafzimmer_sonne_auf
+    alias: "Schlafzimmer – Rollo auf wenn Sonne weg + kühl"
+    description: >
+      Schlafzimmer Rollo öffnen wenn Sonne die Nordfassade verlässt,
+      aber nur wenn Temperatur auch unter Schwelle ist.
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        to: "off"
+      - platform: numeric_state
+        entity_id: sensor.outdoor_temperature
+        below: input_number.beschattung_threshold_niedrig
+        for:
+          minutes: 10
+    condition:
+      - condition: numeric_state
+        entity_id: sun.sun
+        attribute: elevation
+        above: 0
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "off"
+      - condition: numeric_state
+        entity_id: sensor.outdoor_temperature
+        below: input_number.beschattung_threshold_niedrig
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.bedroom_shutter
     mode: single

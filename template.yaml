@@ -16,6 +16,14 @@ binary_sensor:
          and state_attr('sun.sun', 'elevation') | float > 5
          and states('sensor.helligkeit_west') | float(0) > 8000 }}
 
+  - name: "Sonne trifft Nord"
+    unique_id: sonne_trifft_nord
+    state: >
+      {{ (state_attr('sun.sun', 'azimuth') | float > 315
+         or state_attr('sun.sun', 'azimuth') | float < 45)
+         and state_attr('sun.sun', 'elevation') | float > 5
+         and states('sensor.helligkeit_nord') | float(0) > 8000 }}
+
 sensor:
 
   - name: "Taupunkt Aussen"
