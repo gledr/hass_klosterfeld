@@ -1235,9 +1235,6 @@
                 target:
                   entity_id:
                     - cover.livingroom_blinds
-              - service: cover.close_cover
-                target:
-                  entity_id: cover.office_shutter
               # Terrasse nur wenn Override OFF
               - condition: state
                 entity_id: input_boolean.beschattung_terrasse_override
@@ -1263,11 +1260,6 @@
                 - cover.livingroom_blinds
             data:
               tilt_position: 50
-          - service: cover.set_cover_position
-            target:
-              entity_id: cover.office_shutter
-            data:
-              position: 40
           # Terrasse nur wenn Override OFF
           - condition: state
             entity_id: input_boolean.beschattung_terrasse_override
@@ -1318,7 +1310,6 @@
           entity_id:
             - cover.terrace_blinds
             - cover.terrace_blinds_2
-            - cover.office_shutter
     mode: single
 
   # B3: Süd Hitzeschutz Eskalation – Temp steigt über 26°C während Sonne Süd trifft
@@ -1344,9 +1335,6 @@
             - cover.livingroom_blinds
         data:
           tilt_position: 0
-      - service: cover.close_cover
-        target:
-          entity_id: cover.office_shutter
       # Terrasse nur wenn Override OFF
       - condition: state
         entity_id: input_boolean.beschattung_terrasse_override
@@ -1507,4 +1495,83 @@
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.beschattung_terrasse_override
+    mode: single
+
+  # ========================
+  # BÜRO BLENDSCHUTZ
+  # ========================
+
+  # Büro: Elevation-basierter Blendschutz bei Sonne Süd
+  - id: buero_blendschutz_sonne
+    alias: "Büro – Blendschutz nach Sonnenstand"
+    description: >
+      Wenn Sonne auf Südfassade trifft, Rollo je nach Elevation steuern:
+      Hoch (>45°): 20% zu, Mittel (25-45°): 50% zu, Tief (<25°): 80% zu.
+      Wird alle 15 Min und bei Sonne-Ein/Aus neu bewertet.
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        to: "on"
+      - platform: time_pattern
+        minutes: "/15"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
+      - condition: state
+        entity_id: binary_sensor.windalarm_schwelle_1
+        state: "off"
+    action:
+      - choose:
+          # Sonne hoch (>45°): leichter Schutz
+          - conditions:
+              - condition: numeric_state
+                entity_id: sun.sun
+                attribute: elevation
+                above: 45
+            sequence:
+              - service: cover.set_cover_position
+                target:
+                  entity_id: cover.office_shutter
+                data:
+                  position: 80
+          # Sonne mittel (25-45°)
+          - conditions:
+              - condition: numeric_state
+                entity_id: sun.sun
+                attribute: elevation
+                above: 25
+            sequence:
+              - service: cover.set_cover_position
+                target:
+                  entity_id: cover.office_shutter
+                data:
+                  position: 50
+        # Sonne tief (<25°): starker Schutz
+        default:
+          - service: cover.set_cover_position
+            target:
+              entity_id: cover.office_shutter
+            data:
+              position: 20
+    mode: single
+
+  # Büro: Blendschutz Ende – Sonne weg
+  - id: buero_blendschutz_ende
+    alias: "Büro – Blendschutz Ende"
+    description: >
+      Wenn Sonne Südfassade verlässt, Rollo wieder öffnen.
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        to: "off"
+    condition:
+      - condition: numeric_state
+        entity_id: sun.sun
+        attribute: elevation
+        above: 0
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.office_shutter
     mode: single
