@@ -522,3 +522,24 @@ input_number:
     min: 0
     max: 100
     step: 1
+  beschattung_threshold_niedrig:
+    name: Beschattung Threshold Niedrig
+    min: 18
+    max: 35
+    step: 1
+    initial: 23
+    unit_of_measurement: "°C"
+  beschattung_threshold_hoch:
+    name: Beschattung Threshold Hoch
+    min: 18
+    max: 35
+    step: 1
+    initial: 26
+    unit_of_measurement: "°C"
+  beschattung_terrasse_abend:
+    name: Beschattung Terrasse Abend Threshold
+    min: 10
+    max: 30
+    step: 1
+    initial: 18
+    unit_of_measurement: "°C"
