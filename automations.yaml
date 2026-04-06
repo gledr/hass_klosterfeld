@@ -503,9 +503,10 @@
                 entity_id: input_boolean.wohnkueche_override_szene
                 state: 'off'
               # Outdoor-Lux: kein Licht wenn draußen hell genug
-              - condition: numeric_state
-                entity_id: sensor.helligkeit_sued
-                below: input_number.wohnkueche_licht_outdoor_lux
+              - condition: template
+                value_template: >
+                  {{ states('sensor.helligkeit_sued') | float(0)
+                     < states('input_number.wohnkueche_licht_outdoor_lux') | float(5000) }}
     action:
       - choose:
           - conditions:
