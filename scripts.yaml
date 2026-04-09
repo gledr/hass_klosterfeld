@@ -450,3 +450,54 @@ house_morning_weekend:
           - cover.guest_shutter
           - cover.office_shutter
 
+
+messfahrt_alle:
+  alias: Alle Raffstores Messfahrt
+  mode: single
+  sequence:
+    - service: knx.send
+      data: { address: "4/1/18", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/1/38", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/1/58", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/1/78", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/1/98", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/1/118", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/1/138", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/2/18", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/2/38", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/2/58", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/2/78", payload: 1 }
+    - delay: "00:00:03"
+
+    - service: knx.send
+      data: { address: "4/2/98", payload: 1 }

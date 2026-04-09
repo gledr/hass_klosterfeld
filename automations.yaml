@@ -1710,3 +1710,28 @@
         target:
           entity_id: cover.bedroom_shutter
     mode: single
+
+  - id: messfahrt_starten
+    alias: Messfahrt alle Raffstores 2-wöchentlich
+    trigger:
+      - platform: time
+        at: "13:00:00"
+
+    condition:
+      # nur Werktage
+      - condition: time
+        weekday:
+          - mon
+          - tue
+          - wed
+          - thu
+          - fri
+
+      # nur alle 2 Wochen (ISO-Kalenderwoche gerade)
+      - condition: template
+        value_template: "{{ (now().isocalendar().week % 2) == 0 }}"
+
+    action:
+      - service: script.messfahrt_alle
+
+    mode: single
