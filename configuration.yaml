@@ -524,6 +524,8 @@ input_boolean:
     name: Wohnküche Override Szene (Smart 55)
   beschattung_terrasse_override:
     name: Beschattung Terrasse Override
+  badezimmer_privacy_active:
+    name: Badezimmer Privacy Mode Aktiv
 
 # ========================
 # INPUT SELECTS
