@@ -348,7 +348,11 @@
     - platform: time
       at: '08:00:00'
     - platform: time
+      at: '07:00:00'
+    - platform: time
       at: '09:00:00'
+    - platform: time
+      at: '10:00:00'
     - platform: time
       at: '12:00:00'
     - platform: time
@@ -416,8 +420,8 @@
           entity_id: binary_sensor.workday_sensor
           state: 'off'
         - condition: time
-          after: '09:00:00'
-          before: '12:00:00'
+          after: '07:00:00'
+          before: '10:00:00'
         sequence:
         - service: input_select.select_option
           data:
@@ -428,7 +432,7 @@
           entity_id: binary_sensor.workday_sensor
           state: 'off'
         - condition: time
-          after: '12:00:00'
+          after: '10:00:00'
           before: '14:00:00'
         sequence:
         - service: input_select.select_option
@@ -505,7 +509,7 @@
               # Outdoor-Lux: kein Licht wenn draußen hell genug
               - condition: template
                 value_template: >
-                  {{ states('sensor.helligkeit_sued') | float(0)
+                  {{ states('sensor.helligkeit_sud') | float(99999)
                      < states('input_number.wohnkueche_licht_outdoor_lux') | float(5000) }}
     action:
       - choose:
@@ -898,6 +902,7 @@
             - werktag_relax
             - spaetabend
             - nacht
+            - alles_aus
           wochenende_list:
             - fruehstueck
             - wochenende_tag
@@ -905,6 +910,7 @@
             - wochenende_abend
             - spaetabend
             - nacht
+            - alles_aus
           scene_list: >
             {% if is_state('binary_sensor.workday_sensor', 'on') %}
               {{ werktag_list }}
@@ -925,7 +931,7 @@
           address: "9/1/6"
           type: "string"
           payload: >-
-            {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[next_scene] | default('?') }}
+            {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend','alles_aus':'Aus'}[next_scene] | default('?') }}
     mode: single
 
   - id: smart55_last_scene
@@ -952,6 +958,7 @@
             - werktag_relax
             - spaetabend
             - nacht
+            - alles_aus
           wochenende_list:
             - fruehstueck
             - wochenende_tag
@@ -959,6 +966,7 @@
             - wochenende_abend
             - spaetabend
             - nacht
+            - alles_aus
           scene_list: >
             {% if is_state('binary_sensor.workday_sensor', 'on') %}
               {{ werktag_list }}
@@ -979,7 +987,7 @@
           address: "9/1/6"
           type: "string"
           payload: >-
-            {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[prev_scene] | default('?') }}
+            {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend','alles_aus':'Aus'}[prev_scene] | default('?') }}
     mode: single
 
   - id: smart55_default_a
