@@ -1703,14 +1703,12 @@
   - id: beschattung_terrasse_nachholen
     alias: "Beschattung – Terrasse Nachholen 22:00"
     description: >
-      Falls Terrasse bei Sunset offen gelassen wurde (warm), um 22:00 schließen.
+      Falls Terrasse bei Sunset offen gelassen wurde (warm oder Override),
+      um 22:00 immer schließen und Override zurücksetzen.
     trigger:
       - platform: time
         at: "22:00:00"
     condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_terrasse_override
-        state: "off"
       - condition: or
         conditions:
           - condition: state
@@ -1725,6 +1723,9 @@
           entity_id:
             - cover.terrace_blinds
             - cover.terrace_blinds_2
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_terrasse_override
     mode: single
 
   # ========================
