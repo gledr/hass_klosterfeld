@@ -546,8 +546,14 @@ input_select:
 
 input_number:
   raffstore_badezimmer_vorher:
-    name: Raffstore Badezimmer vorheriger Zustand
+    name: Raffstore Badezimmer vorherige Position
     initial: 100
+    min: 0
+    max: 100
+    step: 1
+  raffstore_badezimmer_tilt_vorher:
+    name: Raffstore Badezimmer vorheriger Tilt
+    initial: 50
     min: 0
     max: 100
     step: 1
