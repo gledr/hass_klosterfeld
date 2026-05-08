@@ -1324,6 +1324,9 @@
         entity_id: sun.sun
         attribute: elevation
         above: 0
+      - condition: numeric_state
+        entity_id: sensor.helligkeit_nord
+        above: 8000
     action:
       # Raffstore: Position zu + Tilt zu
       - service: cover.close_cover
@@ -1354,6 +1357,39 @@
         above: 0
     action:
       # Sichtschutz-Räume: Position bleibt unten, nur Lamellen öffnen
+      - service: cover.set_cover_tilt_position
+        target:
+          entity_id:
+            - cover.shelf_blinds
+            - cover.wardrobe_blinds
+            - cover.wc_eg_blinds
+            - cover.wc_og_blinds
+            - cover.bathroom_blinds
+        data:
+          tilt_position: 50
+    mode: single
+
+  # A3: Threshold-Räume – Öffnen bei Bewölkung (Helligkeit fällt)
+  - id: beschattung_threshold_auf_bewoelkt
+    alias: "Beschattung – Threshold-Räume öffnen bei Bewölkung"
+    description: >
+      Gruppe A: Wenn Helligkeit unter 8000 fällt (bewölkt), Lamellen öffnen
+      auch wenn Temperatur noch über Threshold ist.
+    trigger:
+      - platform: numeric_state
+        entity_id: sensor.helligkeit_nord
+        below: 8000
+        for:
+          minutes: 10
+    condition:
+      - condition: numeric_state
+        entity_id: sun.sun
+        attribute: elevation
+        above: 0
+      - condition: numeric_state
+        entity_id: sensor.outdoor_temperature_avg
+        above: input_number.beschattung_threshold_niedrig
+    action:
       - service: cover.set_cover_tilt_position
         target:
           entity_id:
@@ -1439,32 +1475,21 @@
               tilt_position: 50
     mode: single
 
-  # B2: Süd Sonnenschutz Ende (nur wenn Sonne weg UND kühl genug)
+  # B2: Süd Sonnenschutz Ende
   - id: beschattung_sued_sonne_aus
     alias: "Beschattung – Süd Sonnenschutz Ende"
     description: >
-      Gruppe B Süd: Öffnet nur wenn Sonne Südfassade verlässt UND
-      Temperatur unter Threshold niedrig ist (analog Gästezimmer).
+      Gruppe B Süd: Öffnet wenn Sonne Südfassade verlässt (inkl. Bewölkung).
+      Wohnzimmer: Lamellen auf (Sichtschutz bleibt). Terrasse: ganz hoch.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
-      - platform: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
-        for:
-          minutes: 10
     condition:
       - condition: numeric_state
         entity_id: sun.sun
         attribute: elevation
         above: 0
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
-      - condition: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
     action:
       # Wohnzimmer: Sichtschutz – nur Lamellen öffnen
       - service: cover.set_cover_tilt_position
@@ -1474,6 +1499,9 @@
         data:
           tilt_position: 50
       # Terrasse: voll öffnen
+      - condition: state
+        entity_id: input_boolean.beschattung_terrasse_override
+        state: "off"
       - service: cover.open_cover
         target:
           entity_id:
@@ -1868,12 +1896,12 @@
           entity_id: cover.guest_shutter
     mode: single
 
-  # Gästezimmer (Süd): Rollo zu bei Hitze (auch ohne direkte Sonne)
+  # Gästezimmer (Süd): Rollo zu bei Hitze + Sonne
   - id: gaestezimmer_hitze_zu
-    alias: "Gästezimmer – Rollo zu bei Hitze"
+    alias: "Gästezimmer – Rollo zu bei Hitze + Sonne"
     description: >
-      Gästezimmer Rollo schließen wenn Temperatur über Schwelle steigt,
-      auch ohne direkte Sonneneinstrahlung (Hitzeschutz).
+      Gästezimmer Rollo schließen wenn Temperatur über Schwelle steigt
+      und Helligkeit hoch ist (tatsächlich Sonne).
     trigger:
       - platform: numeric_state
         entity_id: sensor.outdoor_temperature_avg
@@ -1885,38 +1913,30 @@
         entity_id: sun.sun
         attribute: elevation
         above: 0
+      - condition: numeric_state
+        entity_id: sensor.helligkeit_sud
+        above: 8000
     action:
       - service: cover.close_cover
         target:
           entity_id: cover.guest_shutter
     mode: single
 
-  # Gästezimmer (Süd): Rollo auf wenn Sonne weg UND kühl genug
+  # Gästezimmer (Süd): Rollo auf wenn Sonne weg
   - id: gaestezimmer_sonne_auf
-    alias: "Gästezimmer – Rollo auf wenn Sonne weg + kühl"
+    alias: "Gästezimmer – Rollo auf wenn Sonne weg"
     description: >
-      Gästezimmer Rollo öffnen wenn Sonne die Südfassade verlässt,
-      aber nur wenn Temperatur auch unter Schwelle ist.
+      Gästezimmer Rollo öffnen wenn Sonne die Südfassade verlässt
+      (inkl. Bewölkung).
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
-      - platform: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
-        for:
-          minutes: 10
     condition:
       - condition: numeric_state
         entity_id: sun.sun
         attribute: elevation
         above: 0
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
-      - condition: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
     action:
       - service: cover.open_cover
         target:
@@ -1939,12 +1959,12 @@
           entity_id: cover.bedroom_shutter
     mode: single
 
-  # Schlafzimmer (Nord): Rollo zu bei Hitze (auch ohne direkte Sonne)
+  # Schlafzimmer (Nord): Rollo zu bei Hitze + Sonne
   - id: schlafzimmer_hitze_zu
-    alias: "Schlafzimmer – Rollo zu bei Hitze"
+    alias: "Schlafzimmer – Rollo zu bei Hitze + Sonne"
     description: >
-      Schlafzimmer Rollo schließen wenn Temperatur über Schwelle steigt,
-      auch ohne direkte Sonneneinstrahlung (Hitzeschutz).
+      Schlafzimmer Rollo schließen wenn Temperatur über Schwelle steigt
+      und Helligkeit hoch ist (tatsächlich Sonne).
     trigger:
       - platform: numeric_state
         entity_id: sensor.outdoor_temperature_avg
@@ -1956,25 +1976,28 @@
         entity_id: sun.sun
         attribute: elevation
         above: 0
+      - condition: numeric_state
+        entity_id: sensor.helligkeit_nord
+        above: 8000
     action:
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
     mode: single
 
-  # Schlafzimmer (Nord): Rollo auf wenn Sonne weg UND kühl genug
+  # Schlafzimmer (Nord): Rollo auf wenn Sonne weg
   - id: schlafzimmer_sonne_auf
     alias: "Schlafzimmer – Rollo auf wenn Sonne weg + kühl"
     description: >
-      Schlafzimmer Rollo öffnen wenn Sonne die Nordfassade verlässt,
-      aber nur wenn Temperatur auch unter Schwelle ist.
+      Schlafzimmer Rollo öffnen wenn Sonne die Nordfassade verlässt
+      oder Helligkeit sinkt (bewölkt).
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "off"
       - platform: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
+        entity_id: sensor.helligkeit_nord
+        below: 8000
         for:
           minutes: 10
     condition:
@@ -1985,9 +2008,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
-      - condition: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
     action:
       - service: cover.open_cover
         target:
