@@ -1373,7 +1373,7 @@
   - id: beschattung_threshold_auf_bewoelkt
     alias: "Beschattung – Threshold-Räume öffnen bei Bewölkung"
     description: >
-      Gruppe A: Wenn Helligkeit unter 8000 fällt (bewölkt), Lamellen öffnen
+      Gruppe A: Wenn Helligkeit unter 8000 (bewölkt), Lamellen öffnen
       auch wenn Temperatur noch über Threshold ist.
     trigger:
       - platform: numeric_state
@@ -1381,14 +1381,18 @@
         below: 8000
         for:
           minutes: 10
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
     condition:
       - condition: numeric_state
         entity_id: sun.sun
         attribute: elevation
         above: 0
       - condition: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        above: input_number.beschattung_threshold_niedrig
+        entity_id: sensor.helligkeit_nord
+        below: 8000
     action:
       - service: cover.set_cover_tilt_position
         target:
@@ -1635,17 +1639,16 @@
   - id: beschattung_west_sonne_aus
     alias: "Beschattung – West Sonnenschutz Ende"
     description: >
-      Gruppe B West: Öffnet nur wenn Sonne Westfassade verlässt UND
-      Temperatur unter Threshold niedrig ist (analog Gästezimmer).
+      Gruppe B West: Öffnet wenn Sonne Westfassade verlässt (inkl. Bewölkung).
+      Küche/Esszimmer: Lamellen auf. Raffstore Küche: ganz hoch.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "off"
-      - platform: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
-        for:
-          minutes: 10
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
     condition:
       - condition: numeric_state
         entity_id: sun.sun
@@ -1655,8 +1658,8 @@
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
       - condition: numeric_state
-        entity_id: sensor.outdoor_temperature_avg
-        below: input_number.beschattung_threshold_niedrig
+        entity_id: sensor.helligkeit_west
+        below: 8000
     action:
       # Küche + Esszimmer: Sichtschutz – nur Lamellen öffnen
       - service: cover.set_cover_tilt_position
@@ -1927,16 +1930,31 @@
     alias: "Gästezimmer – Rollo auf wenn Sonne weg"
     description: >
       Gästezimmer Rollo öffnen wenn Sonne die Südfassade verlässt
-      (inkl. Bewölkung).
+      oder Helligkeit sinkt (bewölkt).
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
+      - platform: numeric_state
+        entity_id: sensor.helligkeit_sud
+        below: 8000
+        for:
+          minutes: 10
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
     condition:
       - condition: numeric_state
         entity_id: sun.sun
         attribute: elevation
         above: 0
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "off"
+      - condition: numeric_state
+        entity_id: sensor.helligkeit_sud
+        below: 8000
     action:
       - service: cover.open_cover
         target:
@@ -2000,6 +2018,10 @@
         below: 8000
         for:
           minutes: 10
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
     condition:
       - condition: numeric_state
         entity_id: sun.sun
@@ -2008,6 +2030,9 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
+      - condition: numeric_state
+        entity_id: sensor.helligkeit_nord
+        below: 8000
     action:
       - service: cover.open_cover
         target:
