@@ -588,6 +588,7 @@ input_number:
 
 # In der configuration.yaml für Lovelace
 lovelace:
+  # Entfernen Sie die resources-Zeile, da diese in neueren Versionen nicht benötigt wird
   dashboards:
     default:
       title: "Beschattung"
@@ -646,7 +647,7 @@ lovelace:
               entity: cover.wc_og_blinds
               name: WC OG Raffstore
               min: 0
-              max: 0
+              max: 100
               value_template: "{{ states['cover.wc_og_blinds'].state }}"
               step: 1
               modes:
