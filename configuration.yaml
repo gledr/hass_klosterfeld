@@ -585,3 +585,170 @@ input_number:
     step: 500
     initial: 5000
     unit_of_measurement: "lx"
+
+lovelace:
+  resources:
+    - url: https://unpkg.com/@home-assistant-polymer/ha-card@0.0.5/dist/ha-card.js
+  dashboards:
+    default:
+      - title: "Beschattung"
+        show_header_toggle: true
+        show_sidebar: true
+        cards:
+          - type: entities
+            entities:
+              - entity_id: cover.rollos_buero
+              - entity_id: cover.rollos_gast
+              - entity_id: cover.rollos_schlafzimmer
+              - entity_id: cover.wc_og_blinds
+              - entity_id: cover.badezimmer_blinds
+              - entity_id: cover.shelf_blinds
+              - entity_id: cover.wardrobe_blinds
+              - entity_id: cover.wc_eg_blinds
+              - entity_id: cover.kitchen_blinds
+              - entity_id: cover.dining_blinds
+              - entity_id: cover.raffstore_kueche
+              - entity_id: cover.terrace_blinds
+          - type: horizontal-stack
+            cards:
+              - type: 'custom:horizontal-slider-card'
+                entity: cover.rollos_buero
+                name: Büro Rollos
+                min: 0
+                max: 100
+                value_template: "{{ states['cover.rollos_buero'].state }}"
+                step: 1
+                modes:
+                  - position
+                position:
+                  service: cover.set_cover_position
+                  entity_id: cover.rollos_buero
+                position_attributes:
+                  name: Position
+                  icon: 'mdi:window-open'
+                secondary: >
+                  {{ 
+                    let attributes = states['cover.rollos_buero'].attributes;
+                    return `Zustand: ${attributes.current_position}%`;
+                  }}
+                actions:
+                  - type: call-service
+                    service: cover.open
+                    entity_id: cover.rollos_buero
+                  - type: call-service
+                    service: cover.close
+                    entity_id: cover.rollos_buero
+                  - type: call-service
+                    service: cover.stop
+                    entity_id: cover.rollos_buero
+
+              - type: 'custom:horizontal-slider-card'
+                entity: cover.wc_og_blinds
+                name: WC OG Raffstore
+                min: 0
+                max: 100
+                value_template: "{{ states['cover.wc_og_blinds'].state }}"
+                step: 1
+                modes:
+                  - position
+                position:
+                  service: cover.set_cover_position
+                  entity_id: cover.wc_og_blinds
+                position_attributes:
+                  name: Position
+                  icon: 'mdi:window-open'
+                secondary: >
+                  {{ 
+                    let attributes = states['cover.wc_og_blinds'].attributes;
+                    return `Zustand: ${attributes.current_position}%, Tilt: ${attributes.current_angle}%`;
+                  }}
+                actions:
+                  - type: call-service
+                    service: cover.open
+                    entity_id: cover.wc_og_blinds
+                  - type: call-service
+                    service: cover.close
+                    entity_id: cover.wc_og_blinds
+                  - type: call-service
+                    service: cover.stop
+                    entity_id: cover.wc_og_blinds
+                  - type: call-service
+                    service: cover.set_cover_tilt_angle
+                    entity_id: cover.wc_og_blinds
+                    data:
+                      angle: 0
+
+          - type: vertical-stack
+            cards:
+              - type: 'custom:button-card'
+                entity: cover.rollos_buero
+                title: Büro Rollos
+                show_state: true
+                show_name: true
+                show_icon: true
+                icon_template: >
+                  {{
+                    if (states['cover.rollos_buero'].state == 'open') 'mdi:window-open' 
+                    else if (states['cover.rollos_buero'].state == 'closing') 'mdi:window-refresh' 
+                    else if (states['cover.rollos_buero'].state == 'opening') 'mdi:window-open'
+                    else 'mdi:window-closed'
+                  }}
+                buttons:
+                  - type: call-service
+                    service: cover.open
+                    entity_id: cover.rollos_buero
+                  - type: call-service
+                    service: cover.close
+                    entity_id: cover.rollos_buero
+                  - type: call-service
+                    service: cover.stop
+                    entity_id: cover.rollos_buero
+
+              - type: 'custom:button-card'
+                entity: cover.wc_og_blinds
+                title: WC OG Raffstore
+                show_state: true
+                show_name: true
+                show_icon: true
+                icon_template: >
+                  {{
+                    if (states['cover.wc_og_blinds'].state == 'open') 'mdi:window-open' 
+                    else if (states['cover.wc_og_blinds'].state == 'closing') 'mdi:window-refresh' 
+                    else if (states['cover.wc_og_blinds'].state == 'opening') 'mdi:window-open'
+                    else 'mdi:window-closed'
+                  }}
+                buttons:
+                  - type: call-service
+                    service: cover.open
+                    entity_id: cover.wc_og_blinds
+                  - type: call-service
+                    service: cover.close
+                    entity_id: cover.wc_og_blinds
+                  - type: call-service
+                    service: cover.stop
+                    entity_id: cover.wc_og_blinds
+
+          - type: horizontal-stack
+            cards:
+              - type: 'custom:auto-playing-card'
+                title: Automatisierung
+                entity_id:
+                  - script.beschattung_automatisierung
+                icon: 'mdi:cog'
+                direction: row
+                type: 'custom:auto-playing-card'
+
+          - type: grid
+            cards:
+              - type: 'custom:stats-card'
+                entity_id:
+                  - sensor.beschattung_position_buero
+                  - sensor.beschattung_position_wc_og
+                  - sensor.beschattung_tilt_wc_og
+                title: Positionserkennung
+                type: 'custom:stats-card'
+                grid_config:
+                  columns: 3
+                  rows: 1
+                  sm_columns: 1
+                  md_columns: 3
