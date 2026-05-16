@@ -40,7 +40,7 @@
     mode: single
 
   - id: all_shutter_down_after_sunset
-    alias: Rollos – gestreut runter nach Sonnenuntergang
+    alias: Schlafzimmer Rollo runter nach Sonnenuntergang
     trigger:
     - platform: sun
       event: sunset
@@ -51,16 +51,6 @@
     - service: cover.close_cover
       target:
         entity_id: cover.bedroom_shutter
-    - delay:
-        minutes: '{{ range(0, 5) | random }}'
-    - service: cover.close_cover
-      target:
-        entity_id: cover.guest_shutter
-    - delay:
-        minutes: '{{ range(0, 5) | random }}'
-    - service: cover.close_cover
-      target:
-        entity_id: cover.office_shutter
     mode: single
   - id: shutters_open_morning
     alias: Rollos öffnen – morgens
@@ -1326,7 +1316,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        above: 8000
+        above: 25000
     action:
       # Raffstore: Position zu + Tilt zu
       - service: cover.close_cover
@@ -1373,12 +1363,12 @@
   - id: beschattung_threshold_auf_bewoelkt
     alias: "Beschattung – Threshold-Räume öffnen bei Bewölkung"
     description: >
-      Gruppe A: Wenn Helligkeit unter 8000 (bewölkt), Lamellen öffnen
+      Gruppe A: Wenn Helligkeit unter 25000 (bewölkt), Lamellen öffnen
       auch wenn Temperatur noch über Threshold ist.
     trigger:
       - platform: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 8000
+        below: 25000
         for:
           minutes: 10
       - platform: time_pattern
@@ -1392,7 +1382,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 8000
+        below: 25000
     action:
       - service: cover.set_cover_tilt_position
         target:
@@ -1485,15 +1475,24 @@
     description: >
       Gruppe B Süd: Öffnet wenn Sonne Südfassade verlässt (inkl. Bewölkung).
       Wohnzimmer: Lamellen auf (Sichtschutz bleibt). Terrasse: ganz hoch.
+      Re-Evaluation alle 15 Min und bei HA-Start, damit auch bei
+      bewölktem Wetter tagsüber geöffnet wird.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
     condition:
       - condition: numeric_state
         entity_id: sun.sun
         attribute: elevation
         above: 0
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "off"
     action:
       # Wohnzimmer: Sichtschutz – nur Lamellen öffnen
       - service: cover.set_cover_tilt_position
@@ -1659,7 +1658,7 @@
         state: "off"
       - condition: numeric_state
         entity_id: sensor.helligkeit_west
-        below: 8000
+        below: 25000
     action:
       # Küche + Esszimmer: Sichtschutz – nur Lamellen öffnen
       - service: cover.set_cover_tilt_position
@@ -1801,6 +1800,58 @@
     mode: single
 
   # ========================
+  # BÜRO + GÄSTEZIMMER – Rollo Tag/Nacht (Sonnenaufgang/-untergang)
+  # ========================
+
+  - id: buero_rollo_sunrise_auf
+    alias: "Büro – Rollo auf bei Sonnenaufgang"
+    trigger:
+      - platform: sun
+        event: sunrise
+        offset: 00:05:00
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.office_shutter
+    mode: single
+
+  - id: buero_rollo_sunset_zu
+    alias: "Büro – Rollo zu nach Sonnenuntergang"
+    trigger:
+      - platform: sun
+        event: sunset
+        offset: 00:30:00
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.office_shutter
+    mode: single
+
+  - id: gaestezimmer_rollo_sunrise_auf
+    alias: "Gästezimmer – Rollo auf bei Sonnenaufgang"
+    trigger:
+      - platform: sun
+        event: sunrise
+        offset: 00:05:00
+    action:
+      - service: cover.open_cover
+        target:
+          entity_id: cover.guest_shutter
+    mode: single
+
+  - id: gaestezimmer_rollo_sunset_zu
+    alias: "Gästezimmer – Rollo zu nach Sonnenuntergang"
+    trigger:
+      - platform: sun
+        event: sunset
+        offset: 00:30:00
+    action:
+      - service: cover.close_cover
+        target:
+          entity_id: cover.guest_shutter
+    mode: single
+
+  # ========================
   # BÜRO BLENDSCHUTZ
   # ========================
 
@@ -1864,15 +1915,24 @@
     alias: "Büro – Blendschutz Ende"
     description: >
       Wenn Sonne Südfassade verlässt, Rollo wieder öffnen.
+      Re-Evaluation alle 15 Min und bei HA-Start, damit Rollo auch
+      bei bewölktem Wetter tagsüber geöffnet bleibt/wird.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: homeassistant
+        event: start
     condition:
       - condition: numeric_state
         entity_id: sun.sun
         attribute: elevation
         above: 0
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "off"
     action:
       - service: cover.open_cover
         target:
@@ -1918,7 +1978,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_sud
-        above: 8000
+        above: 25000
     action:
       - service: cover.close_cover
         target:
@@ -1937,7 +1997,7 @@
         to: "off"
       - platform: numeric_state
         entity_id: sensor.helligkeit_sud
-        below: 8000
+        below: 25000
         for:
           minutes: 10
       - platform: time_pattern
@@ -1954,7 +2014,7 @@
         state: "off"
       - condition: numeric_state
         entity_id: sensor.helligkeit_sud
-        below: 8000
+        below: 25000
     action:
       - service: cover.open_cover
         target:
@@ -1996,7 +2056,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        above: 8000
+        above: 25000
     action:
       - service: cover.close_cover
         target:
@@ -2015,7 +2075,7 @@
         to: "off"
       - platform: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 8000
+        below: 25000
         for:
           minutes: 10
       - platform: time_pattern
@@ -2032,7 +2092,7 @@
         state: "off"
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 8000
+        below: 25000
     action:
       - service: cover.open_cover
         target:

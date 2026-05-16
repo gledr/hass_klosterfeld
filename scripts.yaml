@@ -435,8 +435,6 @@ house_morning_workday:
       target:
         entity_id:
           - cover.bedroom_shutter
-          - cover.guest_shutter
-          - cover.office_shutter
 
 
 house_morning_weekend:
@@ -447,8 +445,6 @@ house_morning_weekend:
       target:
         entity_id:
           - cover.bedroom_shutter
-          - cover.guest_shutter
-          - cover.office_shutter
 
 
 messfahrt_alle:
