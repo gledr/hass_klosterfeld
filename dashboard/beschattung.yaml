@@ -80,18 +80,31 @@ views:
             heading: Sonne trifft Fassade
             icon: mdi:compass-outline
 
-          - type: custom:mushroom-template-card
-            primary: >
-              Sonnenstand: {{ state_attr('sun.sun','azimuth') | round(0) }}° / {{ state_attr('sun.sun','elevation') | round(0) }}° hoch
-            secondary: >
-              Süd 135–225° · West 225–315° · Nord 315–45° (Elevation > 5°)
-            icon: mdi:compass-outline
-            icon_color: >
-              {% set az = state_attr('sun.sun','azimuth') | float(0) %}
-              {% if 135 <= az < 225 %}amber
-              {% elif 225 <= az < 315 %}orange
-              {% elif az >= 315 or az < 45 %}blue
-              {% else %}grey{% endif %}
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:compass-outline
+                content: >
+                  {{ state_attr('sun.sun','azimuth') | round(0) }}°
+                icon_color: >
+                  {% set az = state_attr('sun.sun','azimuth') | float(0) %}
+                  {% if 135 <= az < 225 %}amber
+                  {% elif 225 <= az < 315 %}orange
+                  {% elif az >= 315 or az < 45 %}blue
+                  {% else %}grey{% endif %}
+              - type: template
+                icon: mdi:angle-acute
+                content: >
+                  {{ state_attr('sun.sun','elevation') | round(0) }}°
+              - type: template
+                icon: mdi:weather-sunny
+                content: "Süd 135–225°"
+              - type: template
+                icon: mdi:weather-sunset
+                content: "West 225–315°"
+              - type: template
+                icon: mdi:weather-hazy
+                content: "Nord 315–45°"
 
           - type: grid
             columns: 3
