@@ -1,0 +1,80 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.dashboard_rauchmelder",
+  "data": {
+    "config": {
+      "views": [
+        {
+          "title": "Home",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading_style": "title",
+                  "heading": "Keller",
+                  "badges": []
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "binary_sensor.rauchmelder_hobbyraum_smoke",
+                    "binary_sensor.rauchmelder_kg_eg_smoke",
+                    "binary_sensor.rauchmelder_lager_smoke",
+                    "binary_sensor.shellyplussmoke_2cbcbbf70698_smoke"
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading_style": "title",
+                  "heading": "Obergeschoss"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    {
+                      "entity": "binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke"
+                    },
+                    {
+                      "entity": "binary_sensor.shellyplussmoke_2cbcbbf68278_smoke"
+                    },
+                    {
+                      "entity": "binary_sensor.shellyplussmoke_2cbcbbf68028_smoke"
+                    },
+                    {
+                      "entity": "binary_sensor.shellyplussmoke_2cbcbbf59758_smoke"
+                    }
+                  ]
+                }
+              ]
+            },
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading": "Erdgeschoss",
+                  "heading_style": "title"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "binary_sensor.shellyplussmoke_2cbcbbf73fc0_smoke",
+                    "binary_sensor.shellyplussmoke_2cbcbbf67960_smoke"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

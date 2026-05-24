@@ -1,0 +1,44 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace.dashboard_fenster",
+  "data": {
+    "config": {
+      "views": [
+        {
+          "title": "Home",
+          "sections": [
+            {
+              "type": "grid",
+              "cards": [
+                {
+                  "type": "heading",
+                  "heading_style": "title",
+                  "heading": "Obergeschoss"
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "binary_sensor.shelly_blu_door_window_a173_window"
+                  ]
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "binary_sensor.shelly_blu_door_window_bb57_window"
+                  ]
+                },
+                {
+                  "type": "entities",
+                  "entities": [
+                    "binary_sensor.fenster_schlafzimmer_window"
+                  ]
+                }
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  }
+}

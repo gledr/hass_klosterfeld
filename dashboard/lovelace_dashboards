@@ -1,0 +1,96 @@
+{
+  "version": 1,
+  "minor_version": 1,
+  "key": "lovelace_dashboards",
+  "data": {
+    "items": [
+      {
+        "id": "dashboard_beschattung",
+        "show_in_sidebar": true,
+        "icon": "mdi:blinds",
+        "title": "Beschattung ",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-beschattung"
+      },
+      {
+        "id": "dashboard_klima",
+        "show_in_sidebar": true,
+        "icon": "mdi:home-thermometer",
+        "title": "Klima",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-klima"
+      },
+      {
+        "id": "dashboard_fenster",
+        "show_in_sidebar": true,
+        "title": "Fenster",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-fenster"
+      },
+      {
+        "id": "dashboard_rauchmelder",
+        "show_in_sidebar": true,
+        "icon": "mdi:smoke-detector",
+        "title": "Rauchmelder ",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-rauchmelder"
+      },
+      {
+        "id": "dashboard_erdgeschoss",
+        "show_in_sidebar": true,
+        "title": "Erdgeschoss",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-erdgeschoss",
+        "icon": "mdi:home-floor-g"
+      },
+      {
+        "id": "dashboard_obergeschoss",
+        "show_in_sidebar": true,
+        "icon": "mdi:home-roof",
+        "title": "Obergeschoss ",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-obergeschoss"
+      },
+      {
+        "id": "dashboard_aussen",
+        "show_in_sidebar": true,
+        "title": "Aussen",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-aussen"
+      },
+      {
+        "id": "beschattung_ui",
+        "show_in_sidebar": true,
+        "title": "Beschattung UI",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "beschattung-ui"
+      },
+      {
+        "id": "dashboard_luften",
+        "show_in_sidebar": true,
+        "icon": "mdi:hvac",
+        "title": "Lüften",
+        "require_admin": false,
+        "mode": "storage",
+        "url_path": "dashboard-luften"
+      },
+      {
+        "id": "lovelace",
+        "icon": "mdi:view-dashboard",
+        "title": "Übersicht",
+        "url_path": "lovelace",
+        "show_in_sidebar": true,
+        "require_admin": false,
+        "mode": "storage"
+      }
+    ]
+  }
+}
