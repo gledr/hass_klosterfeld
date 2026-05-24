@@ -80,14 +80,8 @@ views:
             icon: mdi:umbrella-beach
 
           - type: custom:mushroom-cover-card
-            entity: cover.terrace_blinds
-            name: Raffstore
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-cover-card
             entity: cover.terrace_blinds_2
-            name: Raffstore 2
+            name: Raffstore
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
@@ -125,7 +119,12 @@ views:
           - type: custom:mushroom-light-card
             entity: light.main_door_light
             name: Haustür
-          # TODO ggf. weitere Außenleuchten ergänzen (Terrasse, Carport, Garten?)
+          - type: custom:mushroom-light-card
+            entity: light.light.terrace_light
+            name: Terasse
+          - type: custom:mushroom-light-card
+            entity: light.light.light.carport_light
+            name: Carport
 
       ###########################################################################
       # WETTERSTATION                                                           #
