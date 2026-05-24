@@ -497,3 +497,17 @@ messfahrt_alle:
 
     - service: knx.send
       data: { address: "4/2/98", payload: 1 }
+
+
+#########################################################
+# GARAGE – TOGGLE (Apple Watch / Companion App)
+# Öffnet wenn geschlossen, schließt wenn offen
+#########################################################
+garage_toggle:
+  alias: Garage – Toggle
+  icon: mdi:garage-variant
+  mode: single
+  sequence:
+    - service: cover.toggle
+      target:
+        entity_id: cover.garage_door_garage_door
