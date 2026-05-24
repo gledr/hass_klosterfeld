@@ -159,7 +159,7 @@ views:
         column_span: 2
         cards:
           - type: heading
-            heading: Süd-Fassade
+            heading: Süd-Fassade Erdgeschoss
             icon: mdi:weather-sunny
 
           - type: custom:mushroom-cover-card
@@ -169,14 +169,8 @@ views:
             show_tilt_position_control: true
             show_buttons_control: true
           - type: custom:mushroom-cover-card
-            entity: cover.terrace_blinds
-            name: Terrasse
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-cover-card
             entity: cover.terrace_blinds_2
-            name: Terrasse 2
+            name: Terrasse
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
