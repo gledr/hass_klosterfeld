@@ -1316,7 +1316,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        above: 25000
+        above: input_number.beschattung_lux_nord
     action:
       # Raffstore: Position zu + Tilt zu
       - service: cover.close_cover
@@ -1363,12 +1363,12 @@
   - id: beschattung_threshold_auf_bewoelkt
     alias: "Beschattung – Threshold-Räume öffnen bei Bewölkung"
     description: >
-      Gruppe A: Wenn Helligkeit unter 25000 (bewölkt), Lamellen öffnen
+      Gruppe A: Wenn Helligkeit unter Schwelle (bewölkt), Lamellen öffnen
       auch wenn Temperatur noch über Threshold ist.
     trigger:
       - platform: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 25000
+        below: input_number.beschattung_lux_nord
         for:
           minutes: 10
       - platform: time_pattern
@@ -1382,7 +1382,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 25000
+        below: input_number.beschattung_lux_nord
     action:
       - service: cover.set_cover_tilt_position
         target:
@@ -1660,7 +1660,7 @@
         state: "off"
       - condition: numeric_state
         entity_id: sensor.helligkeit_west
-        below: 25000
+        below: input_number.beschattung_lux_west
     action:
       # Küche + Esszimmer: Sichtschutz – nur Lamellen öffnen
       - service: cover.set_cover_tilt_position
@@ -1985,7 +1985,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_sud
-        above: 25000
+        above: input_number.beschattung_lux_sud
     action:
       - service: cover.close_cover
         target:
@@ -2004,7 +2004,7 @@
         to: "off"
       - platform: numeric_state
         entity_id: sensor.helligkeit_sud
-        below: 25000
+        below: input_number.beschattung_lux_sud
         for:
           minutes: 10
       - platform: time_pattern
@@ -2021,7 +2021,7 @@
         state: "off"
       - condition: numeric_state
         entity_id: sensor.helligkeit_sud
-        below: 25000
+        below: input_number.beschattung_lux_sud
     action:
       - service: cover.open_cover
         target:
@@ -2063,7 +2063,7 @@
         above: 0
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        above: 25000
+        above: input_number.beschattung_lux_nord
     action:
       - service: cover.close_cover
         target:
@@ -2082,7 +2082,7 @@
         to: "off"
       - platform: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 25000
+        below: input_number.beschattung_lux_nord
         for:
           minutes: 10
       - platform: time_pattern
@@ -2099,7 +2099,7 @@
         state: "off"
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
-        below: 25000
+        below: input_number.beschattung_lux_nord
     action:
       - service: cover.open_cover
         target:

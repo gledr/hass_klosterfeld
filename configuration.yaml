@@ -668,4 +668,25 @@ input_number:
     step: 500
     initial: 5000
     unit_of_measurement: "lx"
+  beschattung_lux_sud:
+    name: Beschattung Lux Schwelle Süd
+    min: 5000
+    max: 50000
+    step: 1000
+    initial: 15000
+    unit_of_measurement: "lx"
+  beschattung_lux_west:
+    name: Beschattung Lux Schwelle West
+    min: 5000
+    max: 50000
+    step: 1000
+    initial: 15000
+    unit_of_measurement: "lx"
+  beschattung_lux_nord:
+    name: Beschattung Lux Schwelle Nord
+    min: 5000
+    max: 50000
+    step: 1000
+    initial: 15000
+    unit_of_measurement: "lx"
 
