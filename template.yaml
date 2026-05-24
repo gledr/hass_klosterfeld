@@ -10,7 +10,7 @@ binary_sensor:
       {{ state_attr('sun.sun', 'azimuth') | float > 135
          and state_attr('sun.sun', 'azimuth') | float < 225
          and state_attr('sun.sun', 'elevation') | float > 5
-         and states('sensor.helligkeit_sud') | float(0) > 25000
+         and states('sensor.helligkeit_sud') | float(0) > 15000
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
 
   - name: "Sonne trifft West"
@@ -23,7 +23,7 @@ binary_sensor:
       {{ state_attr('sun.sun', 'azimuth') | float > 225
          and state_attr('sun.sun', 'azimuth') | float < 315
          and state_attr('sun.sun', 'elevation') | float > 5
-         and states('sensor.helligkeit_west') | float(0) > 25000
+         and states('sensor.helligkeit_west') | float(0) > 15000
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
 
   - name: "Sonne trifft Nord"
@@ -36,7 +36,7 @@ binary_sensor:
       {{ (state_attr('sun.sun', 'azimuth') | float > 315
          or state_attr('sun.sun', 'azimuth') | float < 45)
          and state_attr('sun.sun', 'elevation') | float > 5
-         and states('sensor.helligkeit_nord') | float(0) > 25000
+         and states('sensor.helligkeit_nord') | float(0) > 15000
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
 
 sensor:

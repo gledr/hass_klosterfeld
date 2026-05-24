@@ -378,11 +378,11 @@ knx:
 
     # ILLUMINANCE / Helligkeit
     - name: "Helligkeit Süd"
-      state_address: "8/4/4"
+      state_address: "8/4/3"
       type: "illuminance"
       sync_state: true
     - name: "Helligkeit West"
-      state_address: "8/4/3"
+      state_address: "8/4/4"
       type: "illuminance"
       sync_state: true
     - name: "Helligkeit Nord"
@@ -574,7 +574,7 @@ knx:
     - name: "Praesenzmelder Wohnzimmer"
       state_address: "5/2/20"
       device_class: presence
-    - name: "Helligkeit Ost Lock"
+    - name: "Helligkeit Nord Lock"
       state_address: "8/4/5"
       device_class: lock
     - name: "Helligkeit Süd Lock"
