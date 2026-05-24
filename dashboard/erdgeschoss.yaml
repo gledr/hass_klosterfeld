@@ -27,10 +27,6 @@ views:
             name: Hauptlicht
             show_brightness_control: true
           - type: custom:mushroom-light-card
-            entity: light.livingroom_main_light
-            name: Zweitlicht
-            show_brightness_control: true
-          - type: custom:mushroom-light-card
             entity: light.livingroom_reading_light
             name: Leselicht
             show_brightness_control: true
@@ -67,12 +63,7 @@ views:
             name: Vitrine
           - type: custom:mushroom-cover-card
             entity: cover.kitchen_blinds
-            name: Raffstore Fenster
-            show_position_control: true
-            show_tilt_position_control: true
-          - type: custom:mushroom-cover-card
-            entity: cover.raffstore_kueche
-            name: Raffstore 2
+            name: Raffstore
             show_position_control: true
             show_tilt_position_control: true
           - type: custom:mushroom-chips-card
@@ -151,9 +142,6 @@ views:
               - type: entity
                 entity: sensor.wc_gf_temperature
                 icon: mdi:thermometer
-              - type: entity
-                entity: sensor.wc_gf_humidity
-                icon: mdi:water-percent
 
       ###########################################################################
       # GARDEROBE / EINGANG                                                     #
