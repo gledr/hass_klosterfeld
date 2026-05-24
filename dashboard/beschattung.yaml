@@ -1,0 +1,378 @@
+###############################################################################
+# BESCHATTUNG — Operational view                                               #
+# Surfaces the sensors / flags the automations actually use, plus per-facade   #
+# cover groups. This is the dashboard you open when you want to *understand*   #
+# why the blinds are doing what they're doing.                                 #
+###############################################################################
+title: Beschattung
+views:
+  - title: Übersicht
+    path: home
+    icon: mdi:blinds-horizontal
+    type: sections
+    max_columns: 4
+    sections:
+
+      ###########################################################################
+      # AUSSENBEDINGUNGEN — Lux / Wind / Temp                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Außenbedingungen
+            heading_style: title
+            icon: mdi:weather-sunny
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mini-graph-card
+                # TODO verify entity_id: template.yaml uses helligkeit_sud (no e),
+                # alte beschattung_ui dashboard hat helligkeit_sued referenziert.
+                name: Helligkeit Süd
+                entities:
+                  - entity: sensor.helligkeit_sud
+                hours_to_show: 12
+                points_per_hour: 4
+                line_color: orange
+                show:
+                  labels: true
+                  extrema: true
+              - type: custom:mini-graph-card
+                name: Helligkeit West
+                entities:
+                  - entity: sensor.helligkeit_west
+                hours_to_show: 12
+                points_per_hour: 4
+                line_color: amber
+                show:
+                  labels: true
+                  extrema: true
+              - type: custom:mini-graph-card
+                name: Helligkeit Nord
+                entities:
+                  - entity: sensor.helligkeit_nord
+                hours_to_show: 12
+                points_per_hour: 4
+                line_color: blue
+                show:
+                  labels: true
+                  extrema: true
+
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.outdoor_temperature_avg
+                icon: mdi:thermometer
+                name: Außen Ø
+              - type: entity
+                entity: sensor.outdoor_temperature
+                icon: mdi:thermometer-lines
+                name: Außen jetzt
+              - type: entity
+                entity: sensor.wind_speed
+                icon: mdi:weather-windy
+                name: Wind
+              - type: entity
+                entity: sun.sun
+                icon: mdi:white-balance-sunny
+                name: Sonne
+
+      ###########################################################################
+      # SONNENERKENNUNG — visuelle Anzeige welche Fassade gerade Sonne hat      #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Sonne trifft Fassade
+            icon: mdi:compass-outline
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Süd
+                secondary: >
+                  {% if is_state('binary_sensor.sonne_trifft_sued','on') %}Aktiv{% else %}–{% endif %}
+                icon: mdi:weather-sunny
+                icon_color: >
+                  {% if is_state('binary_sensor.sonne_trifft_sued','on') %}amber{% else %}grey{% endif %}
+              - type: custom:mushroom-template-card
+                primary: West
+                secondary: >
+                  {% if is_state('binary_sensor.sonne_trifft_west','on') %}Aktiv{% else %}–{% endif %}
+                icon: mdi:weather-sunset
+                icon_color: >
+                  {% if is_state('binary_sensor.sonne_trifft_west','on') %}orange{% else %}grey{% endif %}
+              - type: custom:mushroom-template-card
+                primary: Nord
+                secondary: >
+                  {% if is_state('binary_sensor.sonne_trifft_nord','on') %}Aktiv{% else %}–{% endif %}
+                icon: mdi:weather-hazy
+                icon_color: >
+                  {% if is_state('binary_sensor.sonne_trifft_nord','on') %}blue{% else %}grey{% endif %}
+
+          # Wind-Alarm-Status
+          - type: custom:mushroom-template-card
+            primary: Windalarm
+            secondary: >
+              {% if is_state('binary_sensor.windalarm_schwelle_1','on') %}
+                AKTIV — alle Sonnenschutz-Automationen blockiert
+              {% else %}
+                Inaktiv
+              {% endif %}
+            icon: mdi:shield-alert
+            icon_color: >
+              {% if is_state('binary_sensor.windalarm_schwelle_1','on') %}red{% else %}green{% endif %}
+
+      ###########################################################################
+      # OVERRIDES & THRESHOLDS                                                  #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Steuerung
+            icon: mdi:tune
+
+          - type: entities
+            title: Terrasse Override
+            entities:
+              - entity: input_boolean.beschattung_terrasse_override
+                name: Override aktiv (Auto-Beschattung pausiert)
+                secondary_info: last-changed
+
+          - type: entities
+            title: Temperatur-Schwellen (°C)
+            entities:
+              - entity: input_number.beschattung_threshold_niedrig
+                name: Niedrig (Nord/WC schließen)
+              - entity: input_number.beschattung_threshold_hoch
+                name: Hoch (Eskalation Süd/West)
+              - entity: input_number.beschattung_terrasse_abend
+                name: Terrasse Abend (Sunset close-Schwelle)
+
+      ###########################################################################
+      # SÜD-FASSADE: Wohnzimmer + Terrasse                                      #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Süd-Fassade
+            icon: mdi:weather-sunny
+
+          - type: custom:mushroom-cover-card
+            entity: cover.livingroom_blinds
+            name: Wohnzimmer
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.terrace_blinds
+            name: Terrasse
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.terrace_blinds_2
+            name: Terrasse 2
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+
+      ###########################################################################
+      # WEST-FASSADE: Küche / Esszimmer                                         #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: West-Fassade
+            icon: mdi:weather-sunset
+
+          - type: custom:mushroom-cover-card
+            entity: cover.kitchen_blinds
+            name: Küche
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.raffstore_kueche
+            name: Küche (2)
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.dining_blinds
+            name: Esszimmer
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+
+      ###########################################################################
+      # NORD-/INNEN-FASSADEN: temp-getriggert                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Nord & Sichtschutz
+            icon: mdi:weather-hazy
+
+          - type: custom:mushroom-cover-card
+            entity: cover.wardrobe_blinds
+            name: Garderobe
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.shelf_blinds
+            name: Abstellraum
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.wc_eg_blinds
+            name: WC EG
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.wc_og_blinds
+            name: WC OG
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.bathroom_blinds
+            name: Badezimmer
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+
+      ###########################################################################
+      # ROLLOS (Schlafzimmer / Büro / Gäste)                                    #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Rollos
+            icon: mdi:roller-shade
+
+          - type: custom:mushroom-cover-card
+            entity: cover.bedroom_shutter
+            name: Schlafzimmer
+            show_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.office_shutter
+            name: Büro
+            show_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.guest_shutter
+            name: Gästezimmer
+            show_position_control: true
+            show_buttons_control: true
+
+      ###########################################################################
+      # SCHNELL-AKTIONEN                                                        #
+      ###########################################################################
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Schnell-Aktionen
+            icon: mdi:gesture-tap-button
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Mittagshitze
+                secondary: Süd + West Lamellen zu
+                icon: mdi:weather-sunny-alert
+                icon_color: red
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_tilt_position
+                  data:
+                    tilt_position: 0
+                  target:
+                    entity_id:
+                      - cover.livingroom_blinds
+                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
+                      - cover.kitchen_blinds
+                      - cover.raffstore_kueche
+                      - cover.dining_blinds
+              - type: custom:mushroom-template-card
+                primary: Blendschutz
+                secondary: Lamellen halb offen
+                icon: mdi:blinds-horizontal
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_tilt_position
+                  data:
+                    tilt_position: 50
+                  target:
+                    entity_id:
+                      - cover.livingroom_blinds
+                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
+                      - cover.kitchen_blinds
+                      - cover.raffstore_kueche
+                      - cover.dining_blinds
+                      - cover.wardrobe_blinds
+                      - cover.shelf_blinds
+                      - cover.wc_eg_blinds
+                      - cover.wc_og_blinds
+                      - cover.bathroom_blinds
+              - type: custom:mushroom-template-card
+                primary: Alles auf
+                icon: mdi:arrow-up-bold-box
+                icon_color: green
+                tap_action:
+                  action: call-service
+                  service: cover.open_cover
+                  target:
+                    entity_id:
+                      - cover.livingroom_blinds
+                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
+                      - cover.kitchen_blinds
+                      - cover.raffstore_kueche
+                      - cover.dining_blinds
+                      - cover.wardrobe_blinds
+                      - cover.shelf_blinds
+                      - cover.wc_eg_blinds
+                      - cover.wc_og_blinds
+                      - cover.bathroom_blinds
+                      - cover.bedroom_shutter
+                      - cover.office_shutter
+                      - cover.guest_shutter
+              - type: custom:mushroom-template-card
+                primary: Alles zu
+                icon: mdi:arrow-down-bold-box
+                icon_color: indigo
+                tap_action:
+                  action: call-service
+                  service: cover.close_cover
+                  target:
+                    entity_id:
+                      - cover.livingroom_blinds
+                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
+                      - cover.kitchen_blinds
+                      - cover.raffstore_kueche
+                      - cover.dining_blinds
+                      - cover.wardrobe_blinds
+                      - cover.shelf_blinds
+                      - cover.wc_eg_blinds
+                      - cover.wc_og_blinds
+                      - cover.bathroom_blinds
+                      - cover.bedroom_shutter
+                      - cover.office_shutter
+                      - cover.guest_shutter

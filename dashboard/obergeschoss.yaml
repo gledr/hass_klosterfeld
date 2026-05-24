@@ -1,0 +1,187 @@
+###############################################################################
+# OBERGESCHOSS — per-room compact view                                         #
+# Empty "Neuer Abschnitt" leftover removed.                                    #
+# Smoke detectors + windows now live on Sicherheit dashboard.                  #
+###############################################################################
+title: Obergeschoss
+views:
+  - title: Obergeschoss
+    path: home
+    icon: mdi:home-roof
+    type: sections
+    max_columns: 3
+    sections:
+
+      ###########################################################################
+      # SCHLAFZIMMER                                                            #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Schlafzimmer
+            icon: mdi:bed
+
+          - type: custom:mushroom-light-card
+            entity: light.bedroom_main_light
+            name: Hauptlicht
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.bedroom_bed_light_left
+            name: Bett links
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.bedroom_bed_light_right
+            name: Bett rechts
+            show_brightness_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.bedroom_shutter
+            name: Rollo
+            show_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.bedroom
+                icon: mdi:thermometer
+              - type: entity
+                entity: sensor.bedroom_humidity
+                icon: mdi:water-percent
+
+      ###########################################################################
+      # BÜRO                                                                    #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Büro
+            icon: mdi:desk
+
+          - type: custom:mushroom-light-card
+            entity: light.office_light
+            name: Licht
+          - type: custom:mushroom-cover-card
+            entity: cover.office_shutter
+            name: Rollo
+            show_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              # TODO sensor.kind2_temperature ist laut altem Dashboard die Büro-Temp.
+              # Rename empfohlen: sensor.kind2_temperature → sensor.office_temperature
+              - type: entity
+                entity: sensor.kind2_temperature
+                icon: mdi:thermometer
+              - type: entity
+                entity: sensor.bthome_sensor_ace1_humidity
+                icon: mdi:water-percent
+              - type: entity
+                entity: sensor.bthome_sensor_ace1_temperature
+                icon: mdi:thermometer-lines
+
+      ###########################################################################
+      # GÄSTEZIMMER                                                             #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Gästezimmer
+            icon: mdi:bed-empty
+
+          - type: custom:mushroom-light-card
+            entity: light.guest_light
+            name: Licht
+          - type: custom:mushroom-cover-card
+            entity: cover.guest_shutter
+            name: Rollo
+            show_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.guest_room_temperature
+                icon: mdi:thermometer
+
+      ###########################################################################
+      # BADEZIMMER                                                              #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Badezimmer
+            icon: mdi:bathtub
+
+          - type: custom:mushroom-light-card
+            entity: light.bathroom_main_light
+            name: Hauptlicht
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.bathroom_mirror_light
+            name: Spiegel
+            show_brightness_control: true
+          - type: custom:mushroom-entity-card
+            entity: switch.handtuchheizkoerper
+            name: Handtuchheizung
+            icon: mdi:radiator
+          - type: custom:mushroom-cover-card
+            entity: cover.bathroom_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.bathroom_temperature
+                icon: mdi:thermometer
+              - type: entity
+                entity: sensor.bthome_sensor_5447_humidity
+                icon: mdi:water-percent
+
+      ###########################################################################
+      # WC OG                                                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: WC
+            icon: mdi:toilet
+
+          - type: custom:mushroom-light-card
+            entity: light.wc_og_light
+            name: Licht
+          - type: custom:mushroom-cover-card
+            entity: cover.wc_og_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.wc_og_temperature
+                icon: mdi:thermometer
+              - type: entity
+                entity: sensor.wc_og_humidity
+                icon: mdi:water-percent
+
+      ###########################################################################
+      # GALERIE                                                                 #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Galerie
+            icon: mdi:bridge
+
+          - type: custom:mushroom-light-card
+            entity: light.gallery_og_light
+            name: Licht
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.gallery_og_temperature
+                icon: mdi:thermometer

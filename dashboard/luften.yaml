@@ -1,0 +1,112 @@
+###############################################################################
+# LÜFTEN — Keller-Lüftungsempfehlungen + Taupunkt                              #
+# (Layout aus altem Dashboard übernommen, in sections + mushroom konvertiert)  #
+###############################################################################
+title: Lüften
+views:
+  - title: Keller-Lüftung
+    path: home
+    icon: mdi:hvac
+    type: sections
+    max_columns: 3
+    sections:
+
+      ###########################################################################
+      # AUSSEN — Referenzwerte                                                  #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Außenklima
+            icon: mdi:weather-partly-cloudy
+
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.outdoor_temperature
+                icon: mdi:thermometer
+                name: Temp
+              - type: entity
+                entity: sensor.outdoor_humidity
+                icon: mdi:water-percent
+                name: rel. F.
+              - type: entity
+                entity: sensor.taupunkt_aussen
+                icon: mdi:water-thermometer
+                name: Taupunkt
+
+      ###########################################################################
+      # PRO RAUM — Temp / Feuchte / Taupunkt / Empfehlung                       #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Technikraum
+            icon: mdi:cog
+
+          - type: entities
+            entities:
+              - entity: sensor.engineering_temperature
+                name: Temperatur
+              - entity: sensor.engineering_humidity
+                name: Luftfeuchte
+              - entity: sensor.taupunkt_technikraum
+                name: Taupunkt
+              - entity: sensor.luftung_technikraum
+                name: Empfehlung
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Hobbyraum
+            icon: mdi:gamepad-variant
+
+          - type: entities
+            entities:
+              - entity: sensor.hobby_temperature
+                name: Temperatur
+              - entity: sensor.hobby_humidity
+                name: Luftfeuchte
+              - entity: sensor.taupunkt_hobby
+                name: Taupunkt
+              - entity: sensor.luftung_hobbyraum
+                name: Empfehlung
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Lager
+            icon: mdi:package-variant
+
+          - type: entities
+            entities:
+              - entity: sensor.storage_temperature
+                name: Temperatur
+              - entity: sensor.storage_humidity
+                name: Luftfeuchte
+              - entity: sensor.taupunkt_lager
+                name: Taupunkt
+              - entity: sensor.luftung_lager
+                name: Empfehlung
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Garage
+            icon: mdi:garage
+
+          - type: entities
+            entities:
+              - entity: sensor.garagentor_garage_temperature
+                name: Temperatur
+              - entity: sensor.garagentor_garage_humidity
+                name: Luftfeuchte
+              - entity: sensor.taupunkt_garage
+                name: Taupunkt
+              - entity: sensor.luftung_garage
+                name: Empfehlung

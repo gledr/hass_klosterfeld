@@ -1,0 +1,183 @@
+###############################################################################
+# ERDGESCHOSS — per-room compact view                                          #
+# Smoke detectors and windows live on the Sicherheit dashboard, not here.      #
+# (Old dashboard had a typo: cover.livingroom_blinks → cover.livingroom_blinds)#
+###############################################################################
+title: Erdgeschoss
+views:
+  - title: Erdgeschoss
+    path: home
+    icon: mdi:home-floor-g
+    type: sections
+    max_columns: 3
+    sections:
+
+      ###########################################################################
+      # WOHNZIMMER                                                              #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Wohnzimmer
+            icon: mdi:sofa
+
+          - type: custom:mushroom-light-card
+            entity: light.livingroom_main_light_2
+            name: Hauptlicht
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.livingroom_main_light
+            name: Zweitlicht
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.livingroom_reading_light
+            name: Leselicht
+            show_brightness_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.livingroom_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+
+      ###########################################################################
+      # KÜCHE                                                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Küche
+            icon: mdi:silverware-fork-knife
+
+          - type: custom:mushroom-light-card
+            entity: light.licht_kueche_fenster
+            name: Stiege
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.licht_kueche_fenster_2
+            name: Fenster
+            show_brightness_control: true
+          - type: custom:mushroom-light-card
+            entity: light.licht_spuele_kueche
+            name: Spüle
+          - type: custom:mushroom-light-card
+            entity: light.licht_vitrine_kueche
+            name: Vitrine
+          - type: custom:mushroom-cover-card
+            entity: cover.kitchen_blinds
+            name: Raffstore Fenster
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.raffstore_kueche
+            name: Raffstore 2
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.kitchen_temperature
+                icon: mdi:thermometer
+              - type: entity
+                entity: sensor.kitchen_humidity
+                icon: mdi:water-percent
+
+      ###########################################################################
+      # ESSZIMMER                                                               #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Esszimmer
+            icon: mdi:table-chair
+
+          - type: custom:mushroom-light-card
+            entity: light.esszimmer_licht
+            name: Esstisch
+            show_brightness_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.dining_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+
+      ###########################################################################
+      # ABSTELLRAUM                                                             #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Abstellraum
+            icon: mdi:shelf
+
+          - type: custom:mushroom-light-card
+            entity: light.shelf_eg_light
+            name: Licht
+          - type: custom:mushroom-cover-card
+            entity: cover.shelf_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.utility_temperature
+                icon: mdi:thermometer
+
+      ###########################################################################
+      # WC EG                                                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: WC
+            icon: mdi:toilet
+
+          - type: custom:mushroom-light-card
+            entity: light.wc_eg_light
+            name: Licht
+          - type: custom:mushroom-cover-card
+            entity: cover.wc_eg_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.wc_gf_temperature
+                icon: mdi:thermometer
+              - type: entity
+                entity: sensor.wc_gf_humidity
+                icon: mdi:water-percent
+
+      ###########################################################################
+      # GARDEROBE / EINGANG                                                     #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Garderobe
+            icon: mdi:wardrobe
+
+          - type: custom:mushroom-light-card
+            entity: light.wardrobe_light
+            name: Garderobe
+          - type: custom:mushroom-light-card
+            entity: light.entrance_light
+            name: Eingang
+          - type: custom:mushroom-cover-card
+            entity: cover.wardrobe_blinds
+            name: Raffstore
+            show_position_control: true
+            show_tilt_position_control: true
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.wardrobe_temperature
+                icon: mdi:thermometer

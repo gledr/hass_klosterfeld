@@ -1,0 +1,185 @@
+###############################################################################
+# SICHERHEIT — combined Rauchmelder + Fenster + Türen                          #
+# auto-entities render filtered lists, so "alles ruhig" collapses to nothing.  #
+###############################################################################
+title: Sicherheit
+views:
+  - title: Übersicht
+    path: home
+    icon: mdi:shield-home
+    type: sections
+    max_columns: 4
+    sections:
+
+      ###########################################################################
+      # GESAMTSTATUS                                                            #
+      ###########################################################################
+      - type: grid
+        column_span: 4
+        cards:
+          - type: custom:mushroom-template-card
+            primary: >
+              {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
+              {% set win = states.binary_sensor | selectattr('entity_id','search','window') | selectattr('state','eq','on') | list | count %}
+              {% if smoke > 0 %}🚨 RAUCHALARM ({{ smoke }})
+              {% elif win > 0 %}🪟 {{ win }} Fenster/Türen offen
+              {% else %}✅ Alles ruhig
+              {% endif %}
+            secondary: >
+              Letzte Prüfung {{ now().strftime('%H:%M') }}
+            icon: >
+              {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
+              {% if smoke > 0 %}mdi:fire-alert
+              {% else %}mdi:shield-check
+              {% endif %}
+            icon_color: >
+              {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
+              {% set win = states.binary_sensor | selectattr('entity_id','search','window') | selectattr('state','eq','on') | list | count %}
+              {% if smoke > 0 %}red{% elif win > 0 %}amber{% else %}green{% endif %}
+            multiline_secondary: false
+            fill_container: true
+
+      ###########################################################################
+      # RAUCHMELDER                                                             #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Rauchmelder
+            icon: mdi:smoke-detector
+
+          # Ausgelöste zuerst (rot hervorgehoben)
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: ⚠️ Ausgelöst
+              state_color: true
+            filter:
+              include:
+                - domain: binary_sensor
+                  attributes:
+                    device_class: smoke
+                  state: "on"
+            show_empty: false
+
+          # Alle (statisch mit Override-Namen — Inferenz aus alter Rauchmelder-Dashboard)
+          - type: entities
+            title: Alle (Status)
+            state_color: true
+            entities:
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf67960_smoke
+                name: Wohnzimmer
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf73fc0_smoke
+                name: Garderobe
+              # TODO verify room — alte Dashboard zeigt nur "Erdgeschoss" Gruppe ohne weitere Hinweise.
+              # 2 EG-Rauchmelder bekannt (Wohnzimmer + Garderobe), beide oben gemappt.
+              # OG-Rauchmelder (4 Stück) — Räume bitte verifizieren (Schlafzimmer, Büro, Gäste, Galerie?)
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke
+                name: "OG #1  TODO Raum verifizieren"
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf68278_smoke
+                name: "OG #2  TODO Raum verifizieren"
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf68028_smoke
+                name: "OG #3  TODO Raum verifizieren"
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf59758_smoke
+                name: "OG #4  TODO Raum verifizieren"
+              - entity: binary_sensor.rauchmelder_hobbyraum_smoke
+                name: Keller Hobbyraum
+              - entity: binary_sensor.rauchmelder_kg_eg_smoke
+                name: Stiege Keller/EG
+              - entity: binary_sensor.rauchmelder_lager_smoke
+                name: Keller Lager
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf70698_smoke
+                name: "Keller TODO Raum verifizieren"
+
+      ###########################################################################
+      # FENSTER & TÜREN                                                         #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Fenster & Türen
+            icon: mdi:window-open-variant
+
+          # Aktuell offen
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: 🪟 Offen
+              state_color: true
+            filter:
+              include:
+                - entity_id: binary_sensor.*window*
+                  state: "on"
+                - entity_id: binary_sensor.*door*
+                  state: "on"
+              exclude:
+                - entity_id: binary_sensor.garage_door_garage_door_light
+            show_empty: false
+
+          # Alle Fenster Status
+          - type: entities
+            title: Alle Fenster (Status)
+            state_color: true
+            entities:
+              - entity: binary_sensor.shelly_blu_door_window_a173_window
+                name: Büro
+              - entity: binary_sensor.shelly_blu_door_window_bb57_window
+                name: Gästezimmer
+              - entity: binary_sensor.fenster_schlafzimmer_window
+                name: Schlafzimmer
+              # TODO Terrassentür Shelly nach Installation hier ergänzen
+
+          # Garagentor
+          - type: entities
+            title: Garage
+            state_color: true
+            entities:
+              - entity: cover.garage_door_garage_door
+                name: Garagentor
+              - entity: sensor.garage_door_garage_door_status
+                name: Status
+              - entity: sensor.garage_door_garage_door_position
+                name: Position
+
+      ###########################################################################
+      # WIND & WETTER WARNUNGEN                                                 #
+      ###########################################################################
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Wetterwarnungen
+            icon: mdi:weather-windy
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Wind
+                secondary: "{{ states('sensor.wind_speed') }} m/s"
+                icon: mdi:weather-windy
+                icon_color: >
+                  {% set v = states('sensor.wind_speed') | float(0) %}
+                  {% if v > 15 %}red{% elif v > 8 %}amber{% else %}green{% endif %}
+              - type: custom:mushroom-template-card
+                primary: Raffstore-Schutz
+                secondary: >
+                  {% if is_state('binary_sensor.raffstore_wind_alarm','on') %}AKTIV{% else %}Inaktiv{% endif %}
+                icon: mdi:shield
+                icon_color: >
+                  {% if is_state('binary_sensor.raffstore_wind_alarm','on') %}red{% else %}green{% endif %}
+              - type: custom:mushroom-template-card
+                primary: Jalousie-Schutz
+                secondary: >
+                  {% if is_state('binary_sensor.jalousie_wind_alarm','on') %}AKTIV{% else %}Inaktiv{% endif %}
+                icon: mdi:shield-alert
+                icon_color: >
+                  {% if is_state('binary_sensor.jalousie_wind_alarm','on') %}red{% else %}green{% endif %}
+              - type: custom:mushroom-template-card
+                primary: Schwelle 1
+                secondary: >
+                  {% if is_state('binary_sensor.windalarm_schwelle_1','on') %}Beschattung blockiert{% else %}OK{% endif %}
+                icon: mdi:gauge-low
+                icon_color: >
+                  {% if is_state('binary_sensor.windalarm_schwelle_1','on') %}red{% else %}green{% endif %}

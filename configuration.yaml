@@ -15,6 +15,78 @@ scene: !include scenes.yaml
 template: !include template.yaml
 
 #########################################################
+# LOVELACE DASHBOARDS (yaml mode, git-tracked)
+#########################################################
+# Main dashboard ("Übersicht") is read from ui-lovelace.yaml at repo root.
+# Additional dashboards live in dashboard/*.yaml.
+# HACS frontend cards must be installed before first load — see dashboard/README.md.
+lovelace:
+  mode: yaml
+  resources:
+    - url: /hacsfiles/lovelace-mushroom/mushroom.js
+      type: module
+    - url: /hacsfiles/button-card/button-card.js
+      type: module
+    - url: /hacsfiles/mini-graph-card/mini-graph-card-bundle.js
+      type: module
+    - url: /hacsfiles/apexcharts-card/apexcharts-card.js
+      type: module
+    - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
+      type: module
+    - url: /hacsfiles/lovelace-layout-card/layout-card.js
+      type: module
+  dashboards:
+    lovelace-beschattung:
+      mode: yaml
+      filename: dashboard/beschattung.yaml
+      title: Beschattung
+      icon: mdi:blinds-horizontal
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-klima:
+      mode: yaml
+      filename: dashboard/klima.yaml
+      title: Klima
+      icon: mdi:home-thermometer
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-sicherheit:
+      mode: yaml
+      filename: dashboard/sicherheit.yaml
+      title: Sicherheit
+      icon: mdi:shield-home
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-luften:
+      mode: yaml
+      filename: dashboard/luften.yaml
+      title: Lüften
+      icon: mdi:hvac
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-erdgeschoss:
+      mode: yaml
+      filename: dashboard/erdgeschoss.yaml
+      title: Erdgeschoss
+      icon: mdi:home-floor-g
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-obergeschoss:
+      mode: yaml
+      filename: dashboard/obergeschoss.yaml
+      title: Obergeschoss
+      icon: mdi:home-roof
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-aussen:
+      mode: yaml
+      filename: dashboard/aussen.yaml
+      title: Aussen
+      icon: mdi:tree
+      show_in_sidebar: true
+      require_admin: false
+
+#########################################################
 # KNX INTEGRATION
 #########################################################
 

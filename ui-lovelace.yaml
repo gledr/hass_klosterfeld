@@ -1,0 +1,307 @@
+###############################################################################
+# ÜBERSICHT — Landing page                                                     #
+# Loaded as the main dashboard (lovelace.mode: yaml in configuration.yaml).    #
+# Focus: at-a-glance status. Alerts collapse when everything is fine.          #
+###############################################################################
+title: Klosterfeld
+views:
+  - title: Übersicht
+    path: home
+    icon: mdi:home
+    type: sections
+    max_columns: 4
+    sections:
+
+      ###########################################################################
+      # ALERT BAR — auto-entities filters render nothing when state is clean.   #
+      ###########################################################################
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Achtung
+            heading_style: title
+            icon: mdi:alert
+
+          # Rauchmelder ausgelöst
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: 🚨 Rauchalarm aktiv
+              state_color: true
+            filter:
+              include:
+                - domain: binary_sensor
+                  attributes:
+                    device_class: smoke
+                  state: "on"
+            show_empty: false
+
+          # Offene Fenster / Türen
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: 🪟 Fenster / Türen offen
+              state_color: true
+            filter:
+              include:
+                - entity_id: binary_sensor.*window*
+                  state: "on"
+                - entity_id: binary_sensor.*door*
+                  state: "on"
+              exclude:
+                - entity_id: binary_sensor.garage_door_garage_door_light
+            show_empty: false
+
+          # Windalarm aktiv
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: 💨 Windalarm
+              state_color: true
+            filter:
+              include:
+                - entity_id: binary_sensor.*wind_alarm*
+                  state: "on"
+                - entity_id: binary_sensor.windalarm_schwelle_*
+                  state: "on"
+            show_empty: false
+
+          # Aktive Overrides / Manuelle Eingriffe
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: ⚙️ Aktive Overrides
+              state_color: true
+            filter:
+              include:
+                - entity_id: input_boolean.beschattung_terrasse_override
+                  state: "on"
+                - entity_id: input_boolean.badezimmer_privacy_active
+                  state: "on"
+            show_empty: false
+
+      ###########################################################################
+      # WETTER / AUSSEN                                                         #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Außen
+            icon: mdi:weather-partly-cloudy
+
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: weather
+                entity: weather.forecast_home
+                show_conditions: true
+                show_temperature: true
+              - type: entity
+                entity: sensor.outdoor_temperature
+                icon: mdi:thermometer
+                name: Außen
+              - type: entity
+                entity: sensor.wind_speed
+                icon: mdi:weather-windy
+                name: Wind
+              - type: entity
+                entity: sun.sun
+                icon: mdi:white-balance-sunny
+
+          - type: custom:mini-graph-card
+            name: Außentemperatur 24h
+            entities:
+              - entity: sensor.outdoor_temperature
+                name: Temp
+            hours_to_show: 24
+            points_per_hour: 2
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      ###########################################################################
+      # SCHNELL-AKTIONEN                                                        #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Schnell-Aktionen
+            icon: mdi:gesture-tap-button
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Alle Rollos hoch
+                icon: mdi:arrow-up-bold-box
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: cover.open_cover
+                  target:
+                    entity_id:
+                      - cover.bedroom_shutter
+                      - cover.office_shutter
+                      - cover.guest_shutter
+              - type: custom:mushroom-template-card
+                primary: Alle Rollos runter
+                icon: mdi:arrow-down-bold-box
+                icon_color: indigo
+                tap_action:
+                  action: call-service
+                  service: cover.close_cover
+                  target:
+                    entity_id:
+                      - cover.bedroom_shutter
+                      - cover.office_shutter
+                      - cover.guest_shutter
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Alle Raffstore auf
+                secondary: Lamellen offen
+                icon: mdi:blinds-horizontal
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_tilt_position
+                  data:
+                    tilt_position: 50
+                  target:
+                    entity_id:
+                      - cover.wardrobe_blinds
+                      - cover.shelf_blinds
+                      - cover.wc_eg_blinds
+                      - cover.wc_og_blinds
+                      - cover.bathroom_blinds
+                      - cover.livingroom_blinds
+                      - cover.kitchen_blinds
+                      - cover.dining_blinds
+                      - cover.raffstore_kueche
+                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
+              - type: custom:mushroom-template-card
+                primary: Alle Raffstore zu
+                secondary: Lamellen geschlossen
+                icon: mdi:blinds-horizontal-closed
+                icon_color: indigo
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_tilt_position
+                  data:
+                    tilt_position: 0
+                  target:
+                    entity_id:
+                      - cover.wardrobe_blinds
+                      - cover.shelf_blinds
+                      - cover.wc_eg_blinds
+                      - cover.wc_og_blinds
+                      - cover.bathroom_blinds
+                      - cover.livingroom_blinds
+                      - cover.kitchen_blinds
+                      - cover.dining_blinds
+                      - cover.raffstore_kueche
+                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Wohnküche aus
+                icon: mdi:lightbulb-off
+                icon_color: grey
+                tap_action:
+                  action: call-service
+                  service: script.wohnkueche_alles_aus
+              - type: custom:mushroom-template-card
+                primary: Messfahrt
+                secondary: Alle Raffstore
+                icon: mdi:cog-refresh
+                icon_color: orange
+                tap_action:
+                  action: call-service
+                  service: script.messfahrt_alle
+
+      ###########################################################################
+      # NAVIGATION ZU UNTER-DASHBOARDS                                          #
+      ###########################################################################
+      - type: grid
+        column_span: 4
+        cards:
+          - type: heading
+            heading: Bereiche
+            icon: mdi:view-dashboard
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Beschattung
+                secondary: "{{ states('sensor.outdoor_temperature') }} °C · Wind {{ states('sensor.wind_speed') }} m/s"
+                icon: mdi:blinds-horizontal
+                icon_color: |
+                  {% if is_state('binary_sensor.sonne_trifft_sued', 'on')
+                     or is_state('binary_sensor.sonne_trifft_west', 'on') %}
+                    amber
+                  {% else %}
+                    grey
+                  {% endif %}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-beschattung/home
+              - type: custom:mushroom-template-card
+                primary: Klima
+                secondary: "Außen {{ states('sensor.outdoor_temperature') }} °C"
+                icon: mdi:home-thermometer
+                icon_color: blue
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-klima/home
+              - type: custom:mushroom-template-card
+                primary: Sicherheit
+                secondary: >
+                  {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
+                  {% set win = states.binary_sensor | selectattr('entity_id','search','window') | selectattr('state','eq','on') | list | count %}
+                  {% if smoke > 0 %}🚨 {{ smoke }} Rauchalarm{% elif win > 0 %}🪟 {{ win }} offen{% else %}Alles ruhig{% endif %}
+                icon: mdi:shield-home
+                icon_color: |
+                  {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
+                  {% if smoke > 0 %}red{% else %}green{% endif %}
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-sicherheit/home
+
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Erdgeschoss
+                icon: mdi:home-floor-g
+                icon_color: teal
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-erdgeschoss/home
+              - type: custom:mushroom-template-card
+                primary: Obergeschoss
+                icon: mdi:home-roof
+                icon_color: teal
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-obergeschoss/home
+              - type: custom:mushroom-template-card
+                primary: Aussen
+                secondary: Garage · Terrasse
+                icon: mdi:tree
+                icon_color: green
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-aussen/home
+              - type: custom:mushroom-template-card
+                primary: Lüften
+                secondary: Keller-Empfehlungen
+                icon: mdi:hvac
+                icon_color: cyan
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-luften/home
