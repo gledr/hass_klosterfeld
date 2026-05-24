@@ -120,10 +120,10 @@ views:
             entity: light.main_door_light
             name: Haustür
           - type: custom:mushroom-light-card
-            entity: light.light.terrace_light
+            entity: light.terrace_light
             name: Terasse
           - type: custom:mushroom-light-card
-            entity: light.light.light.carport_light
+            entity: light.carport_light
             name: Carport
 
       ###########################################################################
@@ -160,17 +160,15 @@ views:
           - type: horizontal-stack
             cards:
               - type: custom:mini-graph-card
-                name: Helligkeit Ost
+                name: Helligkeit Nord
                 entities:
-                  - entity: sensor.helligkeit_ost
+                  - entity: sensor.helligkeit_nord
                 hours_to_show: 12
                 points_per_hour: 4
                 line_color: amber
               - type: custom:mini-graph-card
                 name: Helligkeit Süd
                 entities:
-                  # TODO: template.yaml referenziert helligkeit_sud (ohne e),
-                  # altes Aussen-Dashboard hatte helligkeit_sud — bitte verifizieren.
                   - entity: sensor.helligkeit_sud
                 hours_to_show: 12
                 points_per_hour: 4
