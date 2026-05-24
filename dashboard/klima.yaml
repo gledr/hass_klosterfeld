@@ -148,7 +148,7 @@ views:
             icon: mdi:shelf
             icon_color: grey
           - type: custom:mushroom-template-card
-            primary: Stiege EG↔OG
+            primary: Stiege EG<-OG
             secondary: "{{ states('sensor.stairs_eg_og_temperature_eg') }} °C"
             icon: mdi:stairs-up
             icon_color: grey
@@ -225,6 +225,11 @@ views:
             secondary: "{{ states('sensor.storage_temperature') }} °C · {{ states('sensor.storage_humidity') }} %"
             icon: mdi:package-variant
             icon_color: brown
+          - type: custom:mushroom-template-card
+            primary: Stiege KG->EG
+            secondary: "{{ states('sensor.stairs_kg_eg_temperature_eg') }} °C"
+            icon: mdi:stairs-up
+            icon_color: grey
 
       ###########################################################################
       # TRENDS                                                                  #
