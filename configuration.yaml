@@ -15,13 +15,17 @@ scene: !include scenes.yaml
 template: !include template.yaml
 
 #########################################################
-# LOVELACE DASHBOARDS (yaml mode, git-tracked)
+# LOVELACE DASHBOARDS (yaml-defined, git-tracked)
 #########################################################
-# Main dashboard ("Übersicht") is read from ui-lovelace.yaml at repo root.
+# Main dashboard ("Übersicht") is registered as the `lovelace` key below,
+# pointing to ui-lovelace.yaml at repo root.
 # Additional dashboards live in dashboard/*.yaml.
 # HACS frontend cards must be installed before first load — see dashboard/README.md.
+#
+# Note: top-level `mode: yaml` was removed (deprecated in HA 2026.8).
+# `resource_mode: yaml` keeps the resources list yaml-managed.
 lovelace:
-  mode: yaml
+  resource_mode: yaml
   resources:
     - url: /hacsfiles/lovelace-mushroom/mushroom.js
       type: module
@@ -36,6 +40,13 @@ lovelace:
     - url: /hacsfiles/lovelace-layout-card/layout-card.js
       type: module
   dashboards:
+    lovelace:
+      mode: yaml
+      filename: ui-lovelace.yaml
+      title: Übersicht
+      icon: mdi:home
+      show_in_sidebar: true
+      require_admin: false
     lovelace-beschattung:
       mode: yaml
       filename: dashboard/beschattung.yaml

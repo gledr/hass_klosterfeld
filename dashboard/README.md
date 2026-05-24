@@ -6,7 +6,7 @@ Eight git-tracked yaml dashboards, replacing the 10 storage-mode JSON files.
 
 | File | Dashboard | Sidebar title |
 |---|---|---|
-| `../ui-lovelace.yaml` | Main / landing | Übersicht (auto, no entry in `dashboards:`) |
+| `../ui-lovelace.yaml` | Main / landing (registered as `lovelace` key) | Übersicht |
 | `beschattung.yaml` | Operational shading | Beschattung |
 | `klima.yaml` | Climate overview + trends | Klima |
 | `sicherheit.yaml` | Smoke + windows + doors merged | Sicherheit |
