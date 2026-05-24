@@ -159,7 +159,7 @@ views:
         column_span: 2
         cards:
           - type: heading
-            heading: Süd-Fassade Erdgeschoss
+            heading: Süd-Fassade
             icon: mdi:weather-sunny
 
           - type: custom:mushroom-cover-card
@@ -174,6 +174,16 @@ views:
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.office_shutter
+            name: Büro
+            show_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.guest_shutter
+            name: Gästezimmer
+            show_position_control: true
+            show_buttons_control: true
 
       ###########################################################################
       # WEST-FASSADE: Küche / Esszimmer                                         #
@@ -182,7 +192,7 @@ views:
         column_span: 2
         cards:
           - type: heading
-            heading: West-Fassade Erdgeschoss
+            heading: West-Fassade
             icon: mdi:weather-sunset
 
           - type: custom:mushroom-cover-card
@@ -194,29 +204,6 @@ views:
           - type: custom:mushroom-cover-card
             entity: cover.dining_blinds
             name: Esszimmer
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
-
-      ###########################################################################
-      # NORD-/INNEN-FASSADEN: temp-getriggert                                   #
-      ###########################################################################
-      - type: grid
-        column_span: 2
-        cards:
-          - type: heading
-            heading: Nord & Sichtschutz
-            icon: mdi:weather-hazy
-
-          - type: custom:mushroom-cover-card
-            entity: cover.wardrobe_blinds
-            name: Garderobe
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-cover-card
-            entity: cover.shelf_blinds
-            name: Abstellraum
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
@@ -232,36 +219,38 @@ views:
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
+
+      ###########################################################################
+      # NORD-/INNEN-FASSADEN: temp-getriggert                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Nord-Fassade
+            icon: mdi:weather-hazy
+
+          - type: custom:mushroom-cover-card
+            entity: cover.wardrobe_blinds
+            name: Garderobe
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
+          - type: custom:mushroom-cover-card
+            entity: cover.shelf_blinds
+            name: Abstellraum
+            show_position_control: true
+            show_tilt_position_control: true
+            show_buttons_control: true
           - type: custom:mushroom-cover-card
             entity: cover.bathroom_blinds
             name: Badezimmer
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
-
-      ###########################################################################
-      # ROLLOS (Schlafzimmer / Büro / Gäste)                                    #
-      ###########################################################################
-      - type: grid
-        column_span: 2
-        cards:
-          - type: heading
-            heading: Rollos
-            icon: mdi:roller-shade
-
           - type: custom:mushroom-cover-card
             entity: cover.bedroom_shutter
             name: Schlafzimmer
-            show_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-cover-card
-            entity: cover.office_shutter
-            name: Büro
-            show_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-cover-card
-            entity: cover.guest_shutter
-            name: Gästezimmer
             show_position_control: true
             show_buttons_control: true
 
