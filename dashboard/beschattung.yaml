@@ -182,18 +182,12 @@ views:
         column_span: 2
         cards:
           - type: heading
-            heading: West-Fassade
+            heading: West-Fassade Erdgeschoss
             icon: mdi:weather-sunset
 
           - type: custom:mushroom-cover-card
             entity: cover.kitchen_blinds
             name: Küche
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-cover-card
-            entity: cover.raffstore_kueche
-            name: Küche (2)
             show_position_control: true
             show_tilt_position_control: true
             show_buttons_control: true
