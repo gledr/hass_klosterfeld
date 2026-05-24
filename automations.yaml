@@ -1422,10 +1422,11 @@
                 target:
                   entity_id:
                     - cover.livingroom_blinds
-              # Terrasse nur wenn Override OFF
-              - condition: state
-                entity_id: input_boolean.beschattung_terrasse_override
-                state: "off"
+              # Heißer Tag: Hitzeschutz hat Vorrang vor manuellem Override.
+              # Override löschen, dann Terrasse zu.
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.beschattung_terrasse_override
               - service: cover.close_cover
                 target:
                   entity_id:
@@ -1517,7 +1518,8 @@
     alias: "Beschattung – Süd Hitzeschutz Eskalation"
     description: >
       Wenn Temp über 26°C steigt während Sonne bereits auf Süd trifft,
-      Tilt von 50% auf 100% verschärfen.
+      Tilt von 50% auf 100% verschärfen. Hitzeschutz hat Vorrang vor
+      manuellem Terrasse-Override – Override wird gelöscht.
     trigger:
       - platform: numeric_state
         entity_id: sensor.outdoor_temperature_avg
@@ -1535,10 +1537,10 @@
             - cover.livingroom_blinds
         data:
           tilt_position: 0
-      # Terrasse nur wenn Override OFF
-      - condition: state
-        entity_id: input_boolean.beschattung_terrasse_override
-        state: "off"
+      # Hitzeschutz hat Vorrang vor manuellem Override → Override löschen, Terrasse zu
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_terrasse_override
       - service: cover.set_cover_tilt_position
         target:
           entity_id:
@@ -1766,8 +1768,11 @@
   - id: beschattung_terrasse_override_setzen
     alias: "Beschattung – Terrasse Override setzen"
     description: >
-      Wenn Terrasse geöffnet wird während sonne_trifft_sued ON ist,
-      wurde sie manuell geöffnet → Override setzen.
+      Wenn Terrasse manuell (UI, App, KNX-Taster) geöffnet wird während
+      sonne_trifft_sued ON ist, Override setzen. Öffnungen durch andere
+      HA-Automationen (z.B. "Süd Sonne Ende") werden ignoriert, indem auf
+      context.parent_id geprüft wird – Automationen setzen diese ID, manuelle
+      Aktionen nicht.
     trigger:
       - platform: state
         entity_id: cover.terrace_blinds
@@ -1779,6 +1784,8 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
         state: "on"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id is none }}"
     action:
       - service: input_boolean.turn_on
         target:
