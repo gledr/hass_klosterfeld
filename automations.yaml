@@ -2100,6 +2100,13 @@
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
         below: input_number.beschattung_lux_nord
+      - condition: template
+        value_template: >
+          {% if is_state('binary_sensor.workday_sensor', 'on') %}
+            {{ now() >= today_at('07:00') }}
+          {% else %}
+            {{ now() >= today_at('10:00') }}
+          {% endif %}
     action:
       - service: cover.open_cover
         target:
