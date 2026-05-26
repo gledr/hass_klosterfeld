@@ -610,6 +610,16 @@ input_boolean:
     name: Wohnküche Override Szene (Smart 55)
   beschattung_terrasse_override:
     name: Beschattung Terrasse Override
+  beschattung_buero_override:
+    name: Beschattung Büro Override
+  beschattung_wohnzimmer_override:
+    name: Beschattung Wohnzimmer Override
+  beschattung_west_override:
+    name: Beschattung West Override (Küche/Esszimmer)
+  beschattung_gaestezimmer_override:
+    name: Beschattung Gästezimmer Override
+  beschattung_schlafzimmer_override:
+    name: Beschattung Schlafzimmer Override
   badezimmer_privacy_active:
     name: Badezimmer Privacy Mode Aktiv
 

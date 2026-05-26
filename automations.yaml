@@ -51,6 +51,9 @@
     - service: cover.close_cover
       target:
         entity_id: cover.bedroom_shutter
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.beschattung_schlafzimmer_override
     mode: single
   - id: shutters_open_morning
     alias: Rollos öffnen – morgens
@@ -99,6 +102,12 @@
         - cover.bathroom_blinds
       action: cover.close_cover
       data: {}
+    # Wohnzimmer- und West-Override beim Abendschluss zurücksetzen
+    - service: input_boolean.turn_off
+      target:
+        entity_id:
+          - input_boolean.beschattung_wohnzimmer_override
+          - input_boolean.beschattung_west_override
     # Terrasse separat: nur schließen wenn kalt UND Override OFF
     - condition: template
       value_template: >
@@ -1418,56 +1427,71 @@
                 entity_id: sensor.outdoor_temperature_avg
                 above: input_number.beschattung_threshold_hoch
             sequence:
-              - service: cover.close_cover
+              # Wohnzimmer: nur wenn Override OFF
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.beschattung_wohnzimmer_override
+                    state: "off"
+                then:
+                  - service: cover.close_cover
+                    target:
+                      entity_id:
+                        - cover.livingroom_blinds
+              # Terrasse: nur wenn Override OFF
+              - if:
+                  - condition: state
+                    entity_id: input_boolean.beschattung_terrasse_override
+                    state: "off"
+                then:
+                  - service: cover.close_cover
+                    target:
+                      entity_id:
+                        - cover.terrace_blinds
+                        - cover.terrace_blinds_2
+        # Mild: Tilt halb (Licht rein, kein Blenden)
+        default:
+          # Wohnzimmer nur wenn Override OFF
+          - if:
+              - condition: state
+                entity_id: input_boolean.beschattung_wohnzimmer_override
+                state: "off"
+            then:
+              - service: cover.set_cover_position
                 target:
                   entity_id:
                     - cover.livingroom_blinds
-              # Heißer Tag: Hitzeschutz hat Vorrang vor manuellem Override.
-              # Override löschen, dann Terrasse zu.
-              - service: input_boolean.turn_off
+                data:
+                  position: 0
+              - delay:
+                  seconds: 5
+              - service: cover.set_cover_tilt_position
                 target:
-                  entity_id: input_boolean.beschattung_terrasse_override
-              - service: cover.close_cover
+                  entity_id:
+                    - cover.livingroom_blinds
+                data:
+                  tilt_position: 50
+          # Terrasse nur wenn Override OFF
+          - if:
+              - condition: state
+                entity_id: input_boolean.beschattung_terrasse_override
+                state: "off"
+            then:
+              - service: cover.set_cover_position
                 target:
                   entity_id:
                     - cover.terrace_blinds
                     - cover.terrace_blinds_2
-        # Mild: Tilt halb (Licht rein, kein Blenden)
-        default:
-          - service: cover.set_cover_position
-            target:
-              entity_id:
-                - cover.livingroom_blinds
-            data:
-              position: 0
-          - delay:
-              seconds: 5
-          - service: cover.set_cover_tilt_position
-            target:
-              entity_id:
-                - cover.livingroom_blinds
-            data:
-              tilt_position: 50
-          # Terrasse nur wenn Override OFF
-          - condition: state
-            entity_id: input_boolean.beschattung_terrasse_override
-            state: "off"
-          - service: cover.set_cover_position
-            target:
-              entity_id:
-                - cover.terrace_blinds
-                - cover.terrace_blinds_2
-            data:
-              position: 0
-          - delay:
-              seconds: 5
-          - service: cover.set_cover_tilt_position
-            target:
-              entity_id:
-                - cover.terrace_blinds
-                - cover.terrace_blinds_2
-            data:
-              tilt_position: 50
+                data:
+                  position: 0
+              - delay:
+                  seconds: 5
+              - service: cover.set_cover_tilt_position
+                target:
+                  entity_id:
+                    - cover.terrace_blinds
+                    - cover.terrace_blinds_2
+                data:
+                  tilt_position: 50
     mode: single
 
   # B2: Süd Sonnenschutz Ende
@@ -1495,22 +1519,29 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
     action:
-      # Wohnzimmer: Sichtschutz – nur Lamellen öffnen
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id:
-            - cover.livingroom_blinds
-        data:
-          tilt_position: 50
-      # Terrasse: voll öffnen
-      - condition: state
-        entity_id: input_boolean.beschattung_terrasse_override
-        state: "off"
-      - service: cover.open_cover
-        target:
-          entity_id:
-            - cover.terrace_blinds
-            - cover.terrace_blinds_2
+      # Wohnzimmer: Sichtschutz – nur Lamellen öffnen (wenn Override OFF)
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_wohnzimmer_override
+            state: "off"
+        then:
+          - service: cover.set_cover_tilt_position
+            target:
+              entity_id:
+                - cover.livingroom_blinds
+            data:
+              tilt_position: 50
+      # Terrasse: voll öffnen (nur wenn Override OFF — sonst ist sie eh offen)
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_terrasse_override
+            state: "off"
+        then:
+          - service: cover.open_cover
+            target:
+              entity_id:
+                - cover.terrace_blinds
+                - cover.terrace_blinds_2
     mode: single
 
   # B3: Süd Hitzeschutz Eskalation – Temp steigt über 26°C während Sonne Süd trifft
@@ -1518,8 +1549,8 @@
     alias: "Beschattung – Süd Hitzeschutz Eskalation"
     description: >
       Wenn Temp über 26°C steigt während Sonne bereits auf Süd trifft,
-      Tilt von 50% auf 100% verschärfen. Hitzeschutz hat Vorrang vor
-      manuellem Terrasse-Override – Override wird gelöscht.
+      Tilt von 50% auf 100% verschärfen. Manueller Override pro Zone
+      (Wohnzimmer, Terrasse) hat Vorrang.
     trigger:
       - platform: numeric_state
         entity_id: sensor.outdoor_temperature_avg
@@ -1531,23 +1562,31 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "on"
     action:
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id:
-            - cover.livingroom_blinds
-        data:
-          tilt_position: 0
-      # Hitzeschutz hat Vorrang vor manuellem Override → Override löschen, Terrasse zu
-      - service: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.beschattung_terrasse_override
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id:
-            - cover.terrace_blinds
-            - cover.terrace_blinds_2
-        data:
-          tilt_position: 0
+      # Wohnzimmer nur wenn Override OFF
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_wohnzimmer_override
+            state: "off"
+        then:
+          - service: cover.set_cover_tilt_position
+            target:
+              entity_id:
+                - cover.livingroom_blinds
+            data:
+              tilt_position: 0
+      # Terrasse nur wenn Override OFF
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_terrasse_override
+            state: "off"
+        then:
+          - service: cover.set_cover_tilt_position
+            target:
+              entity_id:
+                - cover.terrace_blinds
+                - cover.terrace_blinds_2
+            data:
+              tilt_position: 0
     mode: single
 
   # B3b: Süd Hitzeschutz De-Eskalation – Temp fällt unter 26°C während Sonne Süd trifft
@@ -1567,23 +1606,31 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "on"
     action:
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id:
-            - cover.livingroom_blinds
-        data:
-          tilt_position: 50
+      # Wohnzimmer nur wenn Override OFF
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_wohnzimmer_override
+            state: "off"
+        then:
+          - service: cover.set_cover_tilt_position
+            target:
+              entity_id:
+                - cover.livingroom_blinds
+            data:
+              tilt_position: 50
       # Terrasse nur wenn Override OFF
-      - condition: state
-        entity_id: input_boolean.beschattung_terrasse_override
-        state: "off"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id:
-            - cover.terrace_blinds
-            - cover.terrace_blinds_2
-        data:
-          tilt_position: 50
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_terrasse_override
+            state: "off"
+        then:
+          - service: cover.set_cover_tilt_position
+            target:
+              entity_id:
+                - cover.terrace_blinds
+                - cover.terrace_blinds_2
+            data:
+              tilt_position: 50
     mode: single
 
   # B4: West Sonnenschutz – Sonne trifft Westfassade
@@ -1599,6 +1646,9 @@
     condition:
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
+        state: "off"
+      - condition: state
+        entity_id: input_boolean.beschattung_west_override
         state: "off"
     action:
       - choose:
@@ -1693,6 +1743,9 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
         state: "on"
+      - condition: state
+        entity_id: input_boolean.beschattung_west_override
+        state: "off"
     action:
       - service: cover.set_cover_tilt_position
         target:
@@ -1720,6 +1773,9 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
         state: "on"
+      - condition: state
+        entity_id: input_boolean.beschattung_west_override
+        state: "off"
     action:
       - service: cover.set_cover_tilt_position
         target:
@@ -1792,18 +1848,116 @@
           entity_id: input_boolean.beschattung_terrasse_override
     mode: single
 
-  # Override Reset bei Sunrise
-  - id: beschattung_terrasse_override_reset
-    alias: "Beschattung – Terrasse Override Reset"
+  # Override-Setter für die anderen Zonen
+  - id: beschattung_buero_override_setzen
+    alias: "Beschattung – Büro Override setzen"
     description: >
-      Override morgens bei Sunrise zurücksetzen (frischer Start).
+      Wenn Büro-Rollo manuell geöffnet wird während Sonne Süd trifft,
+      Override setzen. Reset im Sunset-Close.
     trigger:
-      - platform: sun
-        event: sunrise
+      - platform: state
+        entity_id: cover.office_shutter
+        to: "open"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id is none }}"
     action:
-      - service: input_boolean.turn_off
+      - service: input_boolean.turn_on
         target:
-          entity_id: input_boolean.beschattung_terrasse_override
+          entity_id: input_boolean.beschattung_buero_override
+    mode: single
+
+  - id: beschattung_wohnzimmer_override_setzen
+    alias: "Beschattung – Wohnzimmer Override setzen"
+    description: >
+      Wenn Wohnzimmer-Raffstore manuell geöffnet wird während Sonne Süd
+      trifft, Override setzen. Reset im Sunset-Close.
+    trigger:
+      - platform: state
+        entity_id: cover.livingroom_blinds
+        to: "open"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id is none }}"
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.beschattung_wohnzimmer_override
+    mode: single
+
+  - id: beschattung_west_override_setzen
+    alias: "Beschattung – West Override setzen"
+    description: >
+      Wenn Küche/Esszimmer-Raffstore manuell geöffnet wird während Sonne
+      West trifft, Override setzen. Reset im Sunset-Close.
+    trigger:
+      - platform: state
+        entity_id: cover.kitchen_blinds
+        to: "open"
+      - platform: state
+        entity_id: cover.dining_blinds
+        to: "open"
+      - platform: state
+        entity_id: cover.raffstore_kueche
+        to: "open"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_west
+        state: "on"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id is none }}"
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.beschattung_west_override
+    mode: single
+
+  - id: beschattung_gaestezimmer_override_setzen
+    alias: "Beschattung – Gästezimmer Override setzen"
+    description: >
+      Wenn Gästezimmer-Rollo manuell geöffnet wird während Sonne Süd
+      trifft, Override setzen. Reset im Sunset-Close.
+    trigger:
+      - platform: state
+        entity_id: cover.guest_shutter
+        to: "open"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id is none }}"
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.beschattung_gaestezimmer_override
+    mode: single
+
+  - id: beschattung_schlafzimmer_override_setzen
+    alias: "Beschattung – Schlafzimmer Override setzen"
+    description: >
+      Wenn Schlafzimmer-Rollo manuell geöffnet wird während Sonne Nord
+      trifft, Override setzen. Reset im Sunset-Close.
+    trigger:
+      - platform: state
+        entity_id: cover.bedroom_shutter
+        to: "open"
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "on"
+      - condition: template
+        value_template: "{{ trigger.to_state.context.parent_id is none }}"
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.beschattung_schlafzimmer_override
     mode: single
 
   # ========================
@@ -1832,6 +1986,9 @@
       - service: cover.close_cover
         target:
           entity_id: cover.office_shutter
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_buero_override
     mode: single
 
   - id: gaestezimmer_rollo_sunrise_auf
@@ -1856,25 +2013,40 @@
       - service: cover.close_cover
         target:
           entity_id: cover.guest_shutter
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_gaestezimmer_override
     mode: single
 
   # ========================
   # BÜRO BLENDSCHUTZ
   # ========================
 
-  # Büro: Elevation-basierter Blendschutz bei Sonne Süd
+  # Büro: Blend- und Hitzeschutz bei Sonne Süd
   - id: buero_blendschutz_sonne
-    alias: "Büro – Blendschutz nach Sonnenstand"
+    alias: "Büro – Blend-/Hitzeschutz nach Sonnenstand"
     description: >
-      Wenn Sonne auf Südfassade trifft, Rollo je nach Elevation steuern:
+      Wenn Sonne auf Südfassade trifft, Rollo steuern:
+      Heiß (>26°C): voll zu (Hitzeschutz). Sonst nach Elevation:
       Hoch (>45°): 20% zu, Mittel (25-45°): 50% zu, Tief (<25°): 80% zu.
-      Wird alle 15 Min und bei Sonne-Ein/Aus neu bewertet.
+      Wird alle 15 Min, bei Sonne-Ein/Aus und Temp-Schwelle neu bewertet.
+      Manueller Override (input_boolean.beschattung_buero_override) hat Vorrang.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
       - platform: time_pattern
         minutes: "/15"
+      - platform: numeric_state
+        entity_id: sensor.outdoor_temperature_avg
+        above: input_number.beschattung_threshold_hoch
+        for:
+          minutes: 5
+      - platform: numeric_state
+        entity_id: sensor.outdoor_temperature_avg
+        below: input_number.beschattung_threshold_hoch
+        for:
+          minutes: 5
     condition:
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -1882,8 +2054,20 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: input_boolean.beschattung_buero_override
+        state: "off"
     action:
       - choose:
+          # Hitzeschutz: Temp über Schwelle → voll zu
+          - conditions:
+              - condition: numeric_state
+                entity_id: sensor.outdoor_temperature_avg
+                above: input_number.beschattung_threshold_hoch
+            sequence:
+              - service: cover.close_cover
+                target:
+                  entity_id: cover.office_shutter
           # Sonne hoch (>45°): leichter Schutz
           - conditions:
               - condition: numeric_state
@@ -1960,6 +2144,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
+    condition:
+      - condition: state
+        entity_id: input_boolean.beschattung_gaestezimmer_override
+        state: "off"
     action:
       - service: cover.close_cover
         target:
@@ -1986,6 +2174,9 @@
       - condition: numeric_state
         entity_id: sensor.helligkeit_sud
         above: input_number.beschattung_lux_sud
+      - condition: state
+        entity_id: input_boolean.beschattung_gaestezimmer_override
+        state: "off"
     action:
       - service: cover.close_cover
         target:
@@ -2038,6 +2229,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "on"
+    condition:
+      - condition: state
+        entity_id: input_boolean.beschattung_schlafzimmer_override
+        state: "off"
     action:
       - service: cover.close_cover
         target:
@@ -2064,6 +2259,9 @@
       - condition: numeric_state
         entity_id: sensor.helligkeit_nord
         above: input_number.beschattung_lux_nord
+      - condition: state
+        entity_id: input_boolean.beschattung_schlafzimmer_override
+        state: "off"
     action:
       - service: cover.close_cover
         target:
