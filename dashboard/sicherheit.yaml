@@ -148,8 +148,6 @@ views:
             entities:
               - entity: lock.garagen_seitentur
                 name: Seitentür
-              - entity: sensor.garagen_seitentur_status
-                name: Status
               - entity: sensor.garagen_seitentur_battery
                 name: Battery
 
