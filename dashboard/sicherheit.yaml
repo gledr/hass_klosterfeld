@@ -133,7 +133,7 @@ views:
 
           # Garagentor
           - type: entities
-            title: Garage
+            title: Garage-Tor
             state_color: true
             entities:
               - entity: cover.garage_door_garage_door
@@ -142,6 +142,17 @@ views:
                 name: Status
               - entity: sensor.garage_door_garage_door_position
                 name: Position
+          - type: entities
+            title: Garage-Seitentür
+            state_color: true
+            entities:
+              - entity: lock.garagen_seitentur
+                name: Seitentür
+              - entity: sensor.garagen_seitentur_status
+                name: Status
+              - entity: sensor.garagen_seitentur_battery
+                name: Battery
+
 
       ###########################################################################
       # WIND & WETTER WARNUNGEN                                                 #
