@@ -511,3 +511,22 @@ garage_toggle:
     - service: cover.toggle
       target:
         entity_id: cover.garage_door_garage_door
+
+
+#########################################################
+# GARAGEN SEITENTÜR – TOGGLE
+# Sperrt wenn offen, entsperrt wenn gesperrt
+#########################################################
+garagen_seitentur_toggle:
+  alias: Garagen Seitentür – Toggle
+  icon: mdi:door-sliding-lock
+  mode: single
+  sequence:
+    - service: |
+        {% if is_state('lock.garagen_seitentur', 'locked') %}
+          lock.unlock
+        {% else %}
+          lock.lock
+        {% endif %}
+      target:
+        entity_id: lock.garagen_seitentur
