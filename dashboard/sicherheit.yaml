@@ -72,17 +72,14 @@ views:
                 name: Wohnzimmer
               - entity: binary_sensor.shellyplussmoke_2cbcbbf73fc0_smoke
                 name: Garderobe
-              # TODO verify room — alte Dashboard zeigt nur "Erdgeschoss" Gruppe ohne weitere Hinweise.
-              # 2 EG-Rauchmelder bekannt (Wohnzimmer + Garderobe), beide oben gemappt.
-              # OG-Rauchmelder (4 Stück) — Räume bitte verifizieren (Schlafzimmer, Büro, Gäste, Galerie?)
               - entity: binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke
-                name: "OG #1  TODO Raum verifizieren"
+                name: "Galerie"
               - entity: binary_sensor.shellyplussmoke_2cbcbbf68278_smoke
-                name: "OG #2  TODO Raum verifizieren"
+                name: "Gästezimmer"
               - entity: binary_sensor.shellyplussmoke_2cbcbbf68028_smoke
-                name: "OG #3  TODO Raum verifizieren"
+                name: "Schlafzimmer"
               - entity: binary_sensor.shellyplussmoke_2cbcbbf59758_smoke
-                name: "OG #4  TODO Raum verifizieren"
+                name: "Büro"
               - entity: binary_sensor.rauchmelder_hobbyraum_smoke
                 name: Keller Hobbyraum
               - entity: binary_sensor.rauchmelder_kg_eg_smoke
@@ -90,7 +87,7 @@ views:
               - entity: binary_sensor.rauchmelder_lager_smoke
                 name: Keller Lager
               - entity: binary_sensor.shellyplussmoke_2cbcbbf70698_smoke
-                name: "Keller TODO Raum verifizieren"
+                name: "Technikraum"
 
       ###########################################################################
       # FENSTER & TÜREN                                                         #
