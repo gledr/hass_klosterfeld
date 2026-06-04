@@ -318,10 +318,6 @@ knx:
       state_address: "7/3/11"
       type: "humidity"
       sync_state: true
-    - name: "Guest Room Humidity"
-      state_address: "7/3/6"
-      type: "humidity"
-      sync_state: true
     - name: "Bedroom Humidity"
       state_address: "7/3/16"
       type: "humidity"
@@ -332,10 +328,6 @@ knx:
       sync_state: true
     - name: "WC OG Humidity"
       state_address: "7/3/26"
-      type: "humidity"
-      sync_state: true
-    - name: "Gallery OG Humidity"
-      state_address: "7/3/1"
       type: "humidity"
       sync_state: true
     - name: "Engineering Humidity"
@@ -350,28 +342,8 @@ knx:
       state_address: "7/1/6"
       type: "humidity"
       sync_state: true
-    - name: "Basement Hallway Humidity"
-      state_address: "7/1/16"
-      type: "humidity"
-      sync_state: true
-    - name: "Wardrobe Humidity"
-      state_address: "7/2/11"
-      type: "humidity"
-      sync_state: true
     - name: "Utility Humidity"
       state_address: "7/2/6"
-      type: "humidity"
-      sync_state: true
-    - name: "WC GF Humidity"
-      state_address: "7/2/1"
-      type: "humidity"
-      sync_state: true
-    - name: "Stairs EG-OG Humidity-EG"
-      state_address: "7/2/26"
-      type: "humidity"
-      sync_state: true
-    - name: "Stairs KG-EG Humidity-EG"
-      state_address: "7/2/21"
       type: "humidity"
       sync_state: true
     - name: "Kitchen Humidity"
