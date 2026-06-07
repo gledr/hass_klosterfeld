@@ -675,3 +675,14 @@ input_number:
     initial: 15000
     unit_of_measurement: "lx"
 
+# ========================
+# Homekit Configuration
+# ========================
+homekit:
+  - name: Home Assistant Bridge
+    mode: bridge
+
+    entity_config:
+      light.buro_licht:
+        name: Büro Licht
+        room: Büro
