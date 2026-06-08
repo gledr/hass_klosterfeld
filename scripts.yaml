@@ -431,20 +431,30 @@ house_morning_workday:
   alias: Haus – Morgen Werktag
   mode: single
   sequence:
-    - service: cover.open_cover
-      target:
-        entity_id:
-          - cover.bedroom_shutter
+    - if:
+        - condition: state
+          entity_id: input_boolean.beschattung_lock_schlafzimmer
+          state: "off"
+      then:
+        - service: cover.open_cover
+          target:
+            entity_id:
+              - cover.bedroom_shutter
 
 
 house_morning_weekend:
   alias: Haus – Morgen Wochenende
   mode: single
   sequence:
-    - service: cover.open_cover
-      target:
-        entity_id:
-          - cover.bedroom_shutter
+    - if:
+        - condition: state
+          entity_id: input_boolean.beschattung_lock_schlafzimmer
+          state: "off"
+      then:
+        - service: cover.open_cover
+          target:
+            entity_id:
+              - cover.bedroom_shutter
 
 
 messfahrt_alle:

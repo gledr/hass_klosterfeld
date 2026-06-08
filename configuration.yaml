@@ -592,6 +592,44 @@ input_boolean:
     name: Beschattung Gästezimmer Override
   beschattung_schlafzimmer_override:
     name: Beschattung Schlafzimmer Override
+  # Per-Shade Sperre: wenn ON, fasst keine Auto-Beschattung diese Beschattung an.
+  # Reines Hard-Skip — Override-Logik bleibt unberührt.
+  beschattung_lock_schlafzimmer:
+    name: Sperre Schlafzimmer
+    icon: mdi:lock
+  beschattung_lock_gaestezimmer:
+    name: Sperre Gästezimmer
+    icon: mdi:lock
+  beschattung_lock_buero:
+    name: Sperre Büro
+    icon: mdi:lock
+  beschattung_lock_wohnzimmer:
+    name: Sperre Wohnzimmer
+    icon: mdi:lock
+  beschattung_lock_terrasse:
+    name: Sperre Terrasse
+    icon: mdi:lock
+  beschattung_lock_kueche:
+    name: Sperre Küche
+    icon: mdi:lock
+  beschattung_lock_esszimmer:
+    name: Sperre Esszimmer
+    icon: mdi:lock
+  beschattung_lock_wc_eg:
+    name: Sperre WC EG
+    icon: mdi:lock
+  beschattung_lock_wc_og:
+    name: Sperre WC OG
+    icon: mdi:lock
+  beschattung_lock_badezimmer:
+    name: Sperre Badezimmer
+    icon: mdi:lock
+  beschattung_lock_abstellraum:
+    name: Sperre Abstellraum
+    icon: mdi:lock
+  beschattung_lock_garderobe:
+    name: Sperre Garderobe
+    icon: mdi:lock
   badezimmer_privacy_active:
     name: Badezimmer Privacy Mode Aktiv
 

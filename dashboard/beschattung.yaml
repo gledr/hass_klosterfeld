@@ -166,6 +166,150 @@ views:
 
 
       ###########################################################################
+      # SPERREN (Urlaub / Ausschlafen)                                         #
+      ###########################################################################
+      - type: grid
+        columns: 1
+        cards:
+
+          - type: heading
+            heading: Sperren
+            icon: mdi:lock
+
+          - type: markdown
+            content: >
+              Wenn aktiv, fasst keine Auto-Beschattung diese Beschattung an.
+              Auf Verstellen reagiert nur noch die Hand. Ideal für Urlaub
+              oder Ausschlafen.
+
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_schlafzimmer
+                name: Schlafzimmer
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_gaestezimmer
+                name: Gästezimmer
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_buero
+                name: Büro
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_wohnzimmer
+                name: Wohnzimmer
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_terrasse
+                name: Terrasse
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_kueche
+                name: Küche
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_esszimmer
+                name: Esszimmer
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_wc_eg
+                name: WC EG
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_wc_og
+                name: WC OG
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_badezimmer
+                name: Badezimmer
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_abstellraum
+                name: Abstellraum
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_lock_garderobe
+                name: Garderobe
+                icon: mdi:lock
+                tap_action:
+                  action: toggle
+
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Alle sperren
+                icon: mdi:lock
+                icon_color: red
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service: input_boolean.turn_on
+                  target:
+                    entity_id:
+                      - input_boolean.beschattung_lock_schlafzimmer
+                      - input_boolean.beschattung_lock_gaestezimmer
+                      - input_boolean.beschattung_lock_buero
+                      - input_boolean.beschattung_lock_wohnzimmer
+                      - input_boolean.beschattung_lock_terrasse
+                      - input_boolean.beschattung_lock_kueche
+                      - input_boolean.beschattung_lock_esszimmer
+                      - input_boolean.beschattung_lock_wc_eg
+                      - input_boolean.beschattung_lock_wc_og
+                      - input_boolean.beschattung_lock_badezimmer
+                      - input_boolean.beschattung_lock_abstellraum
+                      - input_boolean.beschattung_lock_garderobe
+              - type: custom:mushroom-template-card
+                primary: Alle entsperren
+                icon: mdi:lock-open
+                icon_color: green
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service: input_boolean.turn_off
+                  target:
+                    entity_id:
+                      - input_boolean.beschattung_lock_schlafzimmer
+                      - input_boolean.beschattung_lock_gaestezimmer
+                      - input_boolean.beschattung_lock_buero
+                      - input_boolean.beschattung_lock_wohnzimmer
+                      - input_boolean.beschattung_lock_terrasse
+                      - input_boolean.beschattung_lock_kueche
+                      - input_boolean.beschattung_lock_esszimmer
+                      - input_boolean.beschattung_lock_wc_eg
+                      - input_boolean.beschattung_lock_wc_og
+                      - input_boolean.beschattung_lock_badezimmer
+                      - input_boolean.beschattung_lock_abstellraum
+                      - input_boolean.beschattung_lock_garderobe
+
+
+      ###########################################################################
       # SÜD                                                                  #
       ###########################################################################
       - type: grid
