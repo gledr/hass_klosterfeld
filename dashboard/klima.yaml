@@ -137,7 +137,7 @@ views:
             icon_color: amber
           - type: custom:mushroom-template-card
             primary: WC EG
-            secondary: "{{ states('sensor.wc_gf_temperature') }} °C · {{ states('sensor.wc_gf_humidity') }} %"
+            secondary: "{{ states('sensor.wc_gf_temperature') }} °C"
             icon: mdi:toilet
             icon_color: blue
           - type: custom:mushroom-template-card
