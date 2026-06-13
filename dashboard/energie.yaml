@@ -1,11 +1,9 @@
 ###############################################################################
-# ENERGIE — Diagnose- und Übersichts-Dashboard für MDT-Energiemesser           #
-# Phasen-Diagnose oben (Wandler-Richtungs-Check), darunter Live-Werte gesamt   #
-# und Energie-Bilanz in kWh (Bezug vs. Einspeisung) für PV-/Verbrauchs-Trend.  #
+# ENERGIE — Übersichts-Dashboard für MDT-Energiemesser (ohne PV)                #
 ###############################################################################
 title: Energie
 views:
-  - title: Diagnose
+  - title: Übersicht
     path: home
     icon: mdi:lightning-bolt
     type: sections
@@ -13,31 +11,11 @@ views:
     sections:
 
       ###########################################################################
-      # ANLEITUNG / WANDLER-RICHTUNG                                            #
+      # NETZ-STATUS                                                             #
       ###########################################################################
       - type: grid
         column_span: 3
         cards:
-          - type: heading
-            heading: Wandler-Richtung prüfen
-            icon: mdi:swap-horizontal-bold
-
-          - type: markdown
-            content: |
-              **Erwartet bei korrekt konfigurierten Wandlerspulen:**
-
-              - **Nachts (keine PV)** — alle Phasen: `Strom Bezug` > 0, `Strom Einspeisung` ≈ 0, `Leistung Bezug` > 0
-              - **Mittag mit PV-Überschuss** — `Strom Einspeisung` > 0, `Strom Bezug` ≈ 0
-              - **Plausibilität pro Phase**: `Leistung Bezug` ≈ `U × Strom Bezug` ; `Leistung Einspeisung` ≈ `U × Strom Einspeisung`
-
-              **Hinweise auf falsch konfigurierte Wandler:**
-
-              - Eine Phase zeigt nachts (kein PV-Beitrag) konstant `Strom Einspeisung > 0` → Stromflussrichtung dieser Phase in ETS invertieren
-              - Bezug und Einspeisung gleichzeitig hoch auf derselben Phase → Konfiguration prüfen
-              - Wenn alle drei Phasen verkehrt sind (so wie aktuell): in ETS für alle drei die Stromflussrichtung umkehren, Energiemesser neu programmieren
-
-              Aktueller Status: **{{ 'Tag — PV möglich' if state_attr('sun.sun', 'elevation') | float(0) > 0 else 'Nacht — keine PV erwartet' }}** · Sonnen-Elevation: **{{ state_attr('sun.sun', 'elevation') | round(1) }}°**
-
           - type: entities
             title: Netz-Status
             entities:
@@ -63,26 +41,17 @@ views:
               - entity: sensor.leistung_bezug_l1
                 name: Leistung Bezug
                 icon: mdi:transmission-tower-import
-              - entity: sensor.leistung_einspeisung_l1
-                name: Leistung Einspeisung
-                icon: mdi:transmission-tower-export
               - entity: sensor.strom_bezug_l1
                 name: Strom Bezug
-                icon: mdi:current-ac
-              - entity: sensor.strom_einspeisung_l1
-                name: Strom Einspeisung
                 icon: mdi:current-ac
             state_color: false
 
           - type: custom:mini-graph-card
-            name: Strom L1 — Bezug vs. Einspeisung (12h)
+            name: Strom L1 — Bezug (12h)
             entities:
               - entity: sensor.strom_bezug_l1
                 name: Bezug
                 color: '#d97706'
-              - entity: sensor.strom_einspeisung_l1
-                name: Einspeisung
-                color: '#16a34a'
             hours_to_show: 12
             points_per_hour: 4
             line_width: 2
@@ -109,26 +78,17 @@ views:
               - entity: sensor.leistung_bezug_l2
                 name: Leistung Bezug
                 icon: mdi:transmission-tower-import
-              - entity: sensor.leistung_einspeisung_l2
-                name: Leistung Einspeisung
-                icon: mdi:transmission-tower-export
               - entity: sensor.strom_bezug_l2
                 name: Strom Bezug
-                icon: mdi:current-ac
-              - entity: sensor.strom_einspeisung_l2
-                name: Strom Einspeisung
                 icon: mdi:current-ac
             state_color: false
 
           - type: custom:mini-graph-card
-            name: Strom L2 — Bezug vs. Einspeisung (12h)
+            name: Strom L2 — Bezug (12h)
             entities:
               - entity: sensor.strom_bezug_l2
                 name: Bezug
                 color: '#d97706'
-              - entity: sensor.strom_einspeisung_l2
-                name: Einspeisung
-                color: '#16a34a'
             hours_to_show: 12
             points_per_hour: 4
             line_width: 2
@@ -155,26 +115,17 @@ views:
               - entity: sensor.leistung_bezug_l3
                 name: Leistung Bezug
                 icon: mdi:transmission-tower-import
-              - entity: sensor.leistung_einspeisung_l3
-                name: Leistung Einspeisung
-                icon: mdi:transmission-tower-export
               - entity: sensor.strom_bezug_l3
                 name: Strom Bezug
-                icon: mdi:current-ac
-              - entity: sensor.strom_einspeisung_l3
-                name: Strom Einspeisung
                 icon: mdi:current-ac
             state_color: false
 
           - type: custom:mini-graph-card
-            name: Strom L3 — Bezug vs. Einspeisung (12h)
+            name: Strom L3 — Bezug (12h)
             entities:
               - entity: sensor.strom_bezug_l3
                 name: Bezug
                 color: '#d97706'
-              - entity: sensor.strom_einspeisung_l3
-                name: Einspeisung
-                color: '#16a34a'
             hours_to_show: 12
             points_per_hour: 4
             line_width: 2
@@ -184,7 +135,7 @@ views:
               fill: false
 
       ###########################################################################
-      # GESAMT-LIVE — Total-Werte vom Energiemesser                             #
+      # GESAMT-LIVE                                                             #
       ###########################################################################
       - type: grid
         column_span: 3
@@ -197,34 +148,26 @@ views:
             chips:
               - type: entity
                 entity: sensor.leistung_bezug_gesamt
-                name: Bezug
+                name: Leistung Bezug
                 icon: mdi:transmission-tower-import
                 icon_color: amber
-              - type: entity
-                entity: sensor.leistung_einspeisung_gesamt
-                name: Einspeisung
-                icon: mdi:transmission-tower-export
-                icon_color: green
 
           - type: custom:mini-graph-card
-            name: Leistung Gesamt — Bezug vs. Einspeisung (24h)
+            name: Leistung Gesamt — Bezug (24h)
             entities:
               - entity: sensor.leistung_bezug_gesamt
                 name: Bezug
                 color: '#d97706'
-              - entity: sensor.leistung_einspeisung_gesamt
-                name: Einspeisung
-                color: '#16a34a'
             hours_to_show: 24
             points_per_hour: 4
             line_width: 2
             show:
               labels: true
               extrema: true
-              fill: false
+              fill: true
 
       ###########################################################################
-      # ENERGIE-BILANZ (kWh) — Zählerstände                                     #
+      # ENERGIE-BILANZ (kWh)                                                    #
       ###########################################################################
       - type: grid
         column_span: 3
@@ -234,41 +177,25 @@ views:
             icon: mdi:counter
 
           - type: entities
-            title: Zählerstände gesamt
+            title: Bezug — Zählerstände
             entities:
               - entity: sensor.arbeit_bezug_gesamt
                 name: Bezug Gesamt
                 icon: mdi:transmission-tower-import
-              - entity: sensor.arbeit_einspeisung_gesamt
-                name: Einspeisung Gesamt
-                icon: mdi:transmission-tower-export
-
-          - type: entities
-            title: Zählerstände pro Phase
-            entities:
+              - type: divider
               - entity: sensor.arbeit_bezug_l1
                 name: Bezug L1
               - entity: sensor.arbeit_bezug_l2
                 name: Bezug L2
               - entity: sensor.arbeit_bezug_l3
                 name: Bezug L3
-              - type: divider
-              - entity: sensor.arbeit_einspeisung_l1
-                name: Einspeisung L1
-              - entity: sensor.arbeit_einspeisung_l2
-                name: Einspeisung L2
-              - entity: sensor.arbeit_einspeisung_l3
-                name: Einspeisung L3
 
           - type: custom:mini-graph-card
-            name: Energie-Zählerstände (7 Tage)
+            name: Bezug — Zählerstand (7 Tage)
             entities:
               - entity: sensor.arbeit_bezug_gesamt
                 name: Bezug
                 color: '#d97706'
-              - entity: sensor.arbeit_einspeisung_gesamt
-                name: Einspeisung
-                color: '#16a34a'
             hours_to_show: 168
             points_per_hour: 1
             line_width: 2
@@ -277,7 +204,7 @@ views:
               extrema: true
 
       ###########################################################################
-      # PHASEN-VERGLEICH — Symmetrie-Check                                      #
+      # PHASEN-VERGLEICH                                                        #
       ###########################################################################
       - type: grid
         column_span: 3
@@ -294,22 +221,6 @@ views:
               - entity: sensor.strom_bezug_l2
                 name: L2
               - entity: sensor.strom_bezug_l3
-                name: L3
-            hours_to_show: 24
-            points_per_hour: 4
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
-
-          - type: custom:mini-graph-card
-            name: Strom Einspeisung — alle Phasen (24h)
-            entities:
-              - entity: sensor.strom_einspeisung_l1
-                name: L1
-              - entity: sensor.strom_einspeisung_l2
-                name: L2
-              - entity: sensor.strom_einspeisung_l3
                 name: L3
             hours_to_show: 24
             points_per_hour: 4
