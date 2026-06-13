@@ -181,3 +181,15 @@ views:
               - type: entity
                 entity: sensor.wardrobe_temperature
                 icon: mdi:thermometer
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: binary_sensor.praesenzmelder_wohnzimmer
+                icon: mdi:motion-sensor
+                content_info: name
+                name: Präsenz
+              - type: entity
+                entity: binary_sensor.prasenzmelder_wohnzimmer_hvac
+                icon: mdi:hvac
+                content_info: name
+                name: HVAC
