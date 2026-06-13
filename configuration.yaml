@@ -620,8 +620,11 @@ knx:
     - name: "Bewegungsmelder Galerie OG"
       state_address: "5/3/0"
       device_class: motion
-    - name: "Praesenzmelder Wohnzimmer"
+    - name: "Präsenzmelder Wohnzimmer"
       state_address: "5/2/20"
+      device_class: presence
+    - name: "Präsenzmelder Wohnzimmer HVAC"
+      state_address: "5/2/36"
       device_class: presence
     - name: "Helligkeit Nord Lock"
       state_address: "8/4/5"
