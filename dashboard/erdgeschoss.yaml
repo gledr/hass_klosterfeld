@@ -184,12 +184,12 @@ views:
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
-                entity: binary_sensor.praesenzmelder_wohnzimmer
+                entity: binary_sensor.bewegungsmelder_garderobe
                 icon: mdi:motion-sensor
                 content_info: name
                 name: Präsenz
               - type: entity
-                entity: binary_sensor.prasenzmelder_wohnzimmer_hvac
+                entity: binary_sensor.bewegungsmelder_garderobe_hvac
                 icon: mdi:hvac
                 content_info: name
                 name: HVAC
