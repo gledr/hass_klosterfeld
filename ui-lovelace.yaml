@@ -122,6 +122,42 @@ views:
               extrema: true
 
       ###########################################################################
+      # ANWESENHEIT                                                             #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Anwesenheit
+            icon: mdi:account-multiple
+
+          - type: custom:mushroom-template-card
+            entity: device_tracker.iphone_von_sebastian
+            primary: Sebastian
+            secondary: >
+              {% if is_state('device_tracker.iphone_von_sebastian', 'home') %}
+                Zuhause
+              {% elif is_state('device_tracker.iphone_von_sebastian', 'not_home') %}
+                Unterwegs
+              {% else %}
+                {{ states('device_tracker.iphone_von_sebastian') }}
+              {% endif %}
+            icon: >
+              {% if is_state('device_tracker.iphone_von_sebastian', 'home') %}
+                mdi:home-account
+              {% else %}
+                mdi:account-arrow-right
+              {% endif %}
+            icon_color: >
+              {% if is_state('device_tracker.iphone_von_sebastian', 'home') %}
+                green
+              {% else %}
+                grey
+              {% endif %}
+            tap_action:
+              action: more-info
+
+      ###########################################################################
       # SCHNELL-AKTIONEN                                                        #
       ###########################################################################
       - type: grid

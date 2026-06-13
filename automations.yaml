@@ -181,6 +181,11 @@
             entity_id:
               - cover.terrace_blinds
               - cover.terrace_blinds_2
+    # Terrassen-Override erst NACH dem Override-gating-Check zurücksetzen,
+    # sonst wäre das Override-Gate oben wirkungslos.
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.beschattung_terrasse_override
     mode: single
   # Sichtschutz-Räume: Raffstore bei Sunrise unten sicherstellen
   - id: sichtschutz_blinds_down_sunrise
@@ -346,16 +351,9 @@
             address: 4/1/84
             payload: 30
             type: '5.001'
-    - if:
-        - condition: state
-          entity_id: input_boolean.beschattung_lock_terrasse
-          state: "off"
-      then:
-        - service: knx.send
-          data:
-            address: 4/1/104
-            payload: 30
-            type: '5.001'
+    # Terrasse bewusst nicht hier: Beschattung wird durch B1/B2 Süd-Logik
+    # gesteuert (voll auf bei Sonne weg, runter bei Sonne an). Lamellen-Tilt
+    # auf geschlossener Terrasse macht keinen Sinn.
     mode: single
   - id: slats_close_sunset_all
     alias: Raffstore Lamellen – Alle schließen nach Sonnenuntergang
@@ -1721,10 +1719,13 @@
     description: >
       Gruppe B Süd: Bei Sonneneinstrahlung auf Südfassade Raffstore runter.
       >= 26°C: Tilt 100%. < 26°C: Tilt 50% (Blendschutz).
+      for: 5min entprellt Wolken-Sonne-Wechsel und reduziert Motor-Cycling.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
+        for:
+          minutes: 5
     condition:
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
@@ -1823,11 +1824,14 @@
       Gruppe B Süd: Öffnet wenn Sonne Südfassade verlässt (inkl. Bewölkung).
       Wohnzimmer: Lamellen auf (Sichtschutz bleibt). Terrasse: ganz hoch.
       Re-Evaluation alle 15 Min und bei HA-Start, damit auch bei
-      bewölktem Wetter tagsüber geöffnet wird.
+      bewölktem Wetter tagsüber geöffnet wird. for: 5min entprellt
+      Wolken-Sonne-Wechsel und reduziert Motor-Cycling.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
+        for:
+          minutes: 5
       - platform: time_pattern
         minutes: "/15"
       - platform: homeassistant
@@ -2251,13 +2255,16 @@
       sonne_trifft_sued ON ist, Override setzen. Öffnungen durch andere
       HA-Automationen (z.B. "Süd Sonne Ende") werden ignoriert, indem auf
       context.parent_id geprüft wird – Automationen setzen diese ID, manuelle
-      Aktionen nicht.
+      Aktionen nicht. from: closed verhindert Spurious-Trigger durch
+      State-Restore beim HA-Restart.
     trigger:
       - platform: state
         entity_id: cover.terrace_blinds
+        from: "closed"
         to: "open"
       - platform: state
         entity_id: cover.terrace_blinds_2
+        from: "closed"
         to: "open"
     condition:
       - condition: state
@@ -2276,10 +2283,12 @@
     alias: "Beschattung – Büro Override setzen"
     description: >
       Wenn Büro-Rollo manuell geöffnet wird während Sonne Süd trifft,
-      Override setzen. Reset im Sunset-Close.
+      Override setzen. Reset im Sunset-Close. from: closed verhindert
+      Spurious-Trigger durch State-Restore beim HA-Restart.
     trigger:
       - platform: state
         entity_id: cover.office_shutter
+        from: "closed"
         to: "open"
     condition:
       - condition: state
@@ -2297,10 +2306,12 @@
     alias: "Beschattung – Wohnzimmer Override setzen"
     description: >
       Wenn Wohnzimmer-Raffstore manuell geöffnet wird während Sonne Süd
-      trifft, Override setzen. Reset im Sunset-Close.
+      trifft, Override setzen. Reset im Sunset-Close. from: closed verhindert
+      Spurious-Trigger durch State-Restore beim HA-Restart.
     trigger:
       - platform: state
         entity_id: cover.livingroom_blinds
+        from: "closed"
         to: "open"
     condition:
       - condition: state
@@ -2318,16 +2329,20 @@
     alias: "Beschattung – West Override setzen"
     description: >
       Wenn Küche/Esszimmer-Raffstore manuell geöffnet wird während Sonne
-      West trifft, Override setzen. Reset im Sunset-Close.
+      West trifft, Override setzen. Reset im Sunset-Close. from: closed
+      verhindert Spurious-Trigger durch State-Restore beim HA-Restart.
     trigger:
       - platform: state
         entity_id: cover.kitchen_blinds
+        from: "closed"
         to: "open"
       - platform: state
         entity_id: cover.dining_blinds
+        from: "closed"
         to: "open"
       - platform: state
         entity_id: cover.raffstore_kueche
+        from: "closed"
         to: "open"
     condition:
       - condition: state
@@ -2345,10 +2360,12 @@
     alias: "Beschattung – Gästezimmer Override setzen"
     description: >
       Wenn Gästezimmer-Rollo manuell geöffnet wird während Sonne Süd
-      trifft, Override setzen. Reset im Sunset-Close.
+      trifft, Override setzen. Reset im Sunset-Close. from: closed verhindert
+      Spurious-Trigger durch State-Restore beim HA-Restart.
     trigger:
       - platform: state
         entity_id: cover.guest_shutter
+        from: "closed"
         to: "open"
     condition:
       - condition: state
@@ -2366,10 +2383,12 @@
     alias: "Beschattung – Schlafzimmer Override setzen"
     description: >
       Wenn Schlafzimmer-Rollo manuell geöffnet wird während Sonne Nord
-      trifft, Override setzen. Reset im Sunset-Close.
+      trifft, Override setzen. Reset im Sunset-Close. from: closed verhindert
+      Spurious-Trigger durch State-Restore beim HA-Restart.
     trigger:
       - platform: state
         entity_id: cover.bedroom_shutter
+        from: "closed"
         to: "open"
     condition:
       - condition: state
@@ -2466,10 +2485,13 @@
     alias: "Büro – Blend-/Hitzeschutz nach Sonnenstand"
     description: >
       Wenn Sonne auf Südfassade trifft, Rollo steuern:
+      Werktag UND niemand zuhause: voll zu (Sebastian ist im Office,
+      max. Hitzeschutz/Energie). Sonst:
       Heiß (>26°C): voll zu (Hitzeschutz). Sonst nach Elevation:
       Hoch (>45°): 20% zu, Mittel (25-45°): 50% zu, Tief (<25°): 80% zu.
-      Wird alle 15 Min, bei Sonne-Ein/Aus und Temp-Schwelle neu bewertet.
-      Manueller Override (input_boolean.beschattung_buero_override) hat Vorrang.
+      Wird alle 15 Min, bei Sonne-Ein/Aus, Temp-Schwelle und
+      Anwesenheits-Wechsel neu bewertet. Manueller Override
+      (input_boolean.beschattung_buero_override) hat Vorrang.
     trigger:
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -2486,6 +2508,16 @@
         below: input_number.beschattung_threshold_hoch
         for:
           minutes: 5
+      - platform: state
+        entity_id: device_tracker.iphone_von_sebastian
+        to: "not_home"
+        for:
+          minutes: 5
+      - platform: state
+        entity_id: device_tracker.iphone_von_sebastian
+        to: "home"
+        for:
+          minutes: 2
     condition:
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -2501,6 +2533,18 @@
         state: "off"
     action:
       - choose:
+          # Werktag UND nicht zuhause → voll zu (Sebastian im Office)
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.workday_sensor
+                state: "on"
+              - condition: state
+                entity_id: device_tracker.iphone_von_sebastian
+                state: "not_home"
+            sequence:
+              - service: cover.close_cover
+                target:
+                  entity_id: cover.office_shutter
           # Hitzeschutz: Temp über Schwelle → voll zu
           - conditions:
               - condition: numeric_state
