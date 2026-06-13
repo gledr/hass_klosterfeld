@@ -44,7 +44,7 @@ views:
                 content_info: name
                 name: Präsenz
               - type: entity
-                entity: binary_sensor.praesenzmelder_wohnzimmer_hvac
+                entity: binary_sensor.prasenzmelder_wohnzimmer_hvac
                 icon: mdi:hvac
                 content_info: name
                 name: HVAC
