@@ -99,6 +99,13 @@ lovelace:
       icon: mdi:tree
       show_in_sidebar: true
       require_admin: false
+    lovelace-energie:
+      mode: yaml
+      filename: dashboard/energie.yaml
+      title: Energie
+      icon: mdi:lightning-bolt
+      show_in_sidebar: true
+      require_admin: false
 
 #########################################################
 # KNX INTEGRATION

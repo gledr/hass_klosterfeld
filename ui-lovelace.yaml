@@ -334,6 +334,14 @@ views:
                   action: navigate
                   navigation_path: /lovelace-aussen/home
               - type: custom:mushroom-template-card
+                primary: Energie
+                secondary: Diagnose · Wandler
+                icon: mdi:lightning-bolt
+                icon_color: yellow
+                tap_action:
+                  action: navigate
+                  navigation_path: /lovelace-energie/home
+              - type: custom:mushroom-template-card
                 primary: Lüften
                 secondary: Keller-Empfehlungen
                 icon: mdi:hvac
