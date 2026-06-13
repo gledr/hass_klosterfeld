@@ -394,46 +394,113 @@ knx:
       type: "wind_speed_ms"
       sync_state: true
 
-    # Energie
-    - name: "Netz Spannung L1"
+    # ========================
+    # ENERGIE — MDT-Energiemesser KNX (Wandlerspulen)
+    # GAs gemäß ETS-Konfiguration des MDT-Energiemessers.
+    # DPT-Typen:
+    #   DPST-14-27  → electric_potential (V, 4-byte float)
+    #   DPST-14-56  → power (W, 4-byte float)
+    #   DPST-7-12   → current (mA, 2-byte unsigned) — in HA via type: current
+    #   DPST-13-13  → active_energy_kwh (kWh, 4-byte signed counter)
+    # Hinweis: Falls Wandlerspulen verkehrt installiert sind, in ETS die
+    # Stromflussrichtung pro Phase invertieren (kein Naming-Tausch hier!).
+    # ========================
+
+    # Spannungen
+    - name: "Netzspannung L1"
       state_address: "2/0/0"
-      type: "electric_potential"      # Home Assistant KNX sensor type
+      type: "electric_potential"
       device_class: "voltage"
-    - name: "Netz Spannung L2"
+    - name: "Netzspannung L2"
       state_address: "2/0/1"
-      type: "electric_potential"      # Home Assistant KNX sensor type
+      type: "electric_potential"
       device_class: "voltage"
-    - name: "Netz Spannung L3"
+    - name: "Netzspannung L3"
       state_address: "2/0/2"
-      type: "electric_potential"      # Home Assistant KNX sensor type
+      type: "electric_potential"
       device_class: "voltage"
-    - name: "Leistung Phase L1"
-      state_address: "2/0/3"
-      type: "power"      # Home Assistant KNX sensor type
-    - name: "Leistung Phase L2"
+
+    # Wirkleistung — Bezug (Netz → Haus)
+    - name: "Leistung Bezug L1"
       state_address: "2/0/4"
-      type: "power"      # Home Assistant KNX sensor type
-    - name: "Leistung Phase L3"
+      type: "power"
+    - name: "Leistung Bezug L2"
       state_address: "2/0/5"
-      type: "power"      # Home Assistant KNX sensor type
-    - name: "Verbrauch: Strom Phase L1"
+      type: "power"
+    - name: "Leistung Bezug L3"
       state_address: "2/0/6"
-      type: "current"      # Home Assistant KNX sensor type
-    - name: "Verbrauch: Strom Phase L2"
+      type: "power"
+
+    # Strom — Bezug
+    - name: "Strom Bezug L1"
       state_address: "2/0/7"
-      type: "current"      # Home Assistant KNX sensor type
-    - name: "Verbrauch: Strom Phase L3"
+      type: "current"
+    - name: "Strom Bezug L2"
       state_address: "2/0/8"
-      type: "current"      # Home Assistant KNX sensor type
-    - name: "Einspeisung: Strom Phase L1"
+      type: "current"
+    - name: "Strom Bezug L3"
       state_address: "2/0/9"
-      type: "current"      # Home Assistant KNX sensor type
-    - name: "Einspeisung: Strom Phase L2"
+      type: "current"
+
+    # Strom — Einspeisung (Haus → Netz, PV-Überschuss)
+    - name: "Strom Einspeisung L1"
       state_address: "2/0/10"
-      type: "current"      # Home Assistant KNX sensor type
-    - name: "Einspeisung: Strom Phase L3"
+      type: "current"
+    - name: "Strom Einspeisung L2"
       state_address: "2/0/11"
-      type: "current"      # Home Assistant KNX sensor type
+      type: "current"
+    - name: "Strom Einspeisung L3"
+      state_address: "2/0/12"
+      type: "current"
+
+    # Wirkleistung — Total (DPT power, MDT-Naming „Strom Total" ist irreführend)
+    - name: "Leistung Einspeisung Gesamt"
+      state_address: "2/0/13"
+      type: "power"
+    - name: "Leistung Bezug Gesamt"
+      state_address: "2/0/14"
+      type: "power"
+
+    # Wirkleistung — Einspeisung pro Phase
+    - name: "Leistung Einspeisung L1"
+      state_address: "2/0/15"
+      type: "power"
+    - name: "Leistung Einspeisung L2"
+      state_address: "2/0/16"
+      type: "power"
+    - name: "Leistung Einspeisung L3"
+      state_address: "2/0/17"
+      type: "power"
+
+    # Wirkenergie / Arbeit — Bezug (kWh, total_increasing für Energy Dashboard)
+    - name: "Arbeit Bezug L1"
+      state_address: "2/0/18"
+      type: "active_energy_kwh"
+    - name: "Arbeit Bezug L2"
+      state_address: "2/0/19"
+      type: "active_energy_kwh"
+    - name: "Arbeit Bezug L3"
+      state_address: "2/0/20"
+      type: "active_energy_kwh"
+
+    # Wirkenergie / Arbeit — Einspeisung
+    - name: "Arbeit Einspeisung L1"
+      state_address: "2/0/21"
+      type: "active_energy_kwh"
+    - name: "Arbeit Einspeisung L2"
+      state_address: "2/0/22"
+      type: "active_energy_kwh"
+    - name: "Arbeit Einspeisung L3"
+      state_address: "2/0/23"
+      type: "active_energy_kwh"
+
+    # Wirkenergie / Arbeit — Total
+    - name: "Arbeit Einspeisung Gesamt"
+      state_address: "2/0/24"
+      type: "active_energy_kwh"
+    - name: "Arbeit Bezug Gesamt"
+      state_address: "2/0/25"
+      type: "active_energy_kwh"
 
   cover:
     - name: "Rollos Buero"
@@ -568,6 +635,11 @@ knx:
     - name: "Twilight"
       state_address: "8/4/1"
       device_class: opening
+
+    # Energie — Netzspannungsfehler vom MDT-Energiemesser (DPT-1)
+    - name: "Netzspannungsfehler"
+      state_address: "2/0/3"
+      device_class: problem
 
     # WINDALARME NEU
     - name: "Windalarm Schwelle 1"
