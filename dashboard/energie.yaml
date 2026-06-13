@@ -38,10 +38,10 @@ views:
               - entity: sensor.netz_spannung_l1
                 name: Spannung
                 icon: mdi:sine-wave
-              - entity: sensor.leistung_phase_l1
+              - entity: sensor.leistung_bezug_l1
                 name: Leistung Bezug
                 icon: mdi:transmission-tower-import
-              - entity: sensor.strom_phase_l1
+              - entity: sensor.strom_bezug_l1
                 name: Strom Bezug
                 icon: mdi:current-ac
             state_color: false
@@ -49,7 +49,7 @@ views:
           - type: custom:mini-graph-card
             name: Strom L1 — Bezug (12h)
             entities:
-              - entity: sensor.strom_phase_l1
+              - entity: sensor.strom_bezug_l1
                 name: Bezug
                 color: '#d97706'
             hours_to_show: 12
@@ -75,10 +75,10 @@ views:
               - entity: sensor.netz_spannung_l2
                 name: Spannung
                 icon: mdi:sine-wave
-              - entity: sensor.leistung_phase_l2
+              - entity: sensor.leistung_bezug_l2
                 name: Leistung Bezug
                 icon: mdi:transmission-tower-import
-              - entity: sensor.strom_phase_l2
+              - entity: sensor.strom_bezug_l2
                 name: Strom Bezug
                 icon: mdi:current-ac
             state_color: false
@@ -86,7 +86,7 @@ views:
           - type: custom:mini-graph-card
             name: Strom L2 — Bezug (12h)
             entities:
-              - entity: sensor.strom_phase_l2
+              - entity: sensor.strom_bezug_l2
                 name: Bezug
                 color: '#d97706'
             hours_to_show: 12
@@ -112,10 +112,10 @@ views:
               - entity: sensor.netz_spannung_l3
                 name: Spannung
                 icon: mdi:sine-wave
-              - entity: sensor.leistung_phase_l3
+              - entity: sensor.leistung_bezug_l3
                 name: Leistung Bezug
                 icon: mdi:transmission-tower-import
-              - entity: sensor.strom_phase_l3
+              - entity: sensor.strom_bezug_l3
                 name: Strom Bezug
                 icon: mdi:current-ac
             state_color: false
@@ -123,7 +123,7 @@ views:
           - type: custom:mini-graph-card
             name: Strom L3 — Bezug (12h)
             entities:
-              - entity: sensor.strom_phase_l3
+              - entity: sensor.strom_bezug_l3
                 name: Bezug
                 color: '#d97706'
             hours_to_show: 12
@@ -216,11 +216,11 @@ views:
           - type: custom:mini-graph-card
             name: Strom Bezug — alle Phasen (24h)
             entities:
-              - entity: sensor.strom_phase_l1
+              - entity: sensor.strom_bezug_l1
                 name: L1
-              - entity: sensor.strom_phase_l2
+              - entity: sensor.strom_bezug_l2
                 name: L2
-              - entity: sensor.strom_phase_l3
+              - entity: sensor.strom_bezug_l3
                 name: L3
             hours_to_show: 24
             points_per_hour: 4
@@ -232,11 +232,11 @@ views:
           - type: custom:mini-graph-card
             name: Leistung Bezug — alle Phasen (24h)
             entities:
-              - entity: sensor.leistung_phase_l1
+              - entity: sensor.leistung_bezug_l1
                 name: L1
-              - entity: sensor.leistung_phase_l2
+              - entity: sensor.leistung_bezug_l2
                 name: L2
-              - entity: sensor.leistung_phase_l3
+              - entity: sensor.leistung_bezug_l3
                 name: L3
             hours_to_show: 24
             points_per_hour: 4
