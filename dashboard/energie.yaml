@@ -1,0 +1,281 @@
+###############################################################################
+# ENERGIE — Diagnose-Dashboard für MDT-Energiemesser                           #
+# Zeigt alle 12 KNX-Sensoren in einer Form, die das Erkennen von               #
+# falsch-rum installierten Wandlerspulen erleichtert: pro Phase Spannung,      #
+# Leistung, Bezug-Strom und Einspeisung-Strom nebeneinander, plus              #
+# Verlaufsgraphen über die letzten 12h für Plausibilitätsprüfung.              #
+###############################################################################
+title: Energie
+views:
+  - title: Diagnose
+    path: home
+    icon: mdi:lightning-bolt
+    type: sections
+    max_columns: 3
+    sections:
+
+      ###########################################################################
+      # ANLEITUNG / WANDLER-RICHTUNG                                            #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Wandler-Richtung prüfen
+            icon: mdi:swap-horizontal-bold
+
+          - type: markdown
+            content: |
+              **Erwartet bei korrekt installierten Wandlerspulen:**
+
+              - **Nachts (keine PV-Einspeisung)** — alle Phasen: `Bezug (A)` > 0, `Einspeisung (A)` ≈ 0
+              - **Mittag mit voller PV** — alle Phasen: `Einspeisung (A)` > 0, `Bezug (A)` ≈ 0 oder klein
+              - **Vorzeichen** — `Leistung (W)` ≈ `U × (Bezug − Einspeisung)`. Wenn Leistung negativ wird, läuft Wirkleistung ins Netz raus (= PV-Einspeisung).
+
+              **Hinweise auf falsch installierte Wandler:**
+
+              - Eine Phase zeigt nachts (keine Sonne) konstant `Einspeisung > 0` → Wandler L? verkehrt rum
+              - Bezug und Einspeisung gleichzeitig hoch auf derselben Phase → Wandler verkehrt rum oder Phase falsch zugeordnet
+              - Leistung zeigt das umgekehrte Vorzeichen vom erwarteten Lastverlauf
+
+              Aktueller Status: **{{ 'Tag — PV-Einspeisung möglich' if state_attr('sun.sun', 'elevation') | float(0) > 0 else 'Nacht — keine PV erwartet' }}** · Sonnen-Elevation: **{{ state_attr('sun.sun', 'elevation') | round(1) }}°**
+
+      ###########################################################################
+      # PHASE L1                                                                #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Phase L1
+            icon: mdi:numeric-1-circle
+
+          - type: entities
+            entities:
+              - entity: sensor.netz_spannung_l1
+                name: Spannung
+                icon: mdi:sine-wave
+              - entity: sensor.leistung_phase_l1
+                name: Leistung
+                icon: mdi:flash
+              - entity: sensor.verbrauch_strom_phase_l1
+                name: Bezug
+                icon: mdi:transmission-tower-import
+              - entity: sensor.einspeisung_strom_phase_l1
+                name: Einspeisung
+                icon: mdi:transmission-tower-export
+            state_color: false
+
+          - type: custom:mini-graph-card
+            name: Strom L1 — Bezug vs. Einspeisung (12h)
+            entities:
+              - entity: sensor.verbrauch_strom_phase_l1
+                name: Bezug
+                color: '#d97706'
+              - entity: sensor.einspeisung_strom_phase_l1
+                name: Einspeisung
+                color: '#16a34a'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
+
+          - type: custom:mini-graph-card
+            name: Leistung L1 (W, 12h)
+            entities:
+              - entity: sensor.leistung_phase_l1
+                name: P
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      ###########################################################################
+      # PHASE L2                                                                #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Phase L2
+            icon: mdi:numeric-2-circle
+
+          - type: entities
+            entities:
+              - entity: sensor.netz_spannung_l2
+                name: Spannung
+                icon: mdi:sine-wave
+              - entity: sensor.leistung_phase_l2
+                name: Leistung
+                icon: mdi:flash
+              - entity: sensor.verbrauch_strom_phase_l2
+                name: Bezug
+                icon: mdi:transmission-tower-import
+              - entity: sensor.einspeisung_strom_phase_l2
+                name: Einspeisung
+                icon: mdi:transmission-tower-export
+            state_color: false
+
+          - type: custom:mini-graph-card
+            name: Strom L2 — Bezug vs. Einspeisung (12h)
+            entities:
+              - entity: sensor.verbrauch_strom_phase_l2
+                name: Bezug
+                color: '#d97706'
+              - entity: sensor.einspeisung_strom_phase_l2
+                name: Einspeisung
+                color: '#16a34a'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
+
+          - type: custom:mini-graph-card
+            name: Leistung L2 (W, 12h)
+            entities:
+              - entity: sensor.leistung_phase_l2
+                name: P
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      ###########################################################################
+      # PHASE L3                                                                #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Phase L3
+            icon: mdi:numeric-3-circle
+
+          - type: entities
+            entities:
+              - entity: sensor.netz_spannung_l3
+                name: Spannung
+                icon: mdi:sine-wave
+              - entity: sensor.leistung_phase_l3
+                name: Leistung
+                icon: mdi:flash
+              - entity: sensor.verbrauch_strom_phase_l3
+                name: Bezug
+                icon: mdi:transmission-tower-import
+              - entity: sensor.einspeisung_strom_phase_l3
+                name: Einspeisung
+                icon: mdi:transmission-tower-export
+            state_color: false
+
+          - type: custom:mini-graph-card
+            name: Strom L3 — Bezug vs. Einspeisung (12h)
+            entities:
+              - entity: sensor.verbrauch_strom_phase_l3
+                name: Bezug
+                color: '#d97706'
+              - entity: sensor.einspeisung_strom_phase_l3
+                name: Einspeisung
+                color: '#16a34a'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
+
+          - type: custom:mini-graph-card
+            name: Leistung L3 (W, 12h)
+            entities:
+              - entity: sensor.leistung_phase_l3
+                name: P
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      ###########################################################################
+      # PHASEN-VERGLEICH                                                        #
+      # Drei Phasen gleichzeitig — auffällige Asymmetrien sofort sichtbar       #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Phasen-Vergleich
+            icon: mdi:chart-multiline
+
+          - type: custom:mini-graph-card
+            name: Bezug-Strom alle Phasen (A, 24h)
+            entities:
+              - entity: sensor.verbrauch_strom_phase_l1
+                name: L1
+              - entity: sensor.verbrauch_strom_phase_l2
+                name: L2
+              - entity: sensor.verbrauch_strom_phase_l3
+                name: L3
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+          - type: custom:mini-graph-card
+            name: Einspeisung-Strom alle Phasen (A, 24h)
+            entities:
+              - entity: sensor.einspeisung_strom_phase_l1
+                name: L1
+              - entity: sensor.einspeisung_strom_phase_l2
+                name: L2
+              - entity: sensor.einspeisung_strom_phase_l3
+                name: L3
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+          - type: custom:mini-graph-card
+            name: Leistung alle Phasen (W, 24h)
+            entities:
+              - entity: sensor.leistung_phase_l1
+                name: L1
+              - entity: sensor.leistung_phase_l2
+                name: L2
+              - entity: sensor.leistung_phase_l3
+                name: L3
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+          - type: custom:mini-graph-card
+            name: Spannung alle Phasen (V, 12h)
+            entities:
+              - entity: sensor.netz_spannung_l1
+                name: L1
+              - entity: sensor.netz_spannung_l2
+                name: L2
+              - entity: sensor.netz_spannung_l3
+                name: L3
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
