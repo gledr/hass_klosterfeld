@@ -39,8 +39,14 @@ views:
                 name: Spannung
                 icon: mdi:sine-wave
               - entity: sensor.leistung_bezug_l1
-                name: Leistung Bezug
+                name: Wirkleistung P
                 icon: mdi:transmission-tower-import
+              - entity: sensor.scheinleistung_bezug_l1
+                name: Scheinleistung S
+                icon: mdi:flash-outline
+              - entity: sensor.leistungsfaktor_l1
+                name: Leistungsfaktor cos φ
+                icon: mdi:angle-acute
               - entity: sensor.strom_bezug_l1
                 name: Strom Bezug
                 icon: mdi:current-ac
@@ -76,8 +82,14 @@ views:
                 name: Spannung
                 icon: mdi:sine-wave
               - entity: sensor.leistung_bezug_l2
-                name: Leistung Bezug
+                name: Wirkleistung P
                 icon: mdi:transmission-tower-import
+              - entity: sensor.scheinleistung_bezug_l2
+                name: Scheinleistung S
+                icon: mdi:flash-outline
+              - entity: sensor.leistungsfaktor_l2
+                name: Leistungsfaktor cos φ
+                icon: mdi:angle-acute
               - entity: sensor.strom_bezug_l2
                 name: Strom Bezug
                 icon: mdi:current-ac
@@ -113,8 +125,14 @@ views:
                 name: Spannung
                 icon: mdi:sine-wave
               - entity: sensor.leistung_bezug_l3
-                name: Leistung Bezug
+                name: Wirkleistung P
                 icon: mdi:transmission-tower-import
+              - entity: sensor.scheinleistung_bezug_l3
+                name: Scheinleistung S
+                icon: mdi:flash-outline
+              - entity: sensor.leistungsfaktor_l3
+                name: Leistungsfaktor cos φ
+                icon: mdi:angle-acute
               - entity: sensor.strom_bezug_l3
                 name: Strom Bezug
                 icon: mdi:current-ac
@@ -148,9 +166,14 @@ views:
             chips:
               - type: entity
                 entity: sensor.leistung_bezug_gesamt
-                name: Leistung Bezug
+                name: Wirkleistung P
                 icon: mdi:transmission-tower-import
                 icon_color: amber
+              - type: entity
+                entity: sensor.scheinleistung_bezug_gesamt
+                name: Scheinleistung S
+                icon: mdi:flash-outline
+                icon_color: orange
 
           - type: custom:mini-graph-card
             name: Leistung Gesamt — Bezug (24h)
