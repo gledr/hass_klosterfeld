@@ -664,6 +664,24 @@ knx:
     - name: "Messfahrt Rollo Büro"
       address: "4/2/98"
 
+  button:
+    - name: "Gallerie Deckenlicht Mess-Reset"
+      address: "1/3/7"
+    - name: "WC OG Deckenlicht Mess-Reset"
+      address: "1/3/17"
+    - name: "Gästezimmer Deckenlicht Mess-Reset"
+      address: "1/3/27"
+    - name: "Büro Deckenlicht Mess-Reset"
+      address: "1/3/37"
+    - name: "Schlafzimmer Deckenlicht Mess-Reset"
+      address: "1/3/67"
+    - name: "Schlafzimmer LED Stripe Mess-Reset"
+      address: "1/3/77"
+    - name: "Bad Deckenlicht Mess-Reset"
+      address: "1/3/87"
+    - name: "Bad LED Stripe Mess-Reset"
+      address: "1/3/107"
+    
 
   # ========================
   # BINARY SENSORS – ALLE EXISTIERENDEN PLUS WINDALARM
@@ -772,7 +790,7 @@ input_boolean:
     name: Sperre Garderobe
     icon: mdi:lock
   badezimmer_privacy_active:
-    name: Badezimmer Privacy Mode Aktiv
+    name: Badezimmer Privacy Mode Aktiv  
 
 # ========================
 # INPUT SELECTS
