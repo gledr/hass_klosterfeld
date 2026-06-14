@@ -505,13 +505,13 @@ knx:
     # Leistungsfaktor cos φ pro Phase (DPST-14-57)
     - name: "Leistungsfaktor L1"
       state_address: "2/0/48"
-      type: "power_factor"
+      type: "DPT14.057"
     - name: "Leistungsfaktor L2"
       state_address: "2/0/49"
-      type: "power_factor"
+      type: "DPT14.057"
     - name: "Leistungsfaktor L3"
       state_address: "2/0/50"
-      type: "power_factor"
+      type: "DPT14.057"
 
     # ========================
     # ENERGIE — Dimmaktor OG
