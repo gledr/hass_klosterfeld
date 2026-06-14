@@ -448,26 +448,6 @@
             type: '5.001'
           action: knx.send
     mode: single
-  - id: knx_nachtmodus
-    alias: KNX Nachtmodus ein
-    trigger:
-    - platform: sun
-      event: sunset
-    action:
-    - service: knx.send
-      data:
-        address: 8/4/0
-        payload: 0
-  - id: knx_tagmodus
-    alias: KNX Tagmodus ein
-    trigger:
-    - platform: sun
-      event: sunrise
-    action:
-    - service: knx.send
-      data:
-        address: 8/4/0
-        payload: 1
   - id: garage_position_sync
     alias: Garage door position sync to KNX
     trigger:
