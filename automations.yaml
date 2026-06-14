@@ -2636,7 +2636,7 @@
     alias: "Gästezimmer – Rollo zu bei Hitze + Sonne"
     description: >
       Gästezimmer Rollo schließen wenn Temperatur über Schwelle steigt
-      und Helligkeit hoch ist (tatsächlich Sonne).
+      und Sonne tatsächlich auf Südfassade trifft (Azimut + Lux + Temp).
     trigger:
       - platform: numeric_state
         entity_id: sensor.outdoor_temperature_avg
@@ -2644,13 +2644,9 @@
         for:
           minutes: 10
     condition:
-      - condition: numeric_state
-        entity_id: sun.sun
-        attribute: elevation
-        above: 0
-      - condition: numeric_state
-        entity_id: sensor.helligkeit_sud
-        above: input_number.beschattung_lux_sud
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_gaestezimmer_override
         state: "off"
@@ -2730,7 +2726,7 @@
     alias: "Schlafzimmer – Rollo zu bei Hitze + Sonne"
     description: >
       Schlafzimmer Rollo schließen wenn Temperatur über Schwelle steigt
-      und Helligkeit hoch ist (tatsächlich Sonne).
+      und Sonne tatsächlich auf Nordfassade trifft (Azimut + Lux + Temp).
     trigger:
       - platform: numeric_state
         entity_id: sensor.outdoor_temperature_avg
@@ -2738,13 +2734,9 @@
         for:
           minutes: 10
     condition:
-      - condition: numeric_state
-        entity_id: sun.sun
-        attribute: elevation
-        above: 0
-      - condition: numeric_state
-        entity_id: sensor.helligkeit_nord
-        above: input_number.beschattung_lux_nord
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_schlafzimmer_override
         state: "off"
@@ -2807,7 +2799,7 @@
     alias: Messfahrt alle Raffstores 2-wöchentlich
     trigger:
       - platform: time
-        at: "13:00:00"
+        at: "08:00:00"
 
     condition:
       # nur Werktage
@@ -2823,7 +2815,16 @@
       - condition: template
         value_template: "{{ (now().isocalendar().week % 2) == 0 }}"
 
+      # nur wenn niemand zuhause (Hitzeschutz greift dann auch noch nicht)
+      - condition: state
+        entity_id: device_tracker.iphone_von_sebastian
+        state: "not_home"
+
     action:
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: Beschattung – Messfahrt
+          message: "Messfahrt aller Raffstores startet jetzt (ca. 35 s)."
       - service: script.messfahrt_alle
 
     mode: single

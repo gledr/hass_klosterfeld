@@ -172,3 +172,68 @@ sensor:
       {% else %}
         Nicht lüften
       {% endif %}
+
+  # Scheinleistung S = U × I pro Phase (Strom-Sensor liefert mA → /1000)
+  - name: "Scheinleistung Bezug L1"
+    unique_id: scheinleistung_bezug_l1
+    unit_of_measurement: "VA"
+    device_class: apparent_power
+    state_class: measurement
+    state: >
+      {% set u = states('sensor.netz_spannung_l1') | float(0) %}
+      {% set i = states('sensor.strom_bezug_l1') | float(0) %}
+      {{ (u * i / 1000) | round(1) }}
+
+  - name: "Scheinleistung Bezug L2"
+    unique_id: scheinleistung_bezug_l2
+    unit_of_measurement: "VA"
+    device_class: apparent_power
+    state_class: measurement
+    state: >
+      {% set u = states('sensor.netz_spannung_l2') | float(0) %}
+      {% set i = states('sensor.strom_bezug_l2') | float(0) %}
+      {{ (u * i / 1000) | round(1) }}
+
+  - name: "Scheinleistung Bezug L3"
+    unique_id: scheinleistung_bezug_l3
+    unit_of_measurement: "VA"
+    device_class: apparent_power
+    state_class: measurement
+    state: >
+      {% set u = states('sensor.netz_spannung_l3') | float(0) %}
+      {% set i = states('sensor.strom_bezug_l3') | float(0) %}
+      {{ (u * i / 1000) | round(1) }}
+
+  - name: "Scheinleistung Bezug Gesamt"
+    unique_id: scheinleistung_bezug_gesamt
+    unit_of_measurement: "VA"
+    device_class: apparent_power
+    state_class: measurement
+    state: >
+      {% set s1 = states('sensor.scheinleistung_bezug_l1') | float(0) %}
+      {% set s2 = states('sensor.scheinleistung_bezug_l2') | float(0) %}
+      {% set s3 = states('sensor.scheinleistung_bezug_l3') | float(0) %}
+      {{ (s1 + s2 + s3) | round(1) }}
+
+  # Wirkleistung Total = Summe der Phasen (MDT 2/0/14 sendet nicht zuverlässig)
+  - name: "Leistung Bezug Gesamt"
+    unique_id: leistung_bezug_gesamt_template
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    state: >
+      {% set p1 = states('sensor.leistung_bezug_l1') | float(0) %}
+      {% set p2 = states('sensor.leistung_bezug_l2') | float(0) %}
+      {% set p3 = states('sensor.leistung_bezug_l3') | float(0) %}
+      {{ (p1 + p2 + p3) | round(1) }}
+
+  - name: "Leistung Einspeisung Gesamt"
+    unique_id: leistung_einspeisung_gesamt_template
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    state: >
+      {% set p1 = states('sensor.leistung_einspeisung_l1') | float(0) %}
+      {% set p2 = states('sensor.leistung_einspeisung_l2') | float(0) %}
+      {% set p3 = states('sensor.leistung_einspeisung_l3') | float(0) %}
+      {{ (p1 + p2 + p3) | round(1) }}
