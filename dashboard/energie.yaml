@@ -251,6 +251,7 @@ views:
             show:
               labels: true
               extrema: true
+              state: false
 
           - type: custom:mini-graph-card
             name: Leistung Bezug — alle Phasen (24h)
@@ -267,6 +268,7 @@ views:
             show:
               labels: true
               extrema: true
+              state: false
 
           - type: custom:mini-graph-card
             name: Spannung — alle Phasen (12h)
@@ -283,3 +285,4 @@ views:
             show:
               labels: true
               extrema: true
+              state: false

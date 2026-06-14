@@ -214,3 +214,26 @@ sensor:
       {% set s2 = states('sensor.scheinleistung_bezug_l2') | float(0) %}
       {% set s3 = states('sensor.scheinleistung_bezug_l3') | float(0) %}
       {{ (s1 + s2 + s3) | round(1) }}
+
+  # Wirkleistung Total = Summe der Phasen (MDT 2/0/14 sendet nicht zuverlässig)
+  - name: "Leistung Bezug Gesamt"
+    unique_id: leistung_bezug_gesamt_template
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    state: >
+      {% set p1 = states('sensor.leistung_bezug_l1') | float(0) %}
+      {% set p2 = states('sensor.leistung_bezug_l2') | float(0) %}
+      {% set p3 = states('sensor.leistung_bezug_l3') | float(0) %}
+      {{ (p1 + p2 + p3) | round(1) }}
+
+  - name: "Leistung Einspeisung Gesamt"
+    unique_id: leistung_einspeisung_gesamt_template
+    unit_of_measurement: "W"
+    device_class: power
+    state_class: measurement
+    state: >
+      {% set p1 = states('sensor.leistung_einspeisung_l1') | float(0) %}
+      {% set p2 = states('sensor.leistung_einspeisung_l2') | float(0) %}
+      {% set p3 = states('sensor.leistung_einspeisung_l3') | float(0) %}
+      {{ (p1 + p2 + p3) | round(1) }}
