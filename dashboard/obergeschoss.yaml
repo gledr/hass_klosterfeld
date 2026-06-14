@@ -29,11 +29,9 @@ views:
           - type: custom:mushroom-light-card
             entity: light.bedroom_bed_light_left
             name: Bett links
-            show_brightness_control: true
           - type: custom:mushroom-light-card
             entity: light.bedroom_bed_light_right
             name: Bett rechts
-            show_brightness_control: true
           - type: custom:mushroom-cover-card
             entity: cover.bedroom_shutter
             name: Rollo
@@ -74,6 +72,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.office_light
             name: Licht
+            show_brightness_control: true
           - type: custom:mushroom-cover-card
             entity: cover.office_shutter
             name: Rollo
@@ -119,6 +118,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.guest_light
             name: Licht
+            show_brightness_control: true
           - type: custom:mushroom-cover-card
             entity: cover.guest_shutter
             name: Rollo
@@ -160,7 +160,6 @@ views:
           - type: custom:mushroom-light-card
             entity: light.bathroom_mirror_light
             name: Spiegel
-            show_brightness_control: true
           - type: custom:mushroom-entity-card
             entity: switch.handtuchheizkoerper
             name: Handtuchheizung
@@ -205,6 +204,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.wc_og_light
             name: Licht
+            show_brightness_control: true
           - type: custom:mushroom-cover-card
             entity: cover.wc_og_blinds
             name: Raffstore
@@ -245,6 +245,7 @@ views:
           - type: custom:mushroom-light-card
             entity: light.gallery_og_light
             name: Licht
+            show_brightness_control: true
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
