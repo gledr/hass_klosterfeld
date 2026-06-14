@@ -92,6 +92,19 @@ views:
               - type: entity
                 entity: sensor.bthome_sensor_ace1_temperature
                 icon: mdi:thermometer-lines
+          - type: custom:mini-graph-card
+            name: Leistung Verbrauch Deckenlicht (12h)
+            entities:
+              - entity: sensor.leistung_buro_deckenlicht
+                name: Leistung
+                color: '#d97706'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
 
       ###########################################################################
       # GÄSTEZIMMER                                                             #
@@ -116,6 +129,19 @@ views:
               - type: entity
                 entity: sensor.guest_room_temperature
                 icon: mdi:thermometer
+          - type: custom:mini-graph-card
+            name: Leistung Verbrauch Deckenlicht (12h)
+            entities:
+              - entity: sensor.leistung_gastezimmer_deckenlicht
+                name: Leistung
+                color: '#d97706'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
 
       ###########################################################################
       # BADEZIMMER                                                              #
@@ -152,6 +178,19 @@ views:
               - type: entity
                 entity: sensor.bthome_sensor_5447_humidity
                 icon: mdi:water-percent
+          - type: custom:mini-graph-card
+            name: Leistung Verbrauch Deckenlicht (12h)
+            entities:
+              - entity: sensor.leistung_bad_deckenlicht
+                name: Leistung
+                color: '#d97706'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
 
       ###########################################################################
       # WC OG                                                                   #
@@ -179,6 +218,19 @@ views:
               - type: entity
                 entity: sensor.wc_og_humidity
                 icon: mdi:water-percent
+          - type: custom:mini-graph-card
+            name: Leistung Verbrauch Deckenlicht (12h)
+            entities:
+              - entity: sensor.leistung_wc_og_deckenlicht
+                name: Leistung
+                color: '#d97706'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
 
       ###########################################################################
       # GALERIE                                                                 #
@@ -198,3 +250,16 @@ views:
               - type: entity
                 entity: sensor.gallery_og_temperature
                 icon: mdi:thermometer
+          - type: custom:mini-graph-card
+            name: Leistung Verbrauch Deckenlicht (12h)
+            entities:
+              - entity: sensor.leistung_gallerie_deckenlicht
+                name: Leistung
+                color: '#d97706'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
