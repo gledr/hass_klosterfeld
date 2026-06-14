@@ -2822,7 +2822,7 @@
     alias: Messfahrt alle Raffstores 2-wöchentlich
     trigger:
       - platform: time
-        at: "13:00:00"
+        at: "08:00:00"
 
     condition:
       # nur Werktage
@@ -2838,7 +2838,16 @@
       - condition: template
         value_template: "{{ (now().isocalendar().week % 2) == 0 }}"
 
+      # nur wenn niemand zuhause (Hitzeschutz greift dann auch noch nicht)
+      - condition: state
+        entity_id: device_tracker.iphone_von_sebastian
+        state: "not_home"
+
     action:
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: Beschattung – Messfahrt
+          message: "Messfahrt aller Raffstores startet jetzt (ca. 35 s)."
       - service: script.messfahrt_alle
 
     mode: single
