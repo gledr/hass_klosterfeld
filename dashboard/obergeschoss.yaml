@@ -47,6 +47,19 @@ views:
               - type: entity
                 entity: sensor.bedroom_humidity
                 icon: mdi:water-percent
+          - type: custom:mini-graph-card
+            name: Leistung Verbrauch Deckenlicht (12h)
+            entities:
+              - entity: sensor.leistung_schlafzimmer_deckenlicht
+                name: Leistung
+                color: '#d97706'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false
 
       ###########################################################################
       # BÜRO                                                                    #
