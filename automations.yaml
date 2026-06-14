@@ -505,21 +505,6 @@
           target:
             entity_id: cover.garage_door_garage_door
     mode: single
-  - id: keller_treppe_licht_auto_aus
-    alias: Keller & EG–OG Treppe Licht Auto-Aus
-    trigger:
-    - platform: state
-      entity_id:
-      - light.stairs_kg_eg_light_eg
-      - light.stairway_eg_og_light_2
-      to: 'on'
-      for:
-        minutes: 10
-    action:
-    - service: light.turn_off
-      target:
-        entity_id: '{{ trigger.entity_id }}'
-    mode: restart
   - id: wc_lights_auto_off
     alias: WC Licht automatisch aus nach 30 Minuten
     trigger:
