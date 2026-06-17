@@ -33,8 +33,8 @@ binary_sensor:
     delay_off:
       minutes: 5
     state: >
-      {{ (state_attr('sun.sun', 'azimuth') | float > 315
-         or state_attr('sun.sun', 'azimuth') | float < 45)
+      {{ (state_attr('sun.sun', 'azimuth') | float > 290
+         or state_attr('sun.sun', 'azimuth') | float < 70)
          and state_attr('sun.sun', 'elevation') | float > 5
          and states('sensor.helligkeit_nord') | float(0) > states('input_number.beschattung_lux_nord') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}

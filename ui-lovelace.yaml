@@ -67,15 +67,17 @@ views:
                   state: "on"
             show_empty: false
 
-          # Aktive Overrides / Manuelle Eingriffe
+          # Aktive Manual-Locks / Privacy
           - type: custom:auto-entities
             card:
               type: entities
-              title: ⚙️ Aktive Overrides
+              title: ⚙️ Aktive Manual-Locks
               state_color: true
             filter:
               include:
-                - entity_id: input_boolean.beschattung_terrasse_override
+                - entity_id: timer.beschattung_manual_*
+                  state: "active"
+                - entity_id: input_boolean.beschattung_lock_*
                   state: "on"
                 - entity_id: input_boolean.badezimmer_privacy_active
                   state: "on"
@@ -216,8 +218,6 @@ views:
                       - cover.livingroom_blinds
                       - cover.kitchen_blinds
                       - cover.dining_blinds
-                      - cover.raffstore_kueche
-                      - cover.terrace_blinds
                       - cover.terrace_blinds_2
               - type: custom:mushroom-template-card
                 primary: Alle Raffstore zu
@@ -239,8 +239,6 @@ views:
                       - cover.livingroom_blinds
                       - cover.kitchen_blinds
                       - cover.dining_blinds
-                      - cover.raffstore_kueche
-                      - cover.terrace_blinds
                       - cover.terrace_blinds_2
 
           - type: horizontal-stack

@@ -89,17 +89,21 @@ views:
           - type: custom:mushroom-template-card
             primary: Auto-Beschattung
             secondary: >
-              {% if is_state('input_boolean.beschattung_terrasse_override','on') %}
-                Override aktiv — manuell überschrieben
+              {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}
+                App-gesperrt — bis Mitternacht aus
+              {% elif is_state('timer.beschattung_manual_terrasse','active') %}
+                Manuell — 2h-Lock aktiv
               {% else %}
-                Aktiv (folgt Sonne + Temperatur)
+                Aktiv (folgt Sonne + Tag/Nacht)
               {% endif %}
             icon: mdi:auto-fix
             icon_color: >
-              {% if is_state('input_boolean.beschattung_terrasse_override','on') %}orange{% else %}green{% endif %}
+              {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}red
+              {% elif is_state('timer.beschattung_manual_terrasse','active') %}orange
+              {% else %}green{% endif %}
             tap_action:
               action: toggle
-              entity: input_boolean.beschattung_terrasse_override
+              entity: input_boolean.beschattung_lock_terrasse
 
           # TODO Shelly Terrassentür hier ergänzen sobald installiert
           # - type: custom:mushroom-entity-card

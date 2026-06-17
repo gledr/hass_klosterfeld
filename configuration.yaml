@@ -725,7 +725,7 @@ knx:
       device_class: lock
     - name: "Twilight"
       state_address: "8/4/1"
-      device_class: opening
+      device_class: light
 
     # Energie — Netzspannungsfehler vom MDT-Energiemesser (DPT-1)
     - name: "Netzspannungsfehler"
@@ -750,20 +750,8 @@ input_boolean:
     name: Wohnküche Override TV
   wohnkueche_override_szene:
     name: Wohnküche Override Szene (Smart 55)
-  beschattung_terrasse_override:
-    name: Beschattung Terrasse Override
-  beschattung_buero_override:
-    name: Beschattung Büro Override
-  beschattung_wohnzimmer_override:
-    name: Beschattung Wohnzimmer Override
-  beschattung_west_override:
-    name: Beschattung West Override (Küche/Esszimmer)
-  beschattung_gaestezimmer_override:
-    name: Beschattung Gästezimmer Override
-  beschattung_schlafzimmer_override:
-    name: Beschattung Schlafzimmer Override
-  # Per-Shade Sperre: wenn ON, fasst keine Auto-Beschattung diese Beschattung an.
-  # Reines Hard-Skip — Override-Logik bleibt unberührt.
+  # Per-Shade Sperre (App-Lock): wenn ON, fasst keine Auto-Beschattung diese Beschattung an.
+  # Wird täglich um Mitternacht zurückgesetzt (siehe automation app_lock_reset_taeglich).
   beschattung_lock_schlafzimmer:
     name: Sperre Schlafzimmer
     icon: mdi:lock
@@ -801,7 +789,51 @@ input_boolean:
     name: Sperre Garderobe
     icon: mdi:lock
   badezimmer_privacy_active:
-    name: Badezimmer Privacy Mode Aktiv  
+    name: Badezimmer Privacy Mode Aktiv
+
+# ========================
+# TIMERS
+# Pro Raum 2h Manual-Lock — gestartet wenn manuell bedient (KNX ohne HASS-Context).
+# Solange timer.active ist, fasst keine Auto-Beschattung den Cover an.
+# Nach Ablauf läuft Hitzeschutz/Default-Logik wieder normal.
+# ========================
+timer:
+  beschattung_manual_garderobe:
+    name: Manuell-Lock Garderobe
+    duration: "02:00:00"
+  beschattung_manual_abstellraum:
+    name: Manuell-Lock Abstellraum
+    duration: "02:00:00"
+  beschattung_manual_wc_eg:
+    name: Manuell-Lock WC EG
+    duration: "02:00:00"
+  beschattung_manual_kueche:
+    name: Manuell-Lock Küche
+    duration: "02:00:00"
+  beschattung_manual_esszimmer:
+    name: Manuell-Lock Esszimmer
+    duration: "02:00:00"
+  beschattung_manual_wohnzimmer:
+    name: Manuell-Lock Wohnzimmer
+    duration: "02:00:00"
+  beschattung_manual_terrasse:
+    name: Manuell-Lock Terrasse
+    duration: "02:00:00"
+  beschattung_manual_wc_og:
+    name: Manuell-Lock WC OG
+    duration: "02:00:00"
+  beschattung_manual_badezimmer:
+    name: Manuell-Lock Badezimmer
+    duration: "02:00:00"
+  beschattung_manual_gaestezimmer:
+    name: Manuell-Lock Gästezimmer
+    duration: "02:00:00"
+  beschattung_manual_buero:
+    name: Manuell-Lock Büro
+    duration: "02:00:00"
+  beschattung_manual_schlafzimmer:
+    name: Manuell-Lock Schlafzimmer
+    duration: "02:00:00"
 
 # ========================
 # INPUT SELECTS
