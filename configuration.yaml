@@ -724,7 +724,7 @@ knx:
       state_address: "8/4/7"
       device_class: lock
     - name: "Twilight"
-      state_address: "8/4/1"
+      state_address: "8/4/0"
       device_class: light
 
     # Energie — Netzspannungsfehler vom MDT-Energiemesser (DPT-1)
