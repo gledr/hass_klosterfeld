@@ -2485,10 +2485,11 @@
     alias: "Büro – Blend-/Hitzeschutz nach Sonnenstand"
     description: >
       Wenn Sonne auf Südfassade trifft, Rollo steuern:
-      Werktag UND niemand zuhause: voll zu (Sebastian ist im Office,
-      max. Hitzeschutz/Energie). Sonst:
-      Heiß (>26°C): voll zu (Hitzeschutz). Sonst nach Elevation:
-      Hoch (>45°): 20% zu, Mittel (25-45°): 50% zu, Tief (<25°): 80% zu.
+      - Werktag + nicht zuhause → voll zu (Sebastian im Office, max Hitzeschutz/Energie)
+      - Werktag + zuhause → NUR Blendschutz (elevation-basiert, NIE voll zu,
+        auch bei Hitze nicht — Sebastian arbeitet im Büro und braucht Tageslicht)
+      - Wochenende → Hitzeschutz: voll zu wenn >26°C, sonst Blendschutz
+      Blendschutz: hoch (>45°): 20% zu, mittel (25-45°): 50% zu, tief (<25°): 80% zu.
       Wird alle 15 Min, bei Sonne-Ein/Aus, Temp-Schwelle und
       Anwesenheits-Wechsel neu bewertet. Manueller Override
       (input_boolean.beschattung_buero_override) hat Vorrang.
@@ -2545,7 +2546,46 @@
               - service: cover.close_cover
                 target:
                   entity_id: cover.office_shutter
-          # Hitzeschutz: Temp über Schwelle → voll zu
+          # Werktag UND zuhause → NUR Blendschutz (Sebastian arbeitet im Büro,
+          # Hitzeschutz darf NICHT voll schließen)
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.workday_sensor
+                state: "on"
+              - condition: state
+                entity_id: device_tracker.iphone_von_sebastian
+                state: "home"
+            sequence:
+              - choose:
+                  - conditions:
+                      - condition: numeric_state
+                        entity_id: sun.sun
+                        attribute: elevation
+                        above: 45
+                    sequence:
+                      - service: cover.set_cover_position
+                        target:
+                          entity_id: cover.office_shutter
+                        data:
+                          position: 80
+                  - conditions:
+                      - condition: numeric_state
+                        entity_id: sun.sun
+                        attribute: elevation
+                        above: 25
+                    sequence:
+                      - service: cover.set_cover_position
+                        target:
+                          entity_id: cover.office_shutter
+                        data:
+                          position: 50
+                default:
+                  - service: cover.set_cover_position
+                    target:
+                      entity_id: cover.office_shutter
+                    data:
+                      position: 20
+          # Wochenende: Hitzeschutz greift (Temp über Schwelle → voll zu)
           - conditions:
               - condition: numeric_state
                 entity_id: sensor.outdoor_temperature_avg
