@@ -674,6 +674,8 @@ knx:
       address: "4/2/78"
     - name: "Messfahrt Rollo Büro"
       address: "4/2/98"
+    - name: "Twilight"
+      state_address: "8/4/0"
 
   button:
     - name: "Gallerie Deckenlicht Mess-Reset"
@@ -723,9 +725,6 @@ knx:
     - name: "Helligkeit West Lock"
       state_address: "8/4/7"
       device_class: lock
-    - name: "Twilight"
-      state_address: "8/4/0"
-      device_class: light
 
     # Energie — Netzspannungsfehler vom MDT-Energiemesser (DPT-1)
     - name: "Netzspannungsfehler"
