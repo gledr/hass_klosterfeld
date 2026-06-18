@@ -1079,6 +1079,10 @@
   - id: beschattung_garderobe_tag
     alias: "Garderobe – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1178,6 +1182,10 @@
   - id: beschattung_abstellraum_tag
     alias: "Abstellraum – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1277,6 +1285,10 @@
   - id: beschattung_wc_eg_tag
     alias: "WC EG – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1343,6 +1355,10 @@
   - id: beschattung_kueche_tag
     alias: "Küche – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1442,6 +1458,10 @@
   - id: beschattung_esszimmer_tag
     alias: "Esszimmer – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1541,6 +1561,10 @@
   - id: beschattung_wohnzimmer_tag
     alias: "Wohnzimmer – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1640,6 +1664,10 @@
   - id: beschattung_terrasse_tag
     alias: "Terrasse – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1739,6 +1767,10 @@
   - id: beschattung_wc_og_tag
     alias: "WC OG – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1839,6 +1871,10 @@
   - id: beschattung_badezimmer_tag
     alias: "Badezimmer – Tag (Lamellen offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -1947,6 +1983,10 @@
   - id: beschattung_gast_tag
     alias: "Gast – Tag (Rollo offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -2038,6 +2078,10 @@
   - id: beschattung_buero_tag
     alias: "Büro – Tag (Rollo offen)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.twilight
         to: "on"
@@ -2171,6 +2215,10 @@
   - id: beschattung_schlafzimmer_tag
     alias: "Schlafzimmer – Tag (Rollo offen, Werktag 7:00 / WE 10:00)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: time
         at: "07:00:00"
         id: werktag_zeit
@@ -2275,69 +2323,6 @@
   # ZENTRALE BESCHATTUNGS-AUTOMATIONS
   # =========================================================
 
-  # ----------------------------------------------------------
-  # Manual-Detection: Cover-State-Change ohne HASS-Context = KNX physisch
-  # → 2h Manual-Lock starten für betroffenen Raum
-  # ----------------------------------------------------------
-  - id: beschattung_manual_detection
-    alias: "Beschattung – Manuelle KNX-Bedienung erkennen"
-    description: >
-      Wenn ein Cover sich bewegt OHNE dass HASS den Befehl gegeben hat
-      (kein user_id, kein parent_id im Context), war es physisch am
-      KNX-Taster → 2h Manual-Lock für diesen Raum starten.
-    mode: parallel
-    max: 12
-    variables:
-      timer_map:
-        cover.wardrobe_blinds: timer.beschattung_manual_garderobe
-        cover.shelf_blinds: timer.beschattung_manual_abstellraum
-        cover.wc_eg_blinds: timer.beschattung_manual_wc_eg
-        cover.kitchen_blinds: timer.beschattung_manual_kueche
-        cover.dining_blinds: timer.beschattung_manual_esszimmer
-        cover.livingroom_blinds: timer.beschattung_manual_wohnzimmer
-        cover.terrace_blinds_2: timer.beschattung_manual_terrasse
-        cover.wc_og_blinds: timer.beschattung_manual_wc_og
-        cover.bathroom_blinds: timer.beschattung_manual_badezimmer
-        cover.guest_shutter: timer.beschattung_manual_gaestezimmer
-        cover.office_shutter: timer.beschattung_manual_buero
-        cover.bedroom_shutter: timer.beschattung_manual_schlafzimmer
-    trigger:
-      - platform: state
-        entity_id:
-          - cover.wardrobe_blinds
-          - cover.shelf_blinds
-          - cover.wc_eg_blinds
-          - cover.kitchen_blinds
-          - cover.dining_blinds
-          - cover.livingroom_blinds
-          - cover.terrace_blinds_2
-          - cover.wc_og_blinds
-          - cover.bathroom_blinds
-          - cover.guest_shutter
-          - cover.office_shutter
-          - cover.bedroom_shutter
-    condition:
-      # Kein HASS-Context → KNX-physisch
-      - condition: template
-        value_template: >
-          {{ trigger.to_state.context.user_id is none
-             and trigger.to_state.context.parent_id is none }}
-      # Bad: Privacy-Mode-Aktivierung schließt Cover automatisch — nicht als manuell werten
-      - condition: template
-        value_template: >
-          {{ not (trigger.entity_id == 'cover.bathroom_blinds'
-                  and is_state('input_boolean.badezimmer_privacy_active', 'on')) }}
-    action:
-      - service: timer.start
-        data:
-          entity_id: "{{ timer_map[trigger.entity_id] }}"
-          duration: "02:00:00"
-
-  # ----------------------------------------------------------
-  # Messfahrt alle 2 Wochen (KNX-Kalibrierung)
-  # Vormittags 08:00, nur abwesend, NICHT während Hitzeschutz aktiv
-  # Push-Nachricht aufs iPhone
-  # ----------------------------------------------------------
   - id: beschattung_messfahrt_2_wochen
     alias: "Beschattung – Messfahrt 2-wöchentlich (Vormittag, abwesend)"
     description: >
