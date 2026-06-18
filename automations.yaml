@@ -571,6 +571,9 @@
         to: "off"
         id: licht_aus
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_badezimmer
       - choose:
           - conditions:
               - condition: trigger
@@ -661,6 +664,9 @@
       - condition: state
         entity_id: input_boolean.badezimmer_privacy_active
         state: "on"
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_badezimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -697,6 +703,9 @@
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.badezimmer_privacy_active
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_badezimmer
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -1110,6 +1119,9 @@
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_garderobe
       - service: cover.set_cover_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1126,6 +1138,10 @@
   - id: beschattung_garderobe_nacht
     alias: "Garderobe – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1142,6 +1158,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_garderobe
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1152,10 +1171,17 @@
   - id: beschattung_garderobe_hitze
     alias: "Garderobe – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_garderobe
         state: "off"
@@ -1169,6 +1195,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_garderobe
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1213,6 +1242,9 @@
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_abstellraum
       - service: cover.set_cover_position
         target:
           entity_id: cover.shelf_blinds
@@ -1229,6 +1261,10 @@
   - id: beschattung_abstellraum_nacht
     alias: "Abstellraum – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1245,6 +1281,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_abstellraum
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1255,10 +1294,17 @@
   - id: beschattung_abstellraum_hitze
     alias: "Abstellraum – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_abstellraum
         state: "off"
@@ -1272,6 +1318,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_abstellraum
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1310,6 +1359,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wc_eg
       - service: cover.set_cover_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1326,6 +1378,10 @@
   - id: beschattung_wc_eg_nacht
     alias: "WC EG – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1342,6 +1398,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wc_eg
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1386,6 +1445,9 @@
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_kueche
       - service: cover.set_cover_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1402,6 +1464,10 @@
   - id: beschattung_kueche_nacht
     alias: "Küche – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1418,6 +1484,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_kueche
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1428,10 +1497,17 @@
   - id: beschattung_kueche_hitze
     alias: "Küche – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_west
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_kueche
         state: "off"
@@ -1445,6 +1521,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_kueche
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1489,6 +1568,9 @@
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_esszimmer
       - service: cover.set_cover_position
         target:
           entity_id: cover.dining_blinds
@@ -1505,6 +1587,10 @@
   - id: beschattung_esszimmer_nacht
     alias: "Esszimmer – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1521,6 +1607,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_esszimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1531,10 +1620,17 @@
   - id: beschattung_esszimmer_hitze
     alias: "Esszimmer – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_west
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_esszimmer
         state: "off"
@@ -1548,6 +1644,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_esszimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1592,6 +1691,9 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wohnzimmer
       - service: cover.set_cover_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1608,6 +1710,10 @@
   - id: beschattung_wohnzimmer_nacht
     alias: "Wohnzimmer – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1624,6 +1730,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wohnzimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1634,10 +1743,17 @@
   - id: beschattung_wohnzimmer_hitze
     alias: "Wohnzimmer – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_wohnzimmer
         state: "off"
@@ -1651,6 +1767,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wohnzimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1695,6 +1814,9 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_terrasse
       - service: cover.set_cover_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1711,6 +1833,10 @@
   - id: beschattung_terrasse_nacht
     alias: "Terrasse – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1727,6 +1853,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_terrasse
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1737,10 +1866,17 @@
   - id: beschattung_terrasse_hitze
     alias: "Terrasse – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
@@ -1754,6 +1890,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_terrasse
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1798,6 +1937,9 @@
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wc_og
       - service: cover.set_cover_position
         target:
           entity_id: cover.wc_og_blinds
@@ -1814,6 +1956,10 @@
   - id: beschattung_wc_og_nacht
     alias: "WC OG – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1830,6 +1976,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wc_og
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -1840,10 +1989,17 @@
   - id: beschattung_wc_og_hitze
     alias: "WC OG – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_west
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_wc_og
         state: "off"
@@ -1857,6 +2013,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_wc_og
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -1905,6 +2064,9 @@
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_badezimmer
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -1921,6 +2083,10 @@
   - id: beschattung_badezimmer_nacht
     alias: "Badezimmer – Nacht (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1940,6 +2106,9 @@
         entity_id: input_boolean.badezimmer_privacy_active
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_badezimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -1950,10 +2119,17 @@
   - id: beschattung_badezimmer_hitze
     alias: "Badezimmer – Hitzeschutz (Lamellen zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_badezimmer
         state: "off"
@@ -1970,6 +2146,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_badezimmer
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2014,6 +2193,9 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_gast
       - service: cover.open_cover
         target:
           entity_id: cover.guest_shutter
@@ -2022,6 +2204,10 @@
   - id: beschattung_gast_nacht
     alias: "Gast – Nacht (Rollo zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2038,6 +2224,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_gast
       - service: cover.close_cover
         target:
           entity_id: cover.guest_shutter
@@ -2046,10 +2235,17 @@
   - id: beschattung_gast_hitze
     alias: "Gast – Hitzeschutz (Rollo zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
@@ -2063,6 +2259,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_gast
       - service: cover.close_cover
         target:
           entity_id: cover.guest_shutter
@@ -2109,6 +2308,9 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_buero
       - service: cover.open_cover
         target:
           entity_id: cover.office_shutter
@@ -2117,6 +2319,10 @@
   - id: beschattung_buero_nacht
     alias: "Büro – Nacht (Rollo zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2133,6 +2339,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_buero
       - service: cover.close_cover
         target:
           entity_id: cover.office_shutter
@@ -2144,6 +2353,10 @@
       Werktag+home → nur Blendschutz (50% bei tiefer Sonne+viel Lux, sonst 25% zu).
       Werktag+abwesend → voll zu. Wochenende → voll zu.
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
@@ -2168,6 +2381,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_buero
       - choose:
           # Werktag + zuhause → Blendschutz (zwei Stufen)
           - conditions:
@@ -2265,6 +2481,9 @@
             {{ (workday and h >= 7) or (not workday and h >= 10) }}
           {% endif %}
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_schlafzimmer
       - service: cover.open_cover
         target:
           entity_id: cover.bedroom_shutter
@@ -2273,6 +2492,10 @@
   - id: beschattung_schlafzimmer_nacht
     alias: "Schlafzimmer – Nacht (Rollo zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2289,6 +2512,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_schlafzimmer
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
@@ -2297,10 +2523,17 @@
   - id: beschattung_schlafzimmer_hitze
     alias: "Schlafzimmer – Hitzeschutz (Rollo zu)"
     trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "on"
     condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_nord
+        state: "on"
       - condition: state
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
@@ -2314,6 +2547,9 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_schlafzimmer
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
@@ -2322,6 +2558,86 @@
   # =========================================================
   # ZENTRALE BESCHATTUNGS-AUTOMATIONS
   # =========================================================
+
+  # ----------------------------------------------------------
+  # Manual-Detection: physische KNX-Tasterbedienung erkennen
+  # → 2h Manual-Lock starten für betroffenen Raum
+  #
+  # Filterung: Nur State-Changes ZÄHLEN, wenn HA gerade NICHT selbst
+  # einen Cover-Befehl gegeben hat (timer.beschattung_ha_acted_<raum> idle)
+  # UND keine Messfahrt läuft. So fallen KNX-Echo-States nach HA-Befehlen raus.
+  # ----------------------------------------------------------
+  - id: beschattung_manual_detection
+    alias: "Beschattung – Manuelle KNX-Bedienung erkennen"
+    description: >
+      Triggert auf Cover-State-Changes der 12 Beschattungs-Cover. Wenn weder
+      HA gerade selbst gefeuert hat (ha_acted-Timer aktiv) noch eine Messfahrt
+      läuft, wird die Bedienung als KNX-physisch interpretiert und 2h-Manual-Lock
+      gestartet. Bei Bad zusätzlich: privacy-active wird ignoriert (Privacy-Mode
+      schließt selbständig, ist nicht "manuell").
+    mode: parallel
+    max: 12
+    variables:
+      manual_timer_map:
+        cover.wardrobe_blinds: timer.beschattung_manual_garderobe
+        cover.shelf_blinds: timer.beschattung_manual_abstellraum
+        cover.wc_eg_blinds: timer.beschattung_manual_wc_eg
+        cover.kitchen_blinds: timer.beschattung_manual_kueche
+        cover.dining_blinds: timer.beschattung_manual_esszimmer
+        cover.livingroom_blinds: timer.beschattung_manual_wohnzimmer
+        cover.terrace_blinds_2: timer.beschattung_manual_terrasse
+        cover.wc_og_blinds: timer.beschattung_manual_wc_og
+        cover.bathroom_blinds: timer.beschattung_manual_badezimmer
+        cover.guest_shutter: timer.beschattung_manual_gaestezimmer
+        cover.office_shutter: timer.beschattung_manual_buero
+        cover.bedroom_shutter: timer.beschattung_manual_schlafzimmer
+      ha_acted_map:
+        cover.wardrobe_blinds: timer.beschattung_ha_acted_garderobe
+        cover.shelf_blinds: timer.beschattung_ha_acted_abstellraum
+        cover.wc_eg_blinds: timer.beschattung_ha_acted_wc_eg
+        cover.kitchen_blinds: timer.beschattung_ha_acted_kueche
+        cover.dining_blinds: timer.beschattung_ha_acted_esszimmer
+        cover.livingroom_blinds: timer.beschattung_ha_acted_wohnzimmer
+        cover.terrace_blinds_2: timer.beschattung_ha_acted_terrasse
+        cover.wc_og_blinds: timer.beschattung_ha_acted_wc_og
+        cover.bathroom_blinds: timer.beschattung_ha_acted_badezimmer
+        cover.guest_shutter: timer.beschattung_ha_acted_gaestezimmer
+        cover.office_shutter: timer.beschattung_ha_acted_buero
+        cover.bedroom_shutter: timer.beschattung_ha_acted_schlafzimmer
+    trigger:
+      - platform: state
+        entity_id:
+          - cover.wardrobe_blinds
+          - cover.shelf_blinds
+          - cover.wc_eg_blinds
+          - cover.kitchen_blinds
+          - cover.dining_blinds
+          - cover.livingroom_blinds
+          - cover.terrace_blinds_2
+          - cover.wc_og_blinds
+          - cover.bathroom_blinds
+          - cover.guest_shutter
+          - cover.office_shutter
+          - cover.bedroom_shutter
+    condition:
+      # HA hat gerade NICHT gefeuert (Echo-Window ist idle)
+      - condition: template
+        value_template: >
+          {{ states(ha_acted_map[trigger.entity_id]) == 'idle' }}
+      # Keine Messfahrt läuft
+      - condition: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        state: "off"
+      # Bad-Sonderfall: Privacy-Mode-getriebene Cover-Moves nicht als manuell zählen
+      - condition: template
+        value_template: >
+          {{ not (trigger.entity_id == 'cover.bathroom_blinds'
+                  and is_state('input_boolean.badezimmer_privacy_active', 'on')) }}
+    action:
+      - service: timer.start
+        data:
+          entity_id: "{{ manual_timer_map[trigger.entity_id] }}"
+          duration: "02:00:00"
 
   - id: beschattung_messfahrt_2_wochen
     alias: "Beschattung – Messfahrt 2-wöchentlich (Vormittag, abwesend)"
@@ -2361,6 +2677,9 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: input_boolean.beschattung_messfahrt_running
       - service: notify.mobile_app_iphone_von_sebastian
         data:
           title: Beschattung – Messfahrt
@@ -2413,6 +2732,11 @@
       - service: switch.turn_on
         target:
           entity_id: switch.messfahrt_rollo_buro
+      # Messfahrt-Flag nach 60s (Buffer für letzten Cover-Echo) zurücksetzen
+      - delay: "00:01:00"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_messfahrt_running
 
   # ----------------------------------------------------------
   # App-Lock Reset täglich um Mitternacht
