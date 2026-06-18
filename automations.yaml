@@ -1084,7 +1084,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -1104,7 +1104,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -1127,7 +1127,7 @@
     alias: "Garderobe – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1166,7 +1166,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1187,7 +1187,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -1207,7 +1207,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -1230,7 +1230,7 @@
     alias: "Abstellraum – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1269,7 +1269,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1290,7 +1290,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: event
         event_type: timer.finished
@@ -1307,7 +1307,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_position
@@ -1327,7 +1327,7 @@
     alias: "WC EG – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1360,7 +1360,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
@@ -1380,7 +1380,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
@@ -1403,7 +1403,7 @@
     alias: "Küche – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1442,7 +1442,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1463,7 +1463,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
@@ -1483,7 +1483,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
@@ -1506,7 +1506,7 @@
     alias: "Esszimmer – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1545,7 +1545,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1566,7 +1566,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -1586,7 +1586,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -1609,7 +1609,7 @@
     alias: "Wohnzimmer – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1648,7 +1648,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1669,7 +1669,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -1689,7 +1689,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -1712,7 +1712,7 @@
     alias: "Terrasse – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1751,7 +1751,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1772,7 +1772,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
@@ -1792,7 +1792,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
@@ -1815,7 +1815,7 @@
     alias: "WC OG – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1854,7 +1854,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1876,7 +1876,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -1899,7 +1899,7 @@
         entity_id: input_boolean.badezimmer_privacy_active
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -1922,7 +1922,7 @@
     alias: "Badezimmer – Nacht (Lamellen zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -1967,7 +1967,7 @@
         entity_id: input_boolean.badezimmer_privacy_active
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.set_cover_tilt_position
@@ -1988,7 +1988,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -2008,7 +2008,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -2023,7 +2023,7 @@
     alias: "Gast – Nacht (Rollo zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -2060,7 +2060,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.close_cover
@@ -2083,7 +2083,7 @@
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "on"
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -2103,7 +2103,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -2118,7 +2118,7 @@
     alias: "Büro – Nacht (Rollo zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -2165,7 +2165,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - choose:
@@ -2245,7 +2245,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
@@ -2274,7 +2274,7 @@
     alias: "Schlafzimmer – Nacht (Rollo zu)"
     trigger:
       - platform: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         to: "off"
         for:
           minutes: 30
@@ -2311,7 +2311,7 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
-        entity_id: binary_sensor.twilight
+        entity_id: switch.twilight
         state: "on"
     action:
       - service: cover.close_cover
