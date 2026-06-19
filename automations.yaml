@@ -1095,7 +1095,7 @@
     alias: "Garderobe – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1154,7 +1154,7 @@
     alias: "Garderobe – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1202,7 +1202,7 @@
     alias: "Garderobe – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1251,7 +1251,7 @@
     alias: "Abstellraum – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1310,7 +1310,7 @@
     alias: "Abstellraum – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1358,7 +1358,7 @@
     alias: "Abstellraum – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1407,7 +1407,7 @@
     alias: "WC EG – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1460,7 +1460,7 @@
     alias: "WC EG – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1511,7 +1511,7 @@
     alias: "Küche – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1570,7 +1570,7 @@
     alias: "Küche – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1618,7 +1618,7 @@
     alias: "Küche – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1667,7 +1667,7 @@
     alias: "Esszimmer – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1726,7 +1726,7 @@
     alias: "Esszimmer – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1774,7 +1774,7 @@
     alias: "Esszimmer – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1823,7 +1823,7 @@
     alias: "Wohnzimmer – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1882,7 +1882,7 @@
     alias: "Wohnzimmer – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1930,7 +1930,7 @@
     alias: "Wohnzimmer – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -1979,7 +1979,7 @@
     alias: "Terrasse – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2038,7 +2038,7 @@
     alias: "Terrasse – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2086,7 +2086,7 @@
     alias: "Terrasse – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2135,7 +2135,7 @@
     alias: "WC OG – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2194,7 +2194,7 @@
     alias: "WC OG – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2242,7 +2242,7 @@
     alias: "WC OG – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2292,7 +2292,7 @@
     alias: "Badezimmer – Tag (Lamellen offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2354,7 +2354,7 @@
     alias: "Badezimmer – Nacht (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2405,7 +2405,7 @@
     alias: "Badezimmer – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2457,7 +2457,7 @@
     alias: "Gast – Tag (Rollo offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2501,7 +2501,7 @@
     alias: "Gast – Nacht (Rollo zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2540,7 +2540,7 @@
     alias: "Gast – Hitzeschutz (Rollo zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2584,7 +2584,7 @@
     alias: "Büro – Tag (Rollo offen)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2635,7 +2635,7 @@
     alias: "Büro – Nacht (Rollo zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2684,7 +2684,7 @@
       Werktag+abwesend → voll zu. Wochenende → voll zu.
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2771,7 +2771,7 @@
     alias: "Schlafzimmer – Tag (Rollo offen, Werktag 7:00 / WE 10:00)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: time
@@ -2841,7 +2841,7 @@
     alias: "Schlafzimmer – Nacht (Rollo zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
@@ -2887,7 +2887,7 @@
     alias: "Schlafzimmer – Hitzeschutz (Rollo zu)"
     trigger:
       - platform: homeassistant
-        event: started
+        event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
