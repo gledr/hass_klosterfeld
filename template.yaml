@@ -95,6 +95,17 @@ sensor:
       {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
       {{ ((b*alpha)/(a-alpha)) | round(2) }}
 
+    - name: "Taupunkt Schlafzimmer"
+    unique_id: taupunkt_schlafzimmer
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.bedroom') | float %}
+      {% set RH = states('sensor.bedroom_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
   - name: "Outdoor Humidity"
     unique_id: outdoor_humidity_met
     unit_of_measurement: "%"
@@ -137,6 +148,21 @@ sensor:
     state: >
       {% set RH = states('sensor.storage_humidity') | float(0) %}
       {% set delta = (states('sensor.taupunkt_lager') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
+
+    - name: "Lüftung Schlafzimmer"
+    unique_id: ventilation_schlafzimmer_level
+    state: >
+      {% set RH = states('sensor.bedroom_humidity') | float(0) %}
+      {% set delta = (states('sensor.taupunkt_schlafzimmer') | float) - (states('sensor.taupunkt_aussen') | float) %}
       {% if RH < 55 %}
         Luftfeuchtigkeit Okay
       {% elif delta > 2 %}
