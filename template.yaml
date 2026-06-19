@@ -9,7 +9,7 @@ binary_sensor:
     state: >
       {{ state_attr('sun.sun', 'azimuth') | float > 135
          and state_attr('sun.sun', 'azimuth') | float < 250
-         and state_attr('sun.sun', 'elevation') | float > 5
+         and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
 
@@ -22,7 +22,7 @@ binary_sensor:
     state: >
       {{ state_attr('sun.sun', 'azimuth') | float > 200
          and state_attr('sun.sun', 'azimuth') | float < 315
-         and state_attr('sun.sun', 'elevation') | float > 5
+         and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_west') | float(0) > states('input_number.beschattung_lux_west') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
 
@@ -35,7 +35,7 @@ binary_sensor:
     state: >
       {{ (state_attr('sun.sun', 'azimuth') | float > 290
          or state_attr('sun.sun', 'azimuth') | float < 70)
-         and state_attr('sun.sun', 'elevation') | float > 5
+         and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_nord') | float(0) > states('input_number.beschattung_lux_nord') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
 

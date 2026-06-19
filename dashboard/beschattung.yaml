@@ -166,11 +166,8 @@ views:
               - entity: timer.beschattung_manual_schlafzimmer
 
           - type: entities
-            title: Schwellenwerte
+            title: Lux-Schwellen (Hitzeschutz-Trigger)
             entities:
-              - entity: input_number.beschattung_threshold_niedrig
-              - entity: input_number.beschattung_threshold_hoch
-              - entity: input_number.beschattung_terrasse_abend
               - entity: input_number.beschattung_lux_sud
               - entity: input_number.beschattung_lux_west
               - entity: input_number.beschattung_lux_nord

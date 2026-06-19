@@ -837,6 +837,11 @@ timer:
   beschattung_manual_schlafzimmer:
     name: Manuell-Lock Schlafzimmer
     duration: "02:00:00"
+  # Startup-Grace: 60s nach HA-Start ignoriert manual_detection alle State-Changes,
+  # damit Boot-Race nicht fälschlich Manual-Locks startet.
+  beschattung_startup_grace:
+    name: Startup-Grace
+    duration: "00:01:00"
   # HA-acted Echo-Window (10s) pro Raum
   beschattung_ha_acted_garderobe:
     name: HA-Befehl-Window Garderobe
