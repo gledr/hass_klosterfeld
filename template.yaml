@@ -95,7 +95,7 @@ sensor:
       {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
       {{ ((b*alpha)/(a-alpha)) | round(2) }}
 
-    - name: "Taupunkt Schlafzimmer"
+  - name: "Taupunkt Schlafzimmer"
     unique_id: taupunkt_schlafzimmer
     unit_of_measurement: "°C"
     state: >
