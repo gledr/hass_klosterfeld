@@ -158,7 +158,7 @@ sensor:
         Nicht lüften
       {% endif %}
 
-    - name: "Lüftung Schlafzimmer"
+  - name: "Lüftung Schlafzimmer"
     unique_id: ventilation_schlafzimmer_level
     state: >
       {% set RH = states('sensor.bedroom_humidity') | float(0) %}
