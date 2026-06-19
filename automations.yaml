@@ -2845,12 +2845,14 @@
           - cover.office_shutter
           - cover.bedroom_shutter
     condition:
-      # Boot-Race-Filter: ignoriere State-Changes die von "unknown"/"unavailable" kommen
-      # (HA-Boot-time State-Load triggert manual_detection sonst fälschlich)
+      # Boot/Reload-Race-Filter: ignoriere State-Changes die von ODER zu unknown/unavailable gehen
+      # (HA-Boot-time State-Load und YAML-Reload verursachen sonst falsche Manual-Locks)
       - condition: template
         value_template: >
           {{ trigger.from_state is not none
-             and trigger.from_state.state not in ['unknown', 'unavailable', 'none'] }}
+             and trigger.to_state is not none
+             and trigger.from_state.state not in ['unknown', 'unavailable', 'none']
+             and trigger.to_state.state not in ['unknown', 'unavailable', 'none'] }}
       # HA hat gerade NICHT gefeuert (Echo-Window ist idle)
       - condition: template
         value_template: >
