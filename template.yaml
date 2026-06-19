@@ -8,7 +8,7 @@ binary_sensor:
       minutes: 5
     state: >
       {{ state_attr('sun.sun', 'azimuth') | float > 135
-         and state_attr('sun.sun', 'azimuth') | float < 225
+         and state_attr('sun.sun', 'azimuth') | float < 250
          and state_attr('sun.sun', 'elevation') | float > 5
          and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > 15 }}
@@ -20,7 +20,7 @@ binary_sensor:
     delay_off:
       minutes: 5
     state: >
-      {{ state_attr('sun.sun', 'azimuth') | float > 225
+      {{ state_attr('sun.sun', 'azimuth') | float > 200
          and state_attr('sun.sun', 'azimuth') | float < 315
          and state_attr('sun.sun', 'elevation') | float > 5
          and states('sensor.helligkeit_west') | float(0) > states('input_number.beschattung_lux_west') | float(15000)
