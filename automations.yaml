@@ -1164,6 +1164,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -1308,6 +1314,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -1446,6 +1458,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -1546,6 +1564,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -1690,6 +1714,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -1834,6 +1864,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -1978,6 +2014,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -2122,6 +2164,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -2271,6 +2319,12 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
+      - condition: state
         entity_id: input_boolean.badezimmer_privacy_active
         state: "off"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
@@ -2405,6 +2459,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: timer.start
         target:
@@ -2527,6 +2587,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
@@ -2721,6 +2787,12 @@
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
+      - condition: template
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
       # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
       - condition: or
         conditions:
