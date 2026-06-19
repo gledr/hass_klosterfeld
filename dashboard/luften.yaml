@@ -92,6 +92,7 @@ views:
                 name: Taupunkt
               - entity: sensor.luftung_lager
                 name: Empfehlung
+                
       - type: grid
         column_span: 1
         cards:
