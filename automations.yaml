@@ -575,7 +575,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_badezimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - choose:
           - conditions:
               - condition: trigger
@@ -670,7 +670,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_badezimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -711,7 +711,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_badezimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -1136,7 +1136,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_garderobe
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1183,7 +1183,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_garderobe
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1222,7 +1222,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_garderobe
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1278,7 +1278,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_abstellraum
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.shelf_blinds
@@ -1325,7 +1325,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_abstellraum
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1364,7 +1364,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_abstellraum
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1414,7 +1414,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wc_eg
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1461,7 +1461,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wc_eg
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1517,7 +1517,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_kueche
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1564,7 +1564,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_kueche
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1603,7 +1603,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_kueche
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1659,7 +1659,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_esszimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.dining_blinds
@@ -1706,7 +1706,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_esszimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1745,7 +1745,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_esszimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1801,7 +1801,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wohnzimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1848,7 +1848,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wohnzimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1887,7 +1887,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wohnzimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1943,7 +1943,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_terrasse
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1990,7 +1990,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_terrasse
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -2029,7 +2029,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_terrasse
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -2085,7 +2085,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wc_og
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2132,7 +2132,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wc_og
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2171,7 +2171,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_wc_og
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2231,7 +2231,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_badezimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2281,7 +2281,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_badezimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2323,7 +2323,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_badezimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2372,7 +2372,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_gast
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.open_cover
         target:
           entity_id: cover.guest_shutter
@@ -2411,7 +2411,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_gast
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.guest_shutter
@@ -2448,7 +2448,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_gast
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.guest_shutter
@@ -2506,7 +2506,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_buero
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.open_cover
         target:
           entity_id: cover.office_shutter
@@ -2545,7 +2545,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_buero
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.office_shutter
@@ -2589,7 +2589,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_buero
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - choose:
           # Werktag + zuhause → Blendschutz (zwei Stufen)
           - conditions:
@@ -2698,7 +2698,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_schlafzimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.open_cover
         target:
           entity_id: cover.bedroom_shutter
@@ -2737,7 +2737,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_schlafzimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
@@ -2774,7 +2774,7 @@
         target:
           entity_id: timer.beschattung_ha_acted_schlafzimmer
       - delay:
-          milliseconds: 200
+          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter

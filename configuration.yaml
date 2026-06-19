@@ -845,40 +845,40 @@ timer:
   # HA-acted Echo-Window (10s) pro Raum
   beschattung_ha_acted_garderobe:
     name: HA-Befehl-Window Garderobe
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_abstellraum:
     name: HA-Befehl-Window Abstellraum
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_wc_eg:
     name: HA-Befehl-Window WC EG
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_kueche:
     name: HA-Befehl-Window Küche
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_esszimmer:
     name: HA-Befehl-Window Esszimmer
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_wohnzimmer:
     name: HA-Befehl-Window Wohnzimmer
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_terrasse:
     name: HA-Befehl-Window Terrasse
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_wc_og:
     name: HA-Befehl-Window WC OG
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_badezimmer:
     name: HA-Befehl-Window Badezimmer
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_gaestezimmer:
     name: HA-Befehl-Window Gästezimmer
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_buero:
     name: HA-Befehl-Window Büro
-    duration: "00:00:10"
+    duration: "00:01:00"
   beschattung_ha_acted_schlafzimmer:
     name: HA-Befehl-Window Schlafzimmer
-    duration: "00:00:10"
+    duration: "00:01:00"
 
 # ========================
 # INPUT SELECTS
