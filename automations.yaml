@@ -2461,80 +2461,24 @@
   # Werktag + abwesend → voll zu (Hitzeschutz)
   # Wochenende → voll zu (Hitzeschutz)
   # ----------------------------------------------------------
-  # =========================================================
-  # BÜRO – BESCHATTUNG (NEU: KNX-SAFE / POSITION BASIERT)
-  # =========================================================
-
   - id: beschattung_buero_tag
-    alias: "Büro – Tag (100% offen, stabil)"
-    mode: single
-
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time
-        at: "07:00:00"
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_buero
-
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_buero
-        state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_buero
-        state: "idle"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
-
-    action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_buero
-
-      - delay: "00:00:01"
-
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.office_shutter
-        data:
-          position: 100
-
-
-  # ---------------------------------------------------------
-
-  - id: beschattung_buero_hitze
-    alias: "Büro – Hitzeschutz (90% zu / 10% offen)"
-    mode: single
-
+    alias: "Büro – Tag (Rollo offen)"
     trigger:
       - platform: homeassistant
         event: start
       - platform: time_pattern
         minutes: "/15"
       - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
+        entity_id: switch.twilight
         to: "on"
-      - platform: numeric_state
-        entity_id: sun.sun
-        attribute: elevation
-        below: 45
-
-    condition:
-      - condition: state
+      - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
-        state: "on"
+        to: "off"
+      - platform: event
+        event_type: timer.finished
+        event_data:
+          entity_id: timer.beschattung_manual_buero
+    condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
@@ -2547,27 +2491,31 @@
       - condition: state
         entity_id: switch.twilight
         state: "on"
-
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "off"
+      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
+      - condition: or
+        conditions:
+          - condition: template
+            value_template: "{{ trigger.platform != 'time_pattern' }}"
+          - condition: template
+            value_template: "{{ (now() - states.cover.office_shutter.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: timer.start
         target:
           entity_id: timer.beschattung_ha_acted_buero
-
-      - delay: "00:00:01"
-
+      - delay:
+          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.office_shutter
         data:
-          position: 10
-
-
-  # ---------------------------------------------------------
-
-  - id: beschattung_buero_nacht
-    alias: "Büro – Nacht (0% zu / sicher geschlossen)"
+          position: 100
     mode: single
 
+  - id: beschattung_buero_nacht
+    alias: "Büro – Nacht (Rollo zu)"
     trigger:
       - platform: homeassistant
         event: start
@@ -2578,7 +2526,6 @@
         to: "off"
         for:
           minutes: 30
-
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_buero
@@ -2592,22 +2539,101 @@
       - condition: state
         entity_id: switch.twilight
         state: "off"
+      # Erst 30 Min nach Sonnenuntergang schließen
       - condition: template
-        value_template: >
-          {{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}
-
+        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: timer.start
         target:
           entity_id: timer.beschattung_ha_acted_buero
+      - delay:
+          milliseconds: 500
+      - service: cover.close_cover
+        target:
+          entity_id: cover.office_shutter
+    mode: single
 
-      - delay: "00:00:01"
-
+  - id: beschattung_buero_hitze
+    alias: "Büro – Hitze-/Blendschutz nach Anwesenheit"
+    description: >
+      Werktag+home → nur Blendschutz (50% bei tiefer Sonne+viel Lux, sonst 25% zu).
+      Werktag+abwesend → voll zu. Wochenende → voll zu.
+    trigger:
+      - platform: homeassistant
+        event: start
+      - platform: time_pattern
+        minutes: "/15"
+      - platform: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        to: "on"
+      - platform: state
+        entity_id: device_tracker.iphone_von_sebastian
+        for:
+          minutes: 2
+    condition:
+      - condition: state
+        entity_id: binary_sensor.sonne_trifft_sued
+        state: "on"
+      - condition: state
+        entity_id: input_boolean.beschattung_lock_buero
+        state: "off"
+      - condition: state
+        entity_id: timer.beschattung_manual_buero
+        state: "idle"
+      - condition: state
+        entity_id: binary_sensor.windalarm_schwelle_1
+        state: "off"
+      - condition: state
+        entity_id: switch.twilight
+        state: "on"
+    action:
+      - service: timer.start
+        target:
+          entity_id: timer.beschattung_ha_acted_buero
+      - delay:
+          milliseconds: 500
+      - choose:
+          # Werktag + zuhause → Blendschutz (zwei Stufen)
+          - conditions:
+              - condition: state
+                entity_id: binary_sensor.workday_sensor
+                state: "on"
+              - condition: state
+                entity_id: device_tracker.iphone_von_sebastian
+                state: "home"
+            sequence:
+              - choose:
+                  # Tiefe Sonne + viel Lux → 50% zu (max Blendschutz)
+                  - conditions:
+                      - condition: numeric_state
+                        entity_id: sun.sun
+                        attribute: elevation
+                        below: 45
+                      - condition: numeric_state
+                        entity_id: sensor.helligkeit_sud
+                        above: input_number.beschattung_lux_sud
+                    sequence:
+                      - service: cover.set_cover_position
+                        target:
+                          entity_id: cover.office_shutter
+                        data:
+                          position: 50
+                default:
+                  # Sonst → 25% zu (mild)
+                  - service: cover.set_cover_position
+                    target:
+                      entity_id: cover.office_shutter
+                    data:
+                      position: 75
+        # Werktag+abwesend ODER Wochenende → voll zu
+        default:
       - service: cover.set_cover_position
         target:
           entity_id: cover.office_shutter
         data:
-          position: 0
+          position: 10
+    mode: single
+
   # ----------------------------------------------------------
   # SCHLAFZIMMER — Nord, OG, Rollo (Hitzeschutz + Nachtdunkelheit)
   # Tag-Öffnung: Werktag 07:00 / Wochenende 10:00 (NICHT mit Sonnenaufgang)
@@ -2677,9 +2703,11 @@
           entity_id: timer.beschattung_ha_acted_schlafzimmer
       - delay:
           milliseconds: 500
-      - service: cover.open_cover
+      - service: cover.set_cover_position
         target:
-          entity_id: cover.bedroom_shutter
+          entity_id: cover.office_shutter
+        data:
+          position: 0
     mode: single
 
   - id: beschattung_schlafzimmer_nacht
