@@ -2393,7 +2393,7 @@
           milliseconds: 500
       - service: cover.set_cover_position
         target:
-          entity_id: cover.office_shutter
+          entity_id: cover.guest_shutter
         data:
           position: 0
     mode: single
@@ -2434,7 +2434,7 @@
           milliseconds: 500
       - service: cover.set_cover_position
         target:
-          entity_id: cover.office_shutter
+          entity_id: cover.guest_shutter
         data:
           position: 100
     mode: single
@@ -2472,7 +2472,7 @@
           milliseconds: 500
       - service: cover.set_cover_position
         target:
-          entity_id: cover.office_shutter
+          entity_id: cover.guest_shutter
         data:
           position: 90
     mode: single
