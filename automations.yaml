@@ -1052,22 +1052,40 @@
 
   - id: windalarm_notification_1
     alias: "Windalarm Notification"
+
     trigger:
       - platform: state
         entity_id: binary_sensor.windalarm_schwelle_1
-        to:
-          - "on"
-          - "off"
+        from: "off"
+        to: "on"
+      - platform: state
+        entity_id: binary_sensor.windalarm_schwelle_1
+        from: "on"
+        to: "off"
       - platform: state
         entity_id: binary_sensor.windalarm_schwelle_2
-        to:
-          - "on"
-          - "off"
+        from: "off"
+        to: "on"
+      - platform: state
+        entity_id: binary_sensor.windalarm_schwelle_2
+        from: "on"
+        to: "off"
+
+    condition:
+      # verhindert HA-Restart / State-Rehydration Spam
+      - condition: template
+        value_template: >
+          {{ trigger.from_state is not none
+             and trigger.to_state is not none
+             and trigger.from_state.state not in ['unknown','unavailable']
+             and trigger.to_state.state not in ['unknown','unavailable'] }}
+
     action:
       - service: script.notify_wind_alarm
         data:
           alarm_name: "{{ trigger.to_state.name }}"
-          state: "{{ 'aktiviert' if trigger.to_state.state == 'on' else 'deaktiviert' }}"
+          state: >
+            {{ 'aktiviert' if trigger.to_state.state == 'on' else 'deaktiviert' }}
 
     mode: single
   # =========================================================
