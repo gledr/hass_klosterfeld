@@ -513,6 +513,74 @@ knx:
       state_address: "2/0/50"
       type: "DPT14.057"
 
+    # Tageszähler Einspeisung
+    - name: "Tag Einspeisung Arbeit L1"
+      state_address: "2/0/26"
+      type: "active_energy_kwh"
+
+    - name: "Tag Einspeisung Arbeit L2"
+      state_address: "2/0/27"
+      type: "active_energy_kwh"
+
+    - name: "Tag Einspeisung Arbeit L3"
+      state_address: "2/0/28"
+      type: "active_energy_kwh"
+
+    # Tageszähler Bezug
+    - name: "Tag Bezug Arbeit L1"
+      state_address: "2/0/29"
+      type: "active_energy_kwh"
+
+    - name: "Tag Bezug Arbeit L2"
+      state_address: "2/0/30"
+      type: "active_energy_kwh"
+
+    - name: "Tag Bezug Arbeit L3"
+      state_address: "2/0/31"
+      type: "active_energy_kwh"
+
+    - name: "Tag Bezug Arbeit Gesamt"
+      state_address: "2/0/32"
+      type: "active_energy_kwh"
+
+    - name: "Tag Einspeisung Arbeit Gesamt"
+      state_address: "2/0/33"
+      type: "active_energy_kwh"
+
+    # Nachtzähler Einspeisung
+    - name: "Nacht Einspeisung Arbeit L1"
+      state_address: "2/0/34"
+      type: "active_energy_kwh"
+
+    - name: "Nacht Einspeisung Arbeit L2"
+      state_address: "2/0/35"
+      type: "active_energy_kwh"
+
+    - name: "Nacht Einspeisung Arbeit L3"
+      state_address: "2/0/36"
+      type: "active_energy_kwh"
+
+    # Nachtzähler Bezug
+    - name: "Nacht Bezug Arbeit L1"
+      state_address: "2/0/37"
+      type: "active_energy_kwh"
+
+    - name: "Nacht Bezug Arbeit L2"
+      state_address: "2/0/38"
+      type: "active_energy_kwh"
+
+    - name: "Nacht Bezug Arbeit L3"
+      state_address: "2/0/39"
+      type: "active_energy_kwh"
+
+    - name: "Nacht Bezug Arbeit Gesamt"
+      state_address: "2/0/40"
+      type: "active_energy_kwh"
+
+    - name: "Nacht Einspeisung Arbeit Gesamt"
+      state_address: "2/0/41"
+      type: "active_energy_kwh"
+
     # ========================
     # ENERGIE — Dimmaktor OG
     # ========================
@@ -694,6 +762,19 @@ knx:
       address: "1/3/87"
     - name: "Bad LED Stripe Mess-Reset"
       address: "1/3/107"
+    - name: "Reset Bezug L1"
+      address: "2/0/42"
+    - name: "Reset Bezug L2"
+      address: "2/0/43"
+    - name: "Reset Bezug L3"
+      address: "2/0/44"
+    - name: "Reset Einspeisung Gesamt"
+      address: "2/0/45"
+    - name: "Reset Bezug Gesamt"
+      address: "2/0/46"
+    - name: "Reset Einspeisung L1"
+      address: "2/0/47"
+
     
 
   # ========================
@@ -959,3 +1040,16 @@ input_number:
     step: 1000
     initial: 15000
     unit_of_measurement: "lx"
+
+utility_meter:
+  energie_bezug_tag:
+    source: sensor.arbeit_bezug_gesamt
+    cycle: daily
+
+  energie_bezug_woche:
+    source: sensor.arbeit_bezug_gesamt
+    cycle: weekly
+
+  energie_bezug_monat:
+    source: sensor.arbeit_bezug_gesamt
+    cycle: monthly
