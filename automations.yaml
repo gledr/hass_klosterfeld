@@ -2479,10 +2479,9 @@
 
   # ----------------------------------------------------------
   # BÜRO — Süd, OG, Rollo (Hitzeschutz + Blendschutz speziell)
-  # Werktag + zuhause → NUR Blendschutz (nie voll zu, Sebastian arbeitet):
+  # Werktag + zuhause → NUR Blendschutz (Sebastian arbeitet):
   #   tiefe Sonne (<45°) + viel Lux → 50 % zu, sonst 25 % zu
-  # Werktag + abwesend → voll zu (Hitzeschutz)
-  # Wochenende → voll zu (Hitzeschutz)
+  # Sonst (Werktag+abwesend / Wochenende) → Spalt offen (10 %, Luftzirkulation)
   # ----------------------------------------------------------
   - id: beschattung_buero_tag
     alias: "Büro – Tag (Rollo offen)"
@@ -2581,8 +2580,8 @@
   - id: beschattung_buero_hitze
     alias: "Büro – Hitze-/Blendschutz nach Anwesenheit"
     description: >
-      Werktag+home → nur Blendschutz (50% bei tiefer Sonne+viel Lux, sonst 25% zu).
-      Werktag+abwesend → voll zu. Wochenende → voll zu.
+      Werktag+home → nur Blendschutz (50 % bei tiefer Sonne+viel Lux, sonst 75 %).
+      Sonst (Werktag+abwesend, Wochenende) → Spalt offen (10) für Luftzirkulation.
     trigger:
       - platform: homeassistant
         event: start
@@ -2628,7 +2627,7 @@
                 state: "home"
             sequence:
               - choose:
-                  # Tiefe Sonne + viel Lux → 50% zu (max Blendschutz)
+                  # Tiefe Sonne + viel Lux → 50 % zu (max Blendschutz)
                   - conditions:
                       - condition: numeric_state
                         entity_id: sun.sun
@@ -2644,19 +2643,19 @@
                         data:
                           position: 50
                 default:
-                  # Sonst → 25% zu (mild)
+                  # Sonst → 25 % zu (mild)
                   - service: cover.set_cover_position
                     target:
                       entity_id: cover.office_shutter
                     data:
                       position: 75
-        # Werktag+abwesend ODER Wochenende → voll zu
+        # Werktag+abwesend ODER Wochenende → Spalt offen (Luftzirkulation)
         default:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.office_shutter
-        data:
-          position: 10
+          - service: cover.set_cover_position
+            target:
+              entity_id: cover.office_shutter
+            data:
+              position: 10
     mode: single
 
   # ----------------------------------------------------------
