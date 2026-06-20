@@ -1626,7 +1626,7 @@
         target:
           entity_id: cover.kitchen_blinds
         data:
-          tilt_position: 0
+          tilt_position: 10
     mode: single
 
   # ----------------------------------------------------------
@@ -1768,7 +1768,7 @@
         target:
           entity_id: cover.dining_blinds
         data:
-          tilt_position: 0
+          tilt_position: 10
     mode: single
 
   # ----------------------------------------------------------
