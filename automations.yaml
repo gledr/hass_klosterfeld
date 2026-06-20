@@ -2474,7 +2474,7 @@
         target:
           entity_id: cover.guest_shutter
         data:
-          position: 90
+          position: 10
     mode: single
 
   # ----------------------------------------------------------
