@@ -2395,7 +2395,7 @@
         target:
           entity_id: cover.guest_shutter
         data:
-          position: 0
+          position: 100
     mode: single
 
   - id: beschattung_gast_nacht
@@ -2436,7 +2436,7 @@
         target:
           entity_id: cover.guest_shutter
         data:
-          position: 100
+          position: 0
     mode: single
   - id: beschattung_gast_hitze
     alias: "Gast – Hitzeschutz (Rollo zu)"
