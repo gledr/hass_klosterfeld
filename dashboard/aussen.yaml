@@ -80,7 +80,7 @@ views:
             icon: mdi:umbrella-beach
 
           - type: custom:mushroom-cover-card
-            entity: cover.terrace_blinds
+            entity: cover.terrace_blinds_2
             name: Raffstore
             show_position_control: true
             show_tilt_position_control: true

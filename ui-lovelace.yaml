@@ -215,10 +215,10 @@ views:
                       - cover.wc_eg_blinds
                       - cover.wc_og_blinds
                       - cover.bathroom_blinds
-                      - cover.raffstore_kueche
+                      - cover.livingroom_blinds
                       - cover.kitchen_blinds
                       - cover.dining_blinds
-                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
               - type: custom:mushroom-template-card
                 primary: Alle Raffstore zu
                 secondary: Lamellen geschlossen
@@ -236,10 +236,10 @@ views:
                       - cover.wc_eg_blinds
                       - cover.wc_og_blinds
                       - cover.bathroom_blinds
-                      - cover.raffstore_kueche
+                      - cover.livingroom_blinds
                       - cover.kitchen_blinds
                       - cover.dining_blinds
-                      - cover.terrace_blinds
+                      - cover.terrace_blinds_2
 
           - type: horizontal-stack
             cards:
