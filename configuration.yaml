@@ -877,8 +877,10 @@ input_boolean:
 # TIMERS
 # Zwei Timer-Familien pro Raum:
 #   beschattung_manual_<raum>     — 2h Manual-Lock (gestartet wenn KNX-Taster physisch bedient wurde)
-#   beschattung_ha_acted_<raum>   — 10s "HA hat gerade einen Cover-Befehl gesendet" Window;
+#   beschattung_ha_acted_<raum>   — 3 min "HA hat gerade einen Cover-Befehl gesendet" Window;
 #                                    blockiert Manual-Detection für KNX-Echo nach HA-Befehlen.
+#                                    3 min ist lang genug für volle KNX-Cover-Fahrten (30–90 s)
+#                                    plus Bus-Echo-Verzögerung beim End-of-Move-Event.
 # Solange manual-timer.active ist, fasst keine Auto-Beschattung den Cover an.
 # ========================
 timer:
@@ -926,40 +928,40 @@ timer:
   # HA-acted Echo-Window (10s) pro Raum
   beschattung_ha_acted_garderobe:
     name: HA-Befehl-Window Garderobe
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_abstellraum:
     name: HA-Befehl-Window Abstellraum
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_wc_eg:
     name: HA-Befehl-Window WC EG
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_kueche:
     name: HA-Befehl-Window Küche
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_esszimmer:
     name: HA-Befehl-Window Esszimmer
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_wohnzimmer:
     name: HA-Befehl-Window Wohnzimmer
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_terrasse:
     name: HA-Befehl-Window Terrasse
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_wc_og:
     name: HA-Befehl-Window WC OG
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_badezimmer:
     name: HA-Befehl-Window Badezimmer
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_gaestezimmer:
     name: HA-Befehl-Window Gästezimmer
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_buero:
     name: HA-Befehl-Window Büro
-    duration: "00:01:00"
+    duration: "00:03:00"
   beschattung_ha_acted_schlafzimmer:
     name: HA-Befehl-Window Schlafzimmer
-    duration: "00:01:00"
+    duration: "00:03:00"
 
 # ========================
 # INPUT SELECTS

@@ -2729,9 +2729,9 @@
           milliseconds: 500
       - service: cover.set_cover_position
         target:
-          entity_id: cover.office_shutter
+          entity_id: cover.bedroom_shutter
         data:
-          position: 0
+          position: 100
     mode: single
 
   - id: beschattung_schlafzimmer_nacht
