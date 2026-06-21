@@ -1,7 +1,6 @@
 ###############################################################################
 # ERDGESCHOSS — per-room compact view                                          #
 # Smoke detectors and windows live on the Sicherheit dashboard, not here.      #
-# (Old dashboard had a typo: cover.livingroom_blinks → cover.livingroom_blinds)#
 ###############################################################################
 title: Erdgeschoss
 views:
@@ -31,7 +30,7 @@ views:
             name: Leselicht
             show_brightness_control: true
           - type: custom:mushroom-cover-card
-            entity: cover.livingroom_blinds
+            entity: cover.raffstore_kueche
             name: Raffstore
             show_position_control: true
             show_tilt_position_control: true

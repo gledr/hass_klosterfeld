@@ -699,7 +699,7 @@ knx:
       position_state_address: "4/1/86"
       angle_address: "4/1/84"
       angle_state_address: "4/1/87"
-    - name: "Raffstore Kueche"
+    - name: "Livingroom Blinds"
       move_long_address: "4/1/120"
       stop_address: "4/1/122"
       position_address: "4/1/123"

@@ -1813,7 +1813,7 @@
           - condition: template
             value_template: "{{ trigger.platform != 'time_pattern' }}"
           - condition: template
-            value_template: "{{ (now() - states.cover.livingroom_blinds.last_changed).total_seconds() >= 1800 }}"
+            value_template: "{{ (now() - states.cover.raffstore_kueche.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: timer.start
         target:
@@ -1822,13 +1822,13 @@
           milliseconds: 500
       - service: cover.set_cover_position
         target:
-          entity_id: cover.livingroom_blinds
+          entity_id: cover.raffstore_kueche
         data:
           position: 0
       - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
-          entity_id: cover.livingroom_blinds
+          entity_id: cover.raffstore_kueche
         data:
           tilt_position: 50
     mode: single
@@ -1869,7 +1869,7 @@
           milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
-          entity_id: cover.livingroom_blinds
+          entity_id: cover.raffstore_kueche
         data:
           tilt_position: 0
     mode: single
@@ -1908,7 +1908,7 @@
           milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
-          entity_id: cover.livingroom_blinds
+          entity_id: cover.raffstore_kueche
         data:
           tilt_position: 25
     mode: single
@@ -1955,7 +1955,7 @@
           - condition: template
             value_template: "{{ trigger.platform != 'time_pattern' }}"
           - condition: template
-            value_template: "{{ (now() - states.cover.terrace_blinds_2.last_changed).total_seconds() >= 1800 }}"
+            value_template: "{{ (now() - states.cover.terrace_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: timer.start
         target:
@@ -1964,13 +1964,13 @@
           milliseconds: 500
       - service: cover.set_cover_position
         target:
-          entity_id: cover.terrace_blinds_2
+          entity_id: cover.terrace_blinds
         data:
           position: 0
       - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
-          entity_id: cover.terrace_blinds_2
+          entity_id: cover.terrace_blinds
         data:
           tilt_position: 50
     mode: single
@@ -2011,7 +2011,7 @@
           milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
-          entity_id: cover.terrace_blinds_2
+          entity_id: cover.terrace_blinds
         data:
           tilt_position: 0
     mode: single
@@ -2050,7 +2050,7 @@
           milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
-          entity_id: cover.terrace_blinds_2
+          entity_id: cover.terrace_blinds
         data:
           tilt_position: 25
     mode: single
@@ -2857,8 +2857,8 @@
         cover.wc_eg_blinds: timer.beschattung_manual_wc_eg
         cover.kitchen_blinds: timer.beschattung_manual_kueche
         cover.dining_blinds: timer.beschattung_manual_esszimmer
-        cover.livingroom_blinds: timer.beschattung_manual_wohnzimmer
-        cover.terrace_blinds_2: timer.beschattung_manual_terrasse
+        cover.raffstore_kueche: timer.beschattung_manual_wohnzimmer
+        cover.terrace_blinds: timer.beschattung_manual_terrasse
         cover.wc_og_blinds: timer.beschattung_manual_wc_og
         cover.bathroom_blinds: timer.beschattung_manual_badezimmer
         cover.guest_shutter: timer.beschattung_manual_gaestezimmer
@@ -2870,8 +2870,8 @@
         cover.wc_eg_blinds: timer.beschattung_ha_acted_wc_eg
         cover.kitchen_blinds: timer.beschattung_ha_acted_kueche
         cover.dining_blinds: timer.beschattung_ha_acted_esszimmer
-        cover.livingroom_blinds: timer.beschattung_ha_acted_wohnzimmer
-        cover.terrace_blinds_2: timer.beschattung_ha_acted_terrasse
+        cover.raffstore_kueche: timer.beschattung_ha_acted_wohnzimmer
+        cover.terrace_blinds: timer.beschattung_ha_acted_terrasse
         cover.wc_og_blinds: timer.beschattung_ha_acted_wc_og
         cover.bathroom_blinds: timer.beschattung_ha_acted_badezimmer
         cover.guest_shutter: timer.beschattung_ha_acted_gaestezimmer
@@ -2885,8 +2885,8 @@
           - cover.wc_eg_blinds
           - cover.kitchen_blinds
           - cover.dining_blinds
-          - cover.livingroom_blinds
-          - cover.terrace_blinds_2
+          - cover.raffstore_kueche
+          - cover.terrace_blinds
           - cover.wc_og_blinds
           - cover.bathroom_blinds
           - cover.guest_shutter

@@ -329,11 +329,11 @@ views:
             icon: mdi:weather-sunny
 
           - type: custom:mushroom-cover-card
-            entity: cover.livingroom_blinds
+            entity: cover.raffstore_kueche
             name: Wohnzimmer
 
           - type: custom:mushroom-cover-card
-            entity: cover.terrace_blinds_2
+            entity: cover.terrace_blinds
             name: Terrasse
 
           - type: custom:mushroom-cover-card
@@ -429,8 +429,8 @@ views:
                     tilt_position: 0
                   target:
                     entity_id:
-                      - cover.livingroom_blinds
-                      - cover.terrace_blinds_2
+                      - cover.raffstore_kueche
+                      - cover.terrace_blinds
                       - cover.kitchen_blinds
                       - cover.dining_blinds
 
@@ -446,7 +446,7 @@ views:
                     tilt_position: 50
                   target:
                     entity_id:
-                      - cover.livingroom_blinds
+                      - cover.raffstore_kueche
                       - cover.kitchen_blinds
                       - cover.dining_blinds
 
@@ -460,7 +460,7 @@ views:
                   service: cover.open_cover
                   target:
                     entity_id:
-                      - cover.livingroom_blinds
+                      - cover.raffstore_kueche
                       - cover.kitchen_blinds
                       - cover.dining_blinds
                       - cover.bedroom_shutter
@@ -475,7 +475,7 @@ views:
                   service: cover.close_cover
                   target:
                     entity_id:
-                      - cover.livingroom_blinds
+                      - cover.raffstore_kueche
                       - cover.kitchen_blinds
                       - cover.dining_blinds
                       - cover.bedroom_shutter
