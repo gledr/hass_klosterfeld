@@ -67,16 +67,14 @@ views:
                   state: "on"
             show_empty: false
 
-          # Aktive Manual-Locks / Privacy
+          # Aktive App-Sperren / Privacy
           - type: custom:auto-entities
             card:
               type: entities
-              title: ⚙️ Aktive Manual-Locks
+              title: ⚙️ Aktive Beschattungs-Sperren
               state_color: true
             filter:
               include:
-                - entity_id: timer.beschattung_manual_*
-                  state: "active"
                 - entity_id: input_boolean.beschattung_lock_*
                   state: "on"
                 - entity_id: input_boolean.badezimmer_privacy_active

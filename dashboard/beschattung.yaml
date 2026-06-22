@@ -150,22 +150,6 @@ views:
             icon: mdi:tune
 
           - type: entities
-            title: Manuell-Lock (2h, KNX-Taster)
-            entities:
-              - entity: timer.beschattung_manual_garderobe
-              - entity: timer.beschattung_manual_abstellraum
-              - entity: timer.beschattung_manual_wc_eg
-              - entity: timer.beschattung_manual_kueche
-              - entity: timer.beschattung_manual_esszimmer
-              - entity: timer.beschattung_manual_wohnzimmer
-              - entity: timer.beschattung_manual_terrasse
-              - entity: timer.beschattung_manual_wc_og
-              - entity: timer.beschattung_manual_badezimmer
-              - entity: timer.beschattung_manual_gaestezimmer
-              - entity: timer.beschattung_manual_buero
-              - entity: timer.beschattung_manual_schlafzimmer
-
-          - type: entities
             title: Lux-Schwellen (Hitzeschutz-Trigger)
             entities:
               - entity: input_number.beschattung_lux_sud

@@ -571,11 +571,6 @@
         to: "off"
         id: licht_aus
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_badezimmer
-      - delay:
-          milliseconds: 500
       - choose:
           - conditions:
               - condition: trigger
@@ -666,11 +661,6 @@
       - condition: state
         entity_id: input_boolean.badezimmer_privacy_active
         state: "on"
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_badezimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -707,11 +697,6 @@
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.badezimmer_privacy_active
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_badezimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -1092,18 +1077,16 @@
   # BESCHATTUNGS-AUTOMATIK (NEU 2026-06)
   #
   # Architektur (per Raum):
-  #   Default-Tag (KNX Tag-Object off, sonne_trifft_<seite> off, manual unlock)
+  #   Default-Tag (KNX Tag-Object off, sonne_trifft_<seite> off)
   #   Nacht       (KNX Tag-Object on for 30min)
   #   Hitzeschutz (sonne_trifft_<seite> on)
   #
-  # Sperren (in jeder per-Raum Automation gechecked):
+  # Sperre (in jeder per-Raum Automation gechecked):
   #   input_boolean.beschattung_lock_<raum>  → App-Sperre, daily reset
-  #   timer.beschattung_manual_<raum>         → 2h Manual-Lock (KNX-Taster)
   #   binary_sensor.windalarm_schwelle_1     → Wind (KNX überstimmt eh)
   #
-  # Manual-Detection: zentral (beschattung_manual_detection) — startet timer
-  # Messfahrt:        zentral, alle 2 Wochen, vormittags, abwesend, Push
-  # App-Lock-Reset:   zentral, täglich um Mitternacht alle Locks aus
+  # Messfahrt:      zentral, alle 2 Wochen, vormittags, abwesend, Push
+  # App-Lock-Reset: zentral, täglich um Mitternacht alle Locks aus
   # =========================================================
 
   # ----------------------------------------------------------
@@ -1122,17 +1105,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_garderobe
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_garderobe
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_garderobe
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1150,11 +1126,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.wardrobe_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_garderobe
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1185,9 +1156,6 @@
         entity_id: input_boolean.beschattung_lock_garderobe
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_garderobe
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -1197,11 +1165,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_garderobe
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1227,20 +1190,12 @@
         entity_id: input_boolean.beschattung_lock_garderobe
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_garderobe
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_garderobe
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1264,17 +1219,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_abstellraum
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_abstellraum
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_abstellraum
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1292,11 +1240,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.shelf_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_abstellraum
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.shelf_blinds
@@ -1327,9 +1270,6 @@
         entity_id: input_boolean.beschattung_lock_abstellraum
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_abstellraum
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -1339,11 +1279,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_abstellraum
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1369,20 +1304,12 @@
         entity_id: input_boolean.beschattung_lock_abstellraum
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_abstellraum
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_abstellraum
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1403,17 +1330,10 @@
       - platform: state
         entity_id: switch.twilight
         to: "on"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_wc_eg
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_wc_eg
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_wc_eg
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1428,11 +1348,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.wc_eg_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wc_eg
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1463,9 +1378,6 @@
         entity_id: input_boolean.beschattung_lock_wc_eg
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_wc_eg
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -1475,11 +1387,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wc_eg
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1503,17 +1410,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_kueche
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_kueche
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_kueche
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1531,11 +1431,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.kitchen_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_kueche
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1566,9 +1461,6 @@
         entity_id: input_boolean.beschattung_lock_kueche
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_kueche
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -1578,11 +1470,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_kueche
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1608,20 +1495,12 @@
         entity_id: input_boolean.beschattung_lock_kueche
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_kueche
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_kueche
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1645,17 +1524,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_esszimmer
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_esszimmer
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_esszimmer
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1673,11 +1545,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.dining_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_esszimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.dining_blinds
@@ -1708,9 +1575,6 @@
         entity_id: input_boolean.beschattung_lock_esszimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_esszimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -1720,11 +1584,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_esszimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1750,20 +1609,12 @@
         entity_id: input_boolean.beschattung_lock_esszimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_esszimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_esszimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1787,17 +1638,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_wohnzimmer
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_wohnzimmer
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_wohnzimmer
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1815,11 +1659,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.livingroom_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wohnzimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1850,9 +1689,6 @@
         entity_id: input_boolean.beschattung_lock_wohnzimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_wohnzimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -1862,11 +1698,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wohnzimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1892,20 +1723,12 @@
         entity_id: input_boolean.beschattung_lock_wohnzimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_wohnzimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wohnzimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1929,17 +1752,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_terrasse
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_terrasse
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1957,11 +1773,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.terrace_blinds_2.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_terrasse
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1992,9 +1803,6 @@
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_terrasse
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2004,11 +1812,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_terrasse
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -2034,20 +1837,12 @@
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_terrasse
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_terrasse
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -2071,17 +1866,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_west
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_wc_og
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_wc_og
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_wc_og
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2099,11 +1887,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.wc_og_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wc_og
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2134,9 +1917,6 @@
         entity_id: input_boolean.beschattung_lock_wc_og
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_wc_og
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2146,11 +1926,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wc_og
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2176,20 +1951,12 @@
         entity_id: input_boolean.beschattung_lock_wc_og
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_wc_og
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_wc_og
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2214,17 +1981,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_nord
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_badezimmer
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_badezimmer
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_badezimmer
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2245,11 +2005,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.bathroom_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_badezimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2280,9 +2035,6 @@
         entity_id: input_boolean.beschattung_lock_badezimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_badezimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2295,11 +2047,6 @@
         entity_id: input_boolean.badezimmer_privacy_active
         state: "off"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_badezimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2325,9 +2072,6 @@
         entity_id: input_boolean.beschattung_lock_badezimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_badezimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2337,11 +2081,6 @@
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_badezimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -2365,17 +2104,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_gaestezimmer
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_gaestezimmer
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2386,11 +2118,6 @@
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_gast
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.guest_shutter
@@ -2415,9 +2142,6 @@
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_gaestezimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2427,11 +2151,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_gast
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.guest_shutter
@@ -2456,20 +2175,12 @@
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_gaestezimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_gast
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.guest_shutter
@@ -2496,17 +2207,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_buero
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_buero
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2524,11 +2228,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.office_shutter.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_buero
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.office_shutter
@@ -2553,9 +2252,6 @@
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_buero
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2565,11 +2261,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_buero
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.office_shutter
@@ -2602,20 +2293,12 @@
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_buero
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_buero
-      - delay:
-          milliseconds: 500
       - choose:
           # Werktag + zuhause → Blendschutz (zwei Stufen)
           - conditions:
@@ -2679,18 +2362,10 @@
         entity_id: binary_sensor.sonne_trifft_nord
         to: "off"
         id: hitze_aus
-      - platform: event
-        event_type: timer.finished
-        event_data:
-          entity_id: timer.beschattung_manual_schlafzimmer
-        id: manual_unlock
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
-      - condition: state
-        entity_id: timer.beschattung_manual_schlafzimmer
-        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2722,11 +2397,6 @@
           - condition: template
             value_template: "{{ (now() - states.cover.bedroom_shutter.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_schlafzimmer
-      - delay:
-          milliseconds: 500
       - service: cover.set_cover_position
         target:
           entity_id: cover.bedroom_shutter
@@ -2751,9 +2421,6 @@
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_schlafzimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
@@ -2763,11 +2430,6 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_schlafzimmer
-      - delay:
-          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
@@ -2791,138 +2453,16 @@
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
       - condition: state
-        entity_id: timer.beschattung_manual_schlafzimmer
-        state: "idle"
-      - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
       - condition: state
         entity_id: switch.twilight
         state: "on"
     action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_ha_acted_schlafzimmer
-      - delay:
-          milliseconds: 500
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
     mode: single
-
-  # =========================================================
-  # ZENTRALE BESCHATTUNGS-AUTOMATIONS
-  # =========================================================
-
-  # ----------------------------------------------------------
-  # Startup-Grace: 60s nach HA-Start ignoriert manual_detection alle State-Changes
-  # ----------------------------------------------------------
-  - id: beschattung_startup_grace_start
-    alias: "Beschattung – Startup-Grace bei HA-Start"
-    description: >
-      Startet beim HA-Start einen 60-Sekunden-Timer. Während dieser Zeit
-      ignoriert manual_detection alle Cover-State-Changes — fängt KNX-State-
-      Loads, optimistische Updates und sonstigen Boot-Noise ab.
-    mode: single
-    trigger:
-      - platform: homeassistant
-        event: start
-    action:
-      - service: timer.start
-        target:
-          entity_id: timer.beschattung_startup_grace
-
-  # ----------------------------------------------------------
-  # Manual-Detection: physische KNX-Tasterbedienung erkennen
-  # → 2h Manual-Lock starten für betroffenen Raum
-  #
-  # Filterung: Nur State-Changes ZÄHLEN, wenn HA gerade NICHT selbst
-  # einen Cover-Befehl gegeben hat (timer.beschattung_ha_acted_<raum> idle)
-  # UND keine Messfahrt läuft. So fallen KNX-Echo-States nach HA-Befehlen raus.
-  # ----------------------------------------------------------
-  - id: beschattung_manual_detection
-    alias: "Beschattung – Manuelle KNX-Bedienung erkennen"
-    description: >
-      Triggert auf Cover-State-Changes der 12 Beschattungs-Cover. Wenn weder
-      HA gerade selbst gefeuert hat (ha_acted-Timer aktiv) noch eine Messfahrt
-      läuft, wird die Bedienung als KNX-physisch interpretiert und 2h-Manual-Lock
-      gestartet. Bei Bad zusätzlich: privacy-active wird ignoriert (Privacy-Mode
-      schließt selbständig, ist nicht "manuell").
-    mode: parallel
-    max: 12
-    variables:
-      manual_timer_map:
-        cover.wardrobe_blinds: timer.beschattung_manual_garderobe
-        cover.shelf_blinds: timer.beschattung_manual_abstellraum
-        cover.wc_eg_blinds: timer.beschattung_manual_wc_eg
-        cover.kitchen_blinds: timer.beschattung_manual_kueche
-        cover.dining_blinds: timer.beschattung_manual_esszimmer
-        cover.livingroom_blinds: timer.beschattung_manual_wohnzimmer
-        cover.terrace_blinds_2: timer.beschattung_manual_terrasse
-        cover.wc_og_blinds: timer.beschattung_manual_wc_og
-        cover.bathroom_blinds: timer.beschattung_manual_badezimmer
-        cover.guest_shutter: timer.beschattung_manual_gaestezimmer
-        cover.office_shutter: timer.beschattung_manual_buero
-        cover.bedroom_shutter: timer.beschattung_manual_schlafzimmer
-      ha_acted_map:
-        cover.wardrobe_blinds: timer.beschattung_ha_acted_garderobe
-        cover.shelf_blinds: timer.beschattung_ha_acted_abstellraum
-        cover.wc_eg_blinds: timer.beschattung_ha_acted_wc_eg
-        cover.kitchen_blinds: timer.beschattung_ha_acted_kueche
-        cover.dining_blinds: timer.beschattung_ha_acted_esszimmer
-        cover.livingroom_blinds: timer.beschattung_ha_acted_wohnzimmer
-        cover.terrace_blinds_2: timer.beschattung_ha_acted_terrasse
-        cover.wc_og_blinds: timer.beschattung_ha_acted_wc_og
-        cover.bathroom_blinds: timer.beschattung_ha_acted_badezimmer
-        cover.guest_shutter: timer.beschattung_ha_acted_gaestezimmer
-        cover.office_shutter: timer.beschattung_ha_acted_buero
-        cover.bedroom_shutter: timer.beschattung_ha_acted_schlafzimmer
-    trigger:
-      - platform: state
-        entity_id:
-          - cover.wardrobe_blinds
-          - cover.shelf_blinds
-          - cover.wc_eg_blinds
-          - cover.kitchen_blinds
-          - cover.dining_blinds
-          - cover.livingroom_blinds
-          - cover.terrace_blinds_2
-          - cover.wc_og_blinds
-          - cover.bathroom_blinds
-          - cover.guest_shutter
-          - cover.office_shutter
-          - cover.bedroom_shutter
-    condition:
-      # Startup-Grace: nach HA-Start 60s nichts triggern (catches Boot-Race komplett)
-      - condition: state
-        entity_id: timer.beschattung_startup_grace
-        state: "idle"
-      # Boot/Reload-Race-Filter: ignoriere State-Changes die von ODER zu unknown/unavailable gehen
-      # (HA-Boot-time State-Load und YAML-Reload verursachen sonst falsche Manual-Locks)
-      - condition: template
-        value_template: >
-          {{ trigger.from_state is not none
-             and trigger.to_state is not none
-             and trigger.from_state.state not in ['unknown', 'unavailable', 'none']
-             and trigger.to_state.state not in ['unknown', 'unavailable', 'none'] }}
-      # HA hat gerade NICHT gefeuert (Echo-Window ist idle)
-      - condition: template
-        value_template: >
-          {{ states(ha_acted_map[trigger.entity_id]) == 'idle' }}
-      # Keine Messfahrt läuft
-      - condition: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        state: "off"
-      # Bad-Sonderfall: Privacy-Mode-getriebene Cover-Moves nicht als manuell zählen
-      - condition: template
-        value_template: >
-          {{ not (trigger.entity_id == 'cover.bathroom_blinds'
-                  and is_state('input_boolean.badezimmer_privacy_active', 'on')) }}
-    action:
-      - service: timer.start
-        data:
-          entity_id: "{{ manual_timer_map[trigger.entity_id] }}"
-          duration: "02:00:00"
 
   - id: beschattung_messfahrt_2_wochen
     alias: "Beschattung – Messfahrt 2-wöchentlich (Vormittag, abwesend)"

@@ -91,15 +91,12 @@ views:
             secondary: >
               {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}
                 App-gesperrt — bis Mitternacht aus
-              {% elif is_state('timer.beschattung_manual_terrasse','active') %}
-                Manuell — 2h-Lock aktiv
               {% else %}
                 Aktiv (folgt Sonne + Tag/Nacht)
               {% endif %}
             icon: mdi:auto-fix
             icon_color: >
               {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}red
-              {% elif is_state('timer.beschattung_manual_terrasse','active') %}orange
               {% else %}green{% endif %}
             tap_action:
               action: toggle
