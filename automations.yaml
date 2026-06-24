@@ -1118,13 +1118,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.wardrobe_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1232,13 +1225,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.shelf_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1340,13 +1326,6 @@
       - condition: state
         entity_id: switch.twilight
         state: "on"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.wc_eg_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1423,13 +1402,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.kitchen_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1537,13 +1509,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.dining_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1651,13 +1616,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.livingroom_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1765,13 +1723,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.terrace_blinds_2.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1879,13 +1830,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_west
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.wc_og_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -1997,13 +1941,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.bathroom_blinds.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -2108,6 +2045,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2141,6 +2081,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2174,6 +2117,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_gaestezimmer
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2211,6 +2157,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2220,13 +2169,6 @@
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
         state: "off"
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.office_shutter.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -2251,6 +2193,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2292,6 +2237,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_buero
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2366,6 +2314,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.fenster_schlafzimmer_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2389,13 +2340,6 @@
             {% set h = now().hour %}
             {{ (workday and h >= 7) or (not workday and h >= 10) }}
           {% endif %}
-      # Safety: bei time_pattern-Re-Eval nur feuern wenn Cover seit >=30 Min nicht bewegt
-      - condition: or
-        conditions:
-          - condition: template
-            value_template: "{{ trigger.platform != 'time_pattern' }}"
-          - condition: template
-            value_template: "{{ (now() - states.cover.bedroom_shutter.last_changed).total_seconds() >= 1800 }}"
     action:
       - service: cover.set_cover_position
         target:
@@ -2420,6 +2364,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.fenster_schlafzimmer_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -2452,6 +2399,9 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_schlafzimmer
         state: "off"
+      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
+      - condition: template
+        value_template: "{{ not is_state('binary_sensor.fenster_schlafzimmer_window', 'on') }}"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
