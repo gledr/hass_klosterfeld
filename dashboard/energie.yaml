@@ -213,6 +213,17 @@ views:
               - entity: sensor.arbeit_bezug_l3
                 name: Bezug L3
 
+          - type: glance
+            title: Bezug — Verbrauch (utility_meter)
+            columns: 3
+            entities:
+              - entity: sensor.energie_bezug_tag
+                name: Heute
+              - entity: sensor.energie_bezug_woche
+                name: Woche
+              - entity: sensor.energie_bezug_monat
+                name: Monat
+
           - type: custom:mini-graph-card
             name: Bezug — Zählerstand (7 Tage)
             entities:
