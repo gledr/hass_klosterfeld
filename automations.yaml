@@ -1095,8 +1095,6 @@
   - id: beschattung_garderobe_tag
     alias: "Garderobe – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1133,8 +1131,6 @@
   - id: beschattung_garderobe_nacht
     alias: "Garderobe – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1206,8 +1202,6 @@
   - id: beschattung_abstellraum_tag
     alias: "Abstellraum – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1244,8 +1238,6 @@
   - id: beschattung_abstellraum_nacht
     alias: "Abstellraum – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1317,8 +1309,6 @@
   - id: beschattung_wc_eg_tag
     alias: "WC EG – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1349,8 +1339,6 @@
   - id: beschattung_wc_eg_nacht
     alias: "WC EG – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1383,8 +1371,6 @@
   - id: beschattung_kueche_tag
     alias: "Küche – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1421,8 +1407,6 @@
   - id: beschattung_kueche_nacht
     alias: "Küche – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1494,8 +1478,6 @@
   - id: beschattung_esszimmer_tag
     alias: "Esszimmer – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1532,8 +1514,6 @@
   - id: beschattung_esszimmer_nacht
     alias: "Esszimmer – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1605,8 +1585,6 @@
   - id: beschattung_wohnzimmer_tag
     alias: "Wohnzimmer – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1643,8 +1621,6 @@
   - id: beschattung_wohnzimmer_nacht
     alias: "Wohnzimmer – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1716,8 +1692,6 @@
   - id: beschattung_terrasse_tag
     alias: "Terrasse – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1754,8 +1728,6 @@
   - id: beschattung_terrasse_nacht
     alias: "Terrasse – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1827,8 +1799,6 @@
   - id: beschattung_wc_og_tag
     alias: "WC OG – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1865,8 +1835,6 @@
   - id: beschattung_wc_og_nacht
     alias: "WC OG – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1939,8 +1907,6 @@
   - id: beschattung_badezimmer_tag
     alias: "Badezimmer – Tag (Lamellen offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1980,8 +1946,6 @@
   - id: beschattung_badezimmer_nacht
     alias: "Badezimmer – Nacht (Lamellen zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2059,8 +2023,6 @@
   - id: beschattung_gast_tag
     alias: "Gast – Tag (Rollo offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2094,8 +2056,6 @@
   - id: beschattung_gast_nacht
     alias: "Gast – Nacht (Rollo zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2175,8 +2135,6 @@
   - id: beschattung_buero_tag
     alias: "Büro – Tag (Rollo offen)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2210,8 +2168,6 @@
   - id: beschattung_buero_nacht
     alias: "Büro – Nacht (Rollo zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2338,8 +2294,6 @@
   - id: beschattung_schlafzimmer_tag
     alias: "Schlafzimmer – Tag (Rollo offen, Werktag 7:00 / WE 10:00)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: time
         at: "07:00:00"
         id: werktag_zeit
@@ -2391,8 +2345,6 @@
   - id: beschattung_schlafzimmer_nacht
     alias: "Schlafzimmer – Nacht (Rollo zu)"
     trigger:
-      - platform: homeassistant
-        event: start
       - platform: state
         entity_id: switch.twilight
         to: "off"
