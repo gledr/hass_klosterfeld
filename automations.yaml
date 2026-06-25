@@ -1150,6 +1150,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.wardrobe_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1257,6 +1263,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.shelf_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1358,6 +1370,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.wc_eg_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_eg_blinds
@@ -1426,6 +1444,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.kitchen_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1533,6 +1557,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.dining_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1640,6 +1670,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.livingroom_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1747,6 +1783,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.terrace_blinds_2
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1854,6 +1896,12 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.wc_og_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -1968,6 +2016,12 @@
         entity_id: input_boolean.badezimmer_privacy_active
         state: "off"
     action:
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.bathroom_blinds
+        data:
+          position: 0
+      - delay: "00:00:03"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
