@@ -1097,8 +1097,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1137,8 +1135,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1189,11 +1185,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.wardrobe_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
         data:
           tilt_position: 0
+      - condition: template
+        value_template: "{{ tilt_before != 0 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Garderobe – Hitzeschutz aktiv"
+          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft Nord."
     mode: single
 
   # ----------------------------------------------------------
@@ -1204,8 +1208,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1244,8 +1246,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1296,11 +1296,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.shelf_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
         data:
           tilt_position: 0
+      - condition: template
+        value_template: "{{ tilt_before != 0 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Abstellraum – Hitzeschutz aktiv"
+          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft Nord."
     mode: single
 
   # ----------------------------------------------------------
@@ -1311,8 +1319,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1345,8 +1351,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1381,8 +1385,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1421,8 +1423,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1473,11 +1473,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.kitchen_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
         data:
           tilt_position: 10
+      - condition: template
+        value_template: "{{ tilt_before != 10 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Küche – Hitzeschutz aktiv"
+          message: "Lamellen auf 10 % gefahren (war {{ tilt_before }} %). Sonne trifft West."
     mode: single
 
   # ----------------------------------------------------------
@@ -1488,8 +1496,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1528,8 +1534,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1580,11 +1584,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.dining_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
         data:
           tilt_position: 10
+      - condition: template
+        value_template: "{{ tilt_before != 10 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Esszimmer – Hitzeschutz aktiv"
+          message: "Lamellen auf 10 % gefahren (war {{ tilt_before }} %). Sonne trifft West."
     mode: single
 
   # ----------------------------------------------------------
@@ -1595,8 +1607,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1635,8 +1645,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1687,11 +1695,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.livingroom_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
         data:
           tilt_position: 25
+      - condition: template
+        value_template: "{{ tilt_before != 25 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Wohnzimmer – Hitzeschutz aktiv"
+          message: "Lamellen auf 25 % gefahren (war {{ tilt_before }} %). Sonne trifft Süd."
     mode: single
 
   # ----------------------------------------------------------
@@ -1702,8 +1718,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1742,8 +1756,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1794,11 +1806,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.terrace_blinds_2', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
         data:
           tilt_position: 25
+      - condition: template
+        value_template: "{{ tilt_before != 25 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Terrasse – Hitzeschutz aktiv"
+          message: "Lamellen auf 25 % gefahren (war {{ tilt_before }} %). Sonne trifft Süd."
     mode: single
 
   # ----------------------------------------------------------
@@ -1809,8 +1829,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1849,8 +1867,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -1901,11 +1917,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.wc_og_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
         data:
           tilt_position: 0
+      - condition: template
+        value_template: "{{ tilt_before != 0 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "WC OG – Hitzeschutz aktiv"
+          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft West."
     mode: single
 
   # ----------------------------------------------------------
@@ -1917,8 +1941,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1960,8 +1982,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2018,11 +2038,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          tilt_before: "{{ state_attr('cover.bathroom_blinds', 'current_tilt_position') | int(default=-1) }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
         data:
           tilt_position: 0
+      - condition: template
+        value_template: "{{ tilt_before != 0 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Badezimmer – Hitzeschutz aktiv"
+          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft Nord."
     mode: single
 
   # ----------------------------------------------------------
@@ -2033,8 +2061,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2070,8 +2096,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2127,11 +2151,19 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          pos_before: "{{ state_attr('cover.guest_shutter', 'current_position') | int(default=-1) }}"
       - service: cover.set_cover_position
         target:
           entity_id: cover.guest_shutter
         data:
           position: 10
+      - condition: template
+        value_template: "{{ pos_before != 10 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Gast – Hitzeschutz aktiv"
+          message: "Rollo auf 10 % gefahren (war {{ pos_before }} %). Sonne trifft Süd."
     mode: single
 
   # ----------------------------------------------------------
@@ -2145,8 +2177,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2182,8 +2212,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2247,6 +2275,8 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          pos_before: "{{ state_attr('cover.office_shutter', 'current_position') | int(default=-1) }}"
       - choose:
           # Werktag + zuhause → Blendschutz (zwei Stufen)
           - conditions:
@@ -2268,6 +2298,8 @@
                         entity_id: sensor.helligkeit_sud
                         above: input_number.beschattung_lux_sud
                     sequence:
+                      - variables:
+                          pos_target: 50
                       - service: cover.set_cover_position
                         target:
                           entity_id: cover.office_shutter
@@ -2275,6 +2307,8 @@
                           position: 50
                 default:
                   # Sonst → 25 % zu (mild)
+                  - variables:
+                      pos_target: 75
                   - service: cover.set_cover_position
                     target:
                       entity_id: cover.office_shutter
@@ -2282,11 +2316,19 @@
                       position: 75
         # Werktag+abwesend ODER Wochenende → Spalt offen (Luftzirkulation)
         default:
+          - variables:
+              pos_target: 10
           - service: cover.set_cover_position
             target:
               entity_id: cover.office_shutter
             data:
               position: 10
+      - condition: template
+        value_template: "{{ pos_before != (pos_target | default(-1) | int) }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Büro – Hitze-/Blendschutz aktiv"
+          message: "Rollo {{ pos_before }}% → {{ pos_target }}%. Sonne trifft Süd."
     mode: single
 
   # ----------------------------------------------------------
@@ -2298,8 +2340,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: time
         at: "07:00:00"
         id: werktag_zeit
@@ -2353,8 +2393,6 @@
     trigger:
       - platform: homeassistant
         event: start
-      - platform: time_pattern
-        minutes: "/15"
       - platform: state
         entity_id: switch.twilight
         to: "off"
@@ -2409,9 +2447,17 @@
         entity_id: switch.twilight
         state: "on"
     action:
+      - variables:
+          pos_before: "{{ state_attr('cover.bedroom_shutter', 'current_position') | int(default=-1) }}"
       - service: cover.close_cover
         target:
           entity_id: cover.bedroom_shutter
+      - condition: template
+        value_template: "{{ pos_before != 0 }}"
+      - service: notify.mobile_app_iphone_von_sebastian
+        data:
+          title: "Schlafzimmer – Hitzeschutz aktiv"
+          message: "Rollo wird zugefahren (war {{ pos_before }} %). Sonne trifft Nord."
     mode: single
 
   - id: beschattung_messfahrt_2_wochen
