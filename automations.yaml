@@ -2421,9 +2421,11 @@
       - condition: template
         value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: cover.close_cover
+      - service: cover.set_cover_position
         target:
           entity_id: cover.bedroom_shutter
+        data:
+          position: 0
     mode: single
 
   - id: beschattung_schlafzimmer_hitze
@@ -2455,9 +2457,11 @@
     action:
       - variables:
           pos_before: "{{ state_attr('cover.bedroom_shutter', 'current_position') | int(default=-1) }}"
-      - service: cover.close_cover
+      - service: cover.set_cover_position
         target:
           entity_id: cover.bedroom_shutter
+        data:
+          position: 0
       - condition: template
         value_template: "{{ pos_before != 0 }}"
       - service: notify.mobile_app_iphone_von_sebastian
