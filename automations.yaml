@@ -1095,6 +1095,10 @@
   - id: beschattung_garderobe_tag
     alias: "Garderobe – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1208,6 +1212,10 @@
   - id: beschattung_abstellraum_tag
     alias: "Abstellraum – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1321,6 +1329,10 @@
   - id: beschattung_wc_eg_tag
     alias: "WC EG – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1389,6 +1401,10 @@
   - id: beschattung_kueche_tag
     alias: "Küche – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1502,6 +1518,10 @@
   - id: beschattung_esszimmer_tag
     alias: "Esszimmer – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1615,6 +1635,10 @@
   - id: beschattung_wohnzimmer_tag
     alias: "Wohnzimmer – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1728,6 +1752,10 @@
   - id: beschattung_terrasse_tag
     alias: "Terrasse – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1841,6 +1869,10 @@
   - id: beschattung_wc_og_tag
     alias: "WC OG – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -1955,6 +1987,10 @@
   - id: beschattung_badezimmer_tag
     alias: "Badezimmer – Tag (Lamellen offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2077,6 +2113,10 @@
   - id: beschattung_gast_tag
     alias: "Gast – Tag (Rollo offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2189,6 +2229,10 @@
   - id: beschattung_buero_tag
     alias: "Büro – Tag (Rollo offen)"
     trigger:
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
       - platform: state
         entity_id: switch.twilight
         to: "on"
@@ -2358,6 +2402,11 @@
         entity_id: binary_sensor.sonne_trifft_nord
         to: "off"
         id: hitze_aus
+      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "off"
+        id: messfahrt_ende
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_schlafzimmer
@@ -2563,8 +2612,10 @@
       - service: switch.turn_on
         target:
           entity_id: switch.messfahrt_rollo_buro
-      # Messfahrt-Flag nach 60s (Buffer für letzten Cover-Echo) zurücksetzen
-      - delay: "00:01:00"
+      # Messfahrt-Flag nach 3 Min zurücksetzen — Covers sind dann fertig gefahren.
+      # Der Reset triggert die Tag-Automations (via messfahrt_running -> off),
+      # sodass alle Beschattungen aus "offen" zurück in den Tag-Modus gehen.
+      - delay: "00:03:00"
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.beschattung_messfahrt_running
