@@ -2535,7 +2535,12 @@
       - condition: state
         entity_id: binary_sensor.workday_sensor
         state: "on"
-      # Alle 2 Wochen (gerade ISO-Kalenderwoche)
+      # Alle 2 Wochen: nur Montag einer geraden ISO-Kalenderwoche.
+      # (Ohne Wochentags-Bindung würde die Messfahrt sonst an JEDEM
+      #  Werktag der geraden Woche laufen.)
+      - condition: time
+        weekday:
+          - mon
       - condition: template
         value_template: "{{ (now().isocalendar().week % 2) == 0 }}"
       # Niemand zuhause
