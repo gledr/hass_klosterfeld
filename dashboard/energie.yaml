@@ -238,6 +238,40 @@ views:
               extrema: true
 
       ###########################################################################
+      # WÄRMEPUMPE (LWP)                                                        #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Wärmepumpe (LWP) — Heizung Stromverbrauch
+            icon: mdi:heat-pump
+
+          - type: glance
+            title: Elektrischer Verbrauch Heizen
+            columns: 3
+            entities:
+              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heute
+              - entity: sensor.altherma_climatecontrol_heating_weekly_electrical_consumption
+                name: Woche
+              - entity: sensor.altherma_climatecontrol_heating_yearly_electrical_consumption
+                name: Jahr
+
+          - type: custom:mini-graph-card
+            name: LWP Heizung — Tagesverbrauch (7 Tage)
+            entities:
+              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heizen
+                color: '#d97706'
+            hours_to_show: 168
+            points_per_hour: 1
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      ###########################################################################
       # PHASEN-VERGLEICH                                                        #
       ###########################################################################
       - type: grid

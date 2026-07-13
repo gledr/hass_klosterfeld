@@ -1193,6 +1193,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.wardrobe_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.wardrobe_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.wardrobe_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wardrobe_blinds
@@ -1310,6 +1321,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.shelf_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.shelf_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.shelf_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.shelf_blinds
@@ -1499,6 +1521,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.kitchen_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.kitchen_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.kitchen_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.kitchen_blinds
@@ -1616,6 +1649,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.dining_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.dining_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.dining_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.dining_blinds
@@ -1733,6 +1777,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.livingroom_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.livingroom_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.livingroom_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.livingroom_blinds
@@ -1850,6 +1905,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.terrace_blinds_2', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.terrace_blinds_2
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.terrace_blinds_2', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.terrace_blinds_2
@@ -1967,6 +2033,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.wc_og_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.wc_og_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.wc_og_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.wc_og_blinds
@@ -2094,6 +2171,17 @@
     action:
       - variables:
           tilt_before: "{{ state_attr('cover.bathroom_blinds', 'current_tilt_position') | int(default=-1) }}"
+      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
+      - service: cover.set_cover_position
+        target:
+          entity_id: cover.bathroom_blinds
+        data:
+          position: 0
+      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
+      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
+      - wait_template: "{{ state_attr('cover.bathroom_blinds', 'current_position') | int(default=0) <= 2 }}"
+        timeout: "00:01:30"
+        continue_on_timeout: true
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds

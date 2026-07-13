@@ -47,6 +47,13 @@ views:
                 icon: mdi:hvac
                 content_info: name
                 name: HVAC
+          - type: entities
+            title: Wohnküche Licht
+            entities:
+              - entity: input_number.wohnkueche_licht_outdoor_lux
+                name: Lux-Schwelle (Süd)
+              - entity: sensor.helligkeit_sud
+                name: Helligkeit Süd (aktuell)
 
       ###########################################################################
       # KÜCHE                                                                   #

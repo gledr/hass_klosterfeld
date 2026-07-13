@@ -144,7 +144,11 @@ views:
                   - type: entity
                     entity: sensor.outdoor_temperature
                     icon: mdi:thermometer
-                    name: Temp
+                    name: Temp Süd
+                  - type: entity
+                    entity: sensor.altherma_climatecontrol_outdoor_temperature
+                    icon: mdi:thermometer
+                    name: Temp Nord
                   - type: entity
                     entity: sensor.outdoor_humidity
                     icon: mdi:water-percent
