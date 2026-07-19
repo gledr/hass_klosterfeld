@@ -249,6 +249,9 @@
         entity_id: sensor.helligkeit_sud
         below: input_number.wohnkueche_licht_outdoor_lux
         id: dunkel_geworden
+      - platform: state
+        entity_id: input_select.wohnkueche_lichtmodus
+        id: modus
     condition:
       - condition: or
         conditions:
@@ -260,6 +263,27 @@
               - condition: state
                 entity_id: binary_sensor.praesenzmelder_wohnzimmer
                 state: 'off'
+          # Modus geändert + Präsenz + dunkel + keine Overrides → durchlassen (neue Szene)
+          - condition: and
+            conditions:
+              - condition: trigger
+                id: modus
+              - condition: state
+                entity_id: binary_sensor.praesenzmelder_wohnzimmer
+                state: 'on'
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_kochen
+                state: 'off'
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_tv
+                state: 'off'
+              - condition: state
+                entity_id: input_boolean.wohnkueche_override_szene
+                state: 'off'
+              - condition: template
+                value_template: >
+                  {{ states('sensor.helligkeit_sud') | float(99999)
+                     < states('input_number.wohnkueche_licht_outdoor_lux') | float(5000) }}
           # Präsenz AN + dunkel + keine Overrides → durchlassen (Lichter an)
           - condition: and
             conditions:
