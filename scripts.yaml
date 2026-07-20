@@ -169,7 +169,7 @@ wohnkueche_werktag_relax:
       target:
         entity_id: light.livingroom_reading_light
       data:
-        brightness_pct: 50
+        brightness_pct: 80
 
     # Orientierung
     - service: light.turn_on
@@ -204,7 +204,7 @@ wohnkueche_spaetabend:
       target:
         entity_id: light.livingroom_reading_light
       data:
-        brightness_pct: 30
+        brightness_pct: 72
 
     - service: light.turn_off
       target:
@@ -330,7 +330,7 @@ wohnkueche_wochenende_abend:
       target:
         entity_id: light.livingroom_reading_light
       data:
-        brightness_pct: 50
+        brightness_pct: 80
 
     - service: light.turn_off
       target:
