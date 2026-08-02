@@ -1841,10 +1841,25 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "off"
+      # Aussperr-Schutz-Fenster abgelaufen → Tag-Modus nachziehen.
+      # Kein Trigger auf "Tür zu": der würde mit dem Timer-Start um dieselbe
+      # State-Änderung rennen und könnte zufahren, bevor der Timer läuft.
+      - platform: state
+        entity_id: timer.terrassentuer_aussperrschutz
+        to: "idle"
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
+      # Aussperr-Schutz: keine Bewegung solange die Terrassentür offen ist.
+      # Bewusst strikt auf "off" — bei unavailable (Batterie leer) fährt nichts.
+      - condition: state
+        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+        state: "off"
+      # ... und 60 Min ab der letzten Türbewegung nicht zufahren (siehe Timer).
+      - condition: state
+        entity_id: timer.terrassentuer_aussperrschutz
+        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1876,10 +1891,24 @@
         to: "off"
         for:
           minutes: 30
+      # Aussperr-Schutz-Fenster abgelaufen → Nacht-Modus nachziehen.
+      # Kein Trigger auf "Tür zu" (Race mit dem Timer-Start, siehe Tag).
+      - platform: state
+        entity_id: timer.terrassentuer_aussperrschutz
+        to: "idle"
     condition:
       - condition: state
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
+      # Aussperr-Schutz: keine Bewegung solange die Terrassentür offen ist.
+      # Bewusst strikt auf "off" — bei unavailable (Batterie leer) fährt nichts.
+      - condition: state
+        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+        state: "off"
+      # ... und 60 Min ab der letzten Türbewegung nicht zufahren (siehe Timer).
+      - condition: state
+        entity_id: timer.terrassentuer_aussperrschutz
+        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1913,6 +1942,10 @@
       - platform: state
         entity_id: binary_sensor.sonne_trifft_sued
         to: "on"
+      # Aussperr-Schutz abgelaufen → Hitzeschutz nachziehen
+      - platform: state
+        entity_id: timer.terrassentuer_aussperrschutz
+        to: "idle"
     condition:
       - condition: state
         entity_id: binary_sensor.sonne_trifft_sued
@@ -1920,6 +1953,16 @@
       - condition: state
         entity_id: input_boolean.beschattung_lock_terrasse
         state: "off"
+      # Aussperr-Schutz: keine Bewegung solange die Terrassentür offen ist.
+      # Bewusst strikt auf "off" — bei unavailable (Batterie leer) fährt nichts.
+      - condition: state
+        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+        state: "off"
+      # ... und 60 Min ab der letzten Türbewegung nicht zufahren (siehe Timer).
+      # Das war der Aussperrer: /15-Raster fuhr direkt nach dem Rausgehen zu.
+      - condition: state
+        entity_id: timer.terrassentuer_aussperrschutz
+        state: "idle"
       - condition: state
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
@@ -1952,6 +1995,50 @@
           title: "Terrasse – Hitzeschutz aktiv"
           message: "Lamellen auf 25 % gefahren (war {{ tilt_before }} %). Sonne trifft Süd."
     mode: single
+
+  # ----------------------------------------------------------
+  # TERRASSENTÜR — Aussperr-Schutz
+  # Beim Rausgehen (Wäsche aufhängen) macht man die Tür hinter sich zu, der
+  # Türkontakt meldet also "zu" während man draußen steht. Deshalb hält jede
+  # Türbewegung (auf UND zu) ein 60-Min-Fenster offen, in dem keine
+  # Beschattungs-Automation den Terrassen-Raffstore zufährt.
+  # ----------------------------------------------------------
+  - id: terrassentuer_aussperrschutz_start
+    alias: "Terrassentür – Aussperr-Schutz starten (60 Min)"
+    description: >
+      Startet/neustartet den 60-Min-Timer bei jeder Bewegung der Terrassentür.
+      Auch beim Zumachen — sonst wäre das Fenster genau dann vorbei, wenn man
+      gerade draußen steht.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+        to: "on"
+      - platform: state
+        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+        to: "off"
+    action:
+      - service: timer.start
+        target:
+          entity_id: timer.terrassentuer_aussperrschutz
+        data:
+          duration: "01:00:00"
+
+  - id: terrassentuer_aussperrschutz_stop_fahrt
+    alias: "Terrassentür – Öffnung stoppt laufende Raffstore-Fahrt"
+    description: >
+      Notbremse: wird die Tür geöffnet während der Raffstore gerade fährt, wird
+      die Fahrt sofort gestoppt. stop_cover auf einen stehenden Raffstore ist
+      ein No-Op, deshalb ohne Zustandsprüfung (KNX-State ist unzuverlässig).
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+        to: "on"
+    action:
+      - service: cover.stop_cover
+        target:
+          entity_id: cover.terrace_blinds_2
 
   # ----------------------------------------------------------
   # WC OG — West, OG, Raffstore (Sichtschutz)

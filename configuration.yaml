@@ -875,6 +875,20 @@ input_boolean:
 
 
 # ========================
+# TIMER
+# ========================
+timer:
+  # Aussperr-Schutz Terrassentür: läuft 60 Min ab jeder Türbewegung (auf UND zu).
+  # Solange der Timer active ist, fährt keine Beschattungs-Automation den
+  # Terrassen-Raffstore zu — sonst sperrt sie einen beim Wäscheaufhängen aus.
+  terrassentuer_aussperrschutz:
+    name: Terrassentür Aussperr-Schutz
+    duration: "01:00:00"
+    icon: mdi:door-sliding-open
+    restore: true
+
+
+# ========================
 # INPUT SELECTS
 # ========================
 input_select:
