@@ -1330,13 +1330,9 @@
                 privacy_active: "{{ is_state('input_boolean.badezimmer_privacy_active', 'on') }}"
                 tuer_offen: "{{ is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') }}"
                 timer_aktiv: "{{ is_state('timer.terrassentuer_aussperrschutz', 'active') }}"
-            # Zustand nicht lesbar → nächsten Raum (nächster Lauf holt das nach)
-            - if:
-                - condition: template
-                  value_template: "{{ cur_pos is none or (rtype == 'raffstore' and cur_tilt is none) }}"
-              then:
-                - continue: Zustand nicht lesbar
             - variables:
+                # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
+                lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
                 # 30 Min nach Dämmerungs-Ende → Nacht
                 nacht: "{{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
                 # Sonne auf der Fassade → Hitzeschutz
@@ -1356,51 +1352,36 @@
                     {% set h = now().hour %}
                     {{ (workday and h >= 7) or (not workday and h >= 10) }}
                   {% else %}true{% endif %}
+                # Gesperrt (auch wenn der Zustand nicht lesbar ist) → skip
                 gesperrt: >-
-                  {{ locked or wind or fenster_offen or manual_block
+                  {{ not lesbar or locked or wind or fenster_offen or manual_block
                      or (repeat.item.get('privacy', false) and privacy_active)
                      or (repeat.item.get('aussperr', false) and (tuer_offen or timer_aktiv)) }}
-            - if:
-                - condition: template
-                  value_template: "{{ gesperrt }}"
-              then:
-                - continue: Raum gesperrt
-            - choose:
-                - conditions:
-                    - condition: template
-                      value_template: "{{ nacht }}"
-                  sequence:
-                    - variables:
-                        mode: nacht
-                        target_pos: 0
-                        target_tilt: "{{ 0 if rtype == 'raffstore' else none }}"
-                - conditions:
-                    - condition: template
-                      value_template: "{{ hitze and not repeat.item.get('no_hitze', false) }}"
-                  sequence:
-                    - variables:
-                        mode: hitze
-                        target_pos: >-
-                          {% if rtype == 'raffstore' %}0
-                          {% elif repeat.item.get('blend', false) %}
-                            {% if is_state('binary_sensor.workday_sensor', 'on') and is_state('device_tracker.iphone_von_sebastian', 'home') %}
-                              {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
-                            {% else %}10{% endif %}
-                          {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
-                        target_tilt: "{{ repeat.item.hitze_tilt if rtype == 'raffstore' else none }}"
-                - conditions:
-                    - condition: template
-                      value_template: "{{ not nacht and not hitze and tag_erlaubt }}"
-                  sequence:
-                    - variables:
-                        mode: tag
-                        target_pos: "{{ 0 if rtype == 'raffstore' else 100 }}"
-                        target_tilt: "{{ 50 if rtype == 'raffstore' else none }}"
-              default:
-                - variables:
-                    mode: skip
-                    target_pos: -1
-                    target_tilt: -1
+                # Zielmodus ermitteln (Reihenfolge: skip > nacht > hitze > tag)
+                mode: >-
+                  {% if gesperrt %}skip
+                  {% elif nacht %}nacht
+                  {% elif hitze and not repeat.item.get('no_hitze', false) %}hitze
+                  {% elif tag_erlaubt %}tag
+                  {% else %}skip{% endif %}
+                target_pos: >-
+                  {% if mode == 'skip' %}-1
+                  {% elif mode == 'nacht' %}0
+                  {% elif mode == 'hitze' %}
+                    {% if rtype == 'raffstore' %}0
+                    {% elif repeat.item.get('blend', false) %}
+                      {% if is_state('binary_sensor.workday_sensor', 'on') and is_state('device_tracker.iphone_von_sebastian', 'home') %}
+                        {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
+                      {% else %}10{% endif %}
+                    {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
+                  {% else %}{{ 0 if rtype == 'raffstore' else 100 }}{% endif %}
+                target_tilt: >-
+                  {% if mode == 'skip' %}-1
+                  {% elif rtype == 'raffstore' %}
+                    {% if mode == 'nacht' %}0
+                    {% elif mode == 'hitze' %}{{ repeat.item.hitze_tilt }}
+                    {% else %}50{% endif %}
+                  {% else %}none{% endif %}
             # Nur fahren, wenn der Ist-Zustand wirklich abweicht
             - if:
                 - condition: template
