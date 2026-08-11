@@ -101,22 +101,18 @@ views:
 
           # Alle Fenster & Türen in einer Liste — offen erscheint rot,
           # kein Doppel-Eintrag, Terrassentür inklusive.
-          - type: custom:auto-entities
-            card:
-              type: entities
-              title: Fenster & Türen (Status)
-              state_color: true
-            filter:
-              include:
-                - entity_id: binary_sensor.shelly_blu_door_window_a173_window
-                  name: Büro
-                - entity_id: binary_sensor.shelly_blu_door_window_bb57_window
-                  name: Gästezimmer
-                - entity_id: binary_sensor.fenster_schlafzimmer_window
-                  name: Schlafzimmer
-                - entity_id: binary_sensor.bthome_sensor_fb9c_fenster
-                  name: Terrassentür
-            show_empty: false
+          - type: entities
+            title: Fenster & Türen (Status)
+            state_color: true
+            entities:
+              - entity: binary_sensor.shelly_blu_door_window_a173_window
+                name: Büro
+              - entity: binary_sensor.shelly_blu_door_window_bb57_window
+                name: Gästezimmer
+              - entity: binary_sensor.fenster_schlafzimmer_window
+                name: Schlafzimmer
+              - entity: binary_sensor.bthome_sensor_fb9c_fenster
+                name: Terrassentür
 
           # Garagentor
           - type: entities
@@ -150,7 +146,7 @@ views:
             icon: mdi:weather-windy
 
           - type: grid
-            columns: 3
+            columns: 1
             cards:
               - type: custom:mushroom-template-card
                 primary: Wind
