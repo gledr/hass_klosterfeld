@@ -1763,3 +1763,35 @@
             - input_boolean.beschattung_lock_gaestezimmer
             - input_boolean.beschattung_lock_buero
             - input_boolean.beschattung_lock_schlafzimmer
+
+  # ----------------------------------------------------------
+  # Garage – Abendwarnung (21:00)
+  # Erinnert, wenn Garagentor oder Garagen-Seitentür um 21:00
+  # noch offen sind.
+  # ----------------------------------------------------------
+  - id: garage_abend_warnung_2100
+    alias: "Garage – Abendwarnung (21:00 noch offen)"
+    description: >
+      Benachrichtigt um 21:00 Uhr, wenn das Garagentor noch offen
+      (nicht 'closed') oder die Garagen-Seitentür noch entsperrt ist.
+    mode: single
+    trigger:
+      - platform: time
+        at: "21:00:00"
+    condition:
+      - condition: template
+        value_template: >
+          {{ not is_state('cover.garage_door_garage_door', 'closed')
+             or not is_state('lock.garagen_seitentur', 'locked') }}
+    action:
+      - service: script.notify_garage_offen
+        data:
+          message: >
+            {% set parts = [] %}
+            {% if not is_state('cover.garage_door_garage_door', 'closed') %}
+              {% set parts = parts + ['Garagentor'] %}
+            {% endif %}
+            {% if not is_state('lock.garagen_seitentur', 'locked') %}
+              {% set parts = parts + ['Garagen-Seitentür'] %}
+            {% endif %}
+            🚗 {{ parts | join(' und ') }} ist um 21 Uhr noch offen!

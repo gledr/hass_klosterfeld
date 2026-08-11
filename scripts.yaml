@@ -169,7 +169,7 @@ wohnkueche_werktag_relax:
       target:
         entity_id: light.livingroom_reading_light
       data:
-        brightness_pct: 90
+        brightness_pct: 55
 
     # Orientierung
     - service: light.turn_on
@@ -332,7 +332,7 @@ wohnkueche_wochenende_abend:
       target:
         entity_id: light.livingroom_reading_light
       data:
-        brightness_pct: 90
+        brightness_pct: 55
 
     - service: light.turn_off
       target:
@@ -422,6 +422,34 @@ notify_wind_alarm:
     - service: notify.mobile_app_sebastians_company_macbook_pro
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
+
+
+#########################################################
+# GARAGE – ABENDWARNUNG (offen um 21:00)
+#########################################################
+
+notify_garage_offen:
+  alias: Garage – Abendwarnung Benachrichtigung
+  description: Sendet Abendwarnung (Garage/Tür noch offen) an alle Geräte
+  mode: parallel
+  fields:
+    message:
+      description: Warnungstext
+      example: "🚗 Garagentor ist um 21 Uhr noch offen!"
+
+  sequence:
+    - service: notify.mobile_app_ipad_von_sebastian
+      data:
+        message: "{{ message }}"
+    - service: notify.mobile_app_iphone_von_sebastian
+      data:
+        message: "{{ message }}"
+    - service: notify.mobile_app_macbook_von_sebastian
+      data:
+        message: "{{ message }}"
+    - service: notify.mobile_app_sebastians_company_macbook_pro
+      data:
+        message: "{{ message }}"
 
 #########################################################
 # HAUS – MORGENMODUS (ROLLOS ÖFFNEN)
