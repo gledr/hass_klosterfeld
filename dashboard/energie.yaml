@@ -331,3 +331,59 @@ views:
               labels: true
               extrema: true
               state: false
+
+      ###########################################################################
+      # LICHT OBERGESCHOSS                                                       #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Licht Obergeschoss — Deckenlichter
+            icon: mdi:ceiling-light
+
+          - type: glance
+            title: Aktuelle Leistung
+            columns: 3
+            entities:
+              - entity: sensor.leistung_schlafzimmer_deckenlicht
+                name: Schlafzimmer
+              - entity: sensor.leistung_buro_deckenlicht
+                name: Büro
+              - entity: sensor.leistung_gastezimmer_deckenlicht
+                name: Gästezimmer
+              - entity: sensor.leistung_bad_deckenlicht
+                name: Bad
+              - entity: sensor.leistung_wc_og_deckenlicht
+                name: WC OG
+              - entity: sensor.leistung_gallerie_deckenlicht
+                name: Galerie
+
+          - type: custom:mini-graph-card
+            name: Lichtleistung Deckenlichter (24h)
+            entities:
+              - entity: sensor.leistung_schlafzimmer_deckenlicht
+                name: Schlafzimmer
+                color: '#d97706'
+              - entity: sensor.leistung_buro_deckenlicht
+                name: Büro
+                color: '#0ea5e9'
+              - entity: sensor.leistung_gastezimmer_deckenlicht
+                name: Gästezimmer
+                color: '#84cc16'
+              - entity: sensor.leistung_bad_deckenlicht
+                name: Bad
+                color: '#ef4444'
+              - entity: sensor.leistung_wc_og_deckenlicht
+                name: WC OG
+                color: '#a855f7'
+              - entity: sensor.leistung_gallerie_deckenlicht
+                name: Galerie
+                color: '#f59e0b'
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: false

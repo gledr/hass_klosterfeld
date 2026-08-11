@@ -73,13 +73,13 @@ views:
               {% if is_state('switch.twilight','on') %}Tag{% else %}Nacht{% endif %}
             secondary: >
               {% set t = states.switch.twilight.last_changed %}
-              {% set sec = (now() - t).total_seconds() | int %}
+              {% set close = t + timedelta(minutes=30) %}
               {% if is_state('switch.twilight','on') %}
-                Tag seit {{ t.strftime('%H:%M') }} Uhr
-              {% elif sec < 1800 %}
-                Nacht seit {{ t.strftime('%H:%M') }} · schließt in {{ (1800 - sec) // 60 }} min
+                Tag seit {{ t.strftime('%H:%M') }}
+              {% elif now() < close %}
+                Schließt um {{ close.strftime('%H:%M') }}
               {% else %}
-                Geschlossen seit {{ t.strftime('%H:%M') }}
+                Geschlossen {{ close.strftime('%H:%M') }}
               {% endif %}
             icon: >
               {% if is_state('switch.twilight','on') %}mdi:weather-sunny-up{% else %}mdi:weather-night{% endif %}
