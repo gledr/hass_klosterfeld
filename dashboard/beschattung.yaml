@@ -302,6 +302,127 @@ views:
 
 
       ###########################################################################
+      # MANUELL ERKANNT                                                       #
+      # Automatisch gesetzt, wenn eine Beschattung von Hand bewegt wurde.      #
+      # Gilt 1 Stunde (Terrasse 2 h) — oder per Antippen hier löschen.         #
+      ###########################################################################
+      - type: grid
+        columns: 1
+        cards:
+
+          - type: heading
+            heading: Manuell erkannt
+            icon: mdi:gesture-tap
+
+          - type: markdown
+            content: >
+              Hier aufgeführt, wenn die Automation eine Hand-Bedienung erkannt
+              hat. Solange aktiv, fasst die Automation den Raum nicht mehr an
+              (1 Stunde; Terrasse 2 Stunden). Ist der Terrassen-Raffstore
+              komplett offen, fährt die Automation gar nichts.
+
+          - type: grid
+            columns: 2
+            square: false
+            cards:
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_schlafzimmer
+                name: Schlafzimmer
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_gaestezimmer
+                name: Gästezimmer
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_buero
+                name: Büro
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_wohnzimmer
+                name: Wohnzimmer
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_terrasse
+                name: Terrasse
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_kueche
+                name: Küche
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_esszimmer
+                name: Esszimmer
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_wc_eg
+                name: WC EG
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_wc_og
+                name: WC OG
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_badezimmer
+                name: Badezimmer
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_abstellraum
+                name: Abstellraum
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+              - type: custom:mushroom-entity-card
+                entity: input_boolean.beschattung_manual_garderobe
+                name: Garderobe
+                icon: mdi:gesture-tap
+                tap_action:
+                  action: toggle
+
+          - type: custom:mushroom-template-card
+            primary: Alle aufheben
+            icon: mdi:gesture-tap-hold
+            icon_color: amber
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: input_boolean.turn_off
+              target:
+                entity_id:
+                  - input_boolean.beschattung_manual_schlafzimmer
+                  - input_boolean.beschattung_manual_gaestezimmer
+                  - input_boolean.beschattung_manual_buero
+                  - input_boolean.beschattung_manual_wohnzimmer
+                  - input_boolean.beschattung_manual_terrasse
+                  - input_boolean.beschattung_manual_kueche
+                  - input_boolean.beschattung_manual_esszimmer
+                  - input_boolean.beschattung_manual_wc_eg
+                  - input_boolean.beschattung_manual_wc_og
+                  - input_boolean.beschattung_manual_badezimmer
+                  - input_boolean.beschattung_manual_abstellraum
+                  - input_boolean.beschattung_manual_garderobe
+
+
+      ###########################################################################
       # SÜD                                                                  #
       ###########################################################################
       - type: grid

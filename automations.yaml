@@ -620,6 +620,11 @@
               - service: input_boolean.turn_on
                 target:
                   entity_id: input_boolean.badezimmer_privacy_active
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: input_datetime.beschattung_letzter_auto_befehl
+                data:
+                  datetime: "{{ now().isoformat() }}"
               - service: cover.set_cover_position
                 target:
                   entity_id: cover.bathroom_blinds
@@ -648,6 +653,11 @@
               - service: input_boolean.turn_off
                 target:
                   entity_id: input_boolean.badezimmer_privacy_active
+              - service: input_datetime.set_datetime
+                target:
+                  entity_id: input_datetime.beschattung_letzter_auto_befehl
+                data:
+                  datetime: "{{ now().isoformat() }}"
               - service: cover.set_cover_position
                 target:
                   entity_id: cover.bathroom_blinds
@@ -685,6 +695,11 @@
       - condition: state
         entity_id: input_boolean.badezimmer_privacy_active
         state: "on"
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.beschattung_letzter_auto_befehl
+        data:
+          datetime: "{{ now().isoformat() }}"
       - service: cover.set_cover_tilt_position
         target:
           entity_id: cover.bathroom_blinds
@@ -721,6 +736,11 @@
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.badezimmer_privacy_active
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.beschattung_letzter_auto_befehl
+        data:
+          datetime: "{{ now().isoformat() }}"
       - service: cover.set_cover_position
         target:
           entity_id: cover.bathroom_blinds
@@ -1097,904 +1117,470 @@
             {{ 'aktiviert' if trigger.to_state.state == 'on' else 'deaktiviert' }}
 
     mode: single
+
   # =========================================================
-  # BESCHATTUNGS-AUTOMATIK (NEU 2026-06)
+  # BESCHATTUNGS-AUTOMATIK (refactored 2026-08)
   #
-  # Architektur (per Raum):
-  #   Default-Tag (KNX Tag-Object off, sonne_trifft_<seite> off)
-  #   Nacht       (KNX Tag-Object on for 30min)
-  #   Hitzeschutz (sonne_trifft_<seite> on)
+  # Statt 40 fast identischer per-Raum-Automations gibt es jetzt EINE
+  # Konvergenz-Automation. Sie läuft bei Bedarf (alle 15 Min + Ereignisse)
+  # und gleicht jede Beschattung auf ihren Zielzustand ab. Bewegen tut sie
+  # nur, was wirklich anders ist — kein unnötiger KNX-Verkehr.
   #
-  # Sperre (in jeder per-Raum Automation gechecked):
-  #   input_boolean.beschattung_lock_<raum>  → App-Sperre, daily reset
-  #   binary_sensor.windalarm_schwelle_1     → Wind (KNX überstimmt eh)
+  # Modus (je Raum):
+  #   Tag    Dämmerung an + Sonne trifft Fassade aus  → offen (Raffstore
+  #          Lamellen 50, Rollo 100)
+  #   Nacht  Dämmerung aus (seit 30 Min)              → zu
+  #   Hitze  Dämmerung an + Sonne trifft Fassade an   → Hitzeschutz
   #
-  # Messfahrt:      zentral, alle 2 Wochen, vormittags, abwesend, Push
-  # App-Lock-Reset: zentral, täglich um Mitternacht alle Locks aus
+  # Sperren (in der Schleife gechecked):
+  #   input_boolean.beschattung_lock_<raum>   App-Sperre, täglich reset
+  #   input_boolean.beschattung_manual_<raum> manueller Eingriff erkannt
+  #   binary_sensor.windalarm_schwelle_1      Wind → keine Bewegung
+  #   Fenster offen (Gast/Büro/Schlafzimmer)  → keine Bewegung
+  #   Terrasse: Tür offen oder Aussperr-Timer → keine Bewegung
+  #   Badezimmer: Privacy-Modus aktiv         → keine Bewegung
+  #
+  # Manuelle Eingriffe werden erkannt (Automation beschattung_manual_erkennung):
+  #   Bewegt sich eine Beschattung, ohne dass die Konvergenz sie gerade
+  #   beauftragt hat, gilt das als manuell. Der Raum wird bis zum nächsten
+  #   Tag/Nacht-Wechsel nicht mehr angefasst (Nacht schließt trotzdem).
   # =========================================================
 
-  # ----------------------------------------------------------
-  # GARDEROBE — Nord, EG, Raffstore (Sichtschutz)
-  # ----------------------------------------------------------
-  - id: beschattung_garderobe_tag
-    alias: "Garderobe – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_garderobe
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wardrobe_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wardrobe_blinds
-        data:
-          tilt_position: 50
+  - id: beschattung_konvergenz
+    alias: "Beschattung – Konvergenz (Tag/Nacht/Hitzeschutz)"
+    description: >
+      Einziger Einstiegspunkt für alle automatischen Beschattungen.
+      Läuft alle 15 Min + bei Ereignissen (Dämmerung, Sonne, Terrassentür,
+      Aussperr-Timer, Messfahrt-Ende) und gleicht jeden Raum auf den
+      Zielzustand ab. Nur wenn der Ist-Zustand abweicht, wird gefahren.
+      Durch die regelmäßigen Läufe heilt sich der Zustand selbst: auch
+      wenn ein Übergang (z.B. Sonnenuntergang) durch die Terrassentür
+      blockiert war, zieht der nächste Lauf nach, sobald die Sperre weg ist.
     mode: single
-
-  - id: beschattung_garderobe_nacht
-    alias: "Garderobe – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_garderobe
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wardrobe_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wardrobe_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_garderobe_hitze
-    alias: "Garderobe – Hitzeschutz (Lamellen zu)"
     trigger:
       - platform: homeassistant
         event: start
       - platform: time_pattern
         minutes: "/15"
+      # Dämmerung (Morgen/Abend) — klärt auch manuelle Sperren
       - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_garderobe
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
         entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.wardrobe_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wardrobe_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.wardrobe_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wardrobe_blinds
-        data:
-          tilt_position: 0
-      - condition: template
-        value_template: "{{ tilt_before != 0 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Garderobe – Hitzeschutz aktiv"
-          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft Nord."
-    mode: single
-
-  # ----------------------------------------------------------
-  # ABSTELLRAUM — Nord, EG, Raffstore (Sichtschutz)
-  # ----------------------------------------------------------
-  - id: beschattung_abstellraum_tag
-    alias: "Abstellraum – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
+      # Sonne auf Fassade (Hitze-Episoden)
+      - platform: state
+        entity_id:
+          - binary_sensor.sonne_trifft_nord
+          - binary_sensor.sonne_trifft_sued
+          - binary_sensor.sonne_trifft_west
+      # Nach Messfahrt zurück in den normalen Betrieb
       - platform: state
         entity_id: input_boolean.beschattung_messfahrt_running
         to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_abstellraum
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.shelf_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.shelf_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_abstellraum_nacht
-    alias: "Abstellraum – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_abstellraum
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.shelf_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.shelf_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_abstellraum_hitze
-    alias: "Abstellraum – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_abstellraum
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.shelf_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.shelf_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.shelf_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.shelf_blinds
-        data:
-          tilt_position: 0
-      - condition: template
-        value_template: "{{ tilt_before != 0 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Abstellraum – Hitzeschutz aktiv"
-          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft Nord."
-    mode: single
-
-  # ----------------------------------------------------------
-  # WC EG — West, EG, Raffstore (Sichtschutz, KEIN Hitzeschutz: Carport)
-  # ----------------------------------------------------------
-  - id: beschattung_wc_eg_tag
-    alias: "WC EG – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wc_eg
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wc_eg_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wc_eg_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_wc_eg_nacht
-    alias: "WC EG – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wc_eg
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wc_eg_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wc_eg_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  # ----------------------------------------------------------
-  # KÜCHE — West, EG, Raffstore (Sichtschutz)
-  # ----------------------------------------------------------
-  - id: beschattung_kueche_tag
-    alias: "Küche – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_west
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_kueche
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_west
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.kitchen_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.kitchen_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_kueche_nacht
-    alias: "Küche – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_kueche
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.kitchen_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.kitchen_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_kueche_hitze
-    alias: "Küche – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_west
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_west
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_kueche
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.kitchen_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.kitchen_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.kitchen_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.kitchen_blinds
-        data:
-          tilt_position: 10
-      - condition: template
-        value_template: "{{ tilt_before != 10 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Küche – Hitzeschutz aktiv"
-          message: "Lamellen auf 10 % gefahren (war {{ tilt_before }} %). Sonne trifft West."
-    mode: single
-
-  # ----------------------------------------------------------
-  # ESSZIMMER — West, EG, Raffstore (Sichtschutz)
-  # ----------------------------------------------------------
-  - id: beschattung_esszimmer_tag
-    alias: "Esszimmer – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_west
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_esszimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_west
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.dining_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.dining_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_esszimmer_nacht
-    alias: "Esszimmer – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_esszimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.dining_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.dining_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_esszimmer_hitze
-    alias: "Esszimmer – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_west
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_west
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_esszimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.dining_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.dining_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.dining_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.dining_blinds
-        data:
-          tilt_position: 10
-      - condition: template
-        value_template: "{{ tilt_before != 10 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Esszimmer – Hitzeschutz aktiv"
-          message: "Lamellen auf 10 % gefahren (war {{ tilt_before }} %). Sonne trifft West."
-    mode: single
-
-  # ----------------------------------------------------------
-  # WOHNZIMMER — Süd, EG, Raffstore
-  # ----------------------------------------------------------
-  - id: beschattung_wohnzimmer_tag
-    alias: "Wohnzimmer – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wohnzimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.livingroom_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.livingroom_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_wohnzimmer_nacht
-    alias: "Wohnzimmer – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wohnzimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.livingroom_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.livingroom_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_wohnzimmer_hitze
-    alias: "Wohnzimmer – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wohnzimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.livingroom_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.livingroom_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.livingroom_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.livingroom_blinds
-        data:
-          tilt_position: 25
-      - condition: template
-        value_template: "{{ tilt_before != 25 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Wohnzimmer – Hitzeschutz aktiv"
-          message: "Lamellen auf 25 % gefahren (war {{ tilt_before }} %). Sonne trifft Süd."
-    mode: single
-
-  # ----------------------------------------------------------
-  # TERRASSE — Süd, EG, Raffstore
-  # ----------------------------------------------------------
-  - id: beschattung_terrasse_tag
-    alias: "Terrasse – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "off"
-      # Aussperr-Schutz-Fenster abgelaufen → Tag-Modus nachziehen.
-      # Kein Trigger auf "Tür zu": der würde mit dem Timer-Start um dieselbe
-      # State-Änderung rennen und könnte zufahren, bevor der Timer läuft.
+      # Aussperr-Schutz-Fenster vorbei → Terrasse wieder zulassen
       - platform: state
         entity_id: timer.terrassentuer_aussperrschutz
         to: "idle"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_terrasse
-        state: "off"
-      # Aussperr-Schutz: keine Bewegung solange die Terrassentür offen ist.
-      # Bewusst strikt auf "off" — bei unavailable (Batterie leer) fährt nichts.
-      - condition: state
+      # Terrassentür bewegt → Terrasse neu bewerten
+      - platform: state
         entity_id: binary_sensor.bthome_sensor_fb9c_fenster
-        state: "off"
-      # ... und 60 Min ab der letzten Türbewegung nicht zufahren (siehe Timer).
-      - condition: state
-        entity_id: timer.terrassentuer_aussperrschutz
-        state: "idle"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
     action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.terrace_blinds_2
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.terrace_blinds_2
-        data:
-          tilt_position: 50
-    mode: single
+      # Manuelle Sperren beim Tag/Nacht-Wechsel löschen
+      - if:
+          - condition: template
+            value_template: "{{ trigger.platform == 'state' and trigger.entity_id == 'switch.twilight' }}"
+        then:
+          - service: input_boolean.turn_off
+            target:
+              entity_id:
+                - input_boolean.beschattung_manual_garderobe
+                - input_boolean.beschattung_manual_abstellraum
+                - input_boolean.beschattung_manual_wc_eg
+                - input_boolean.beschattung_manual_kueche
+                - input_boolean.beschattung_manual_esszimmer
+                - input_boolean.beschattung_manual_wohnzimmer
+                - input_boolean.beschattung_manual_terrasse
+                - input_boolean.beschattung_manual_wc_og
+                - input_boolean.beschattung_manual_badezimmer
+                - input_boolean.beschattung_manual_gaestezimmer
+                - input_boolean.beschattung_manual_buero
+                - input_boolean.beschattung_manual_schlafzimmer
+      # Während der Messfahrt nicht eingreifen (KNX kalibriert)
+      - if:
+          - condition: state
+            entity_id: input_boolean.beschattung_messfahrt_running
+            state: "on"
+        then:
+          - stop: Messfahrt läuft
+      - variables:
+          rooms:
+            # Raffstore: immer unten (Position 0), nur Lamellen ändern sich
+            - name: Garderobe
+              cover: cover.wardrobe_blinds
+              type: raffstore
+              dir: nord
+              hitze_tilt: 0
+              lock: input_boolean.beschattung_lock_garderobe
+              manual: input_boolean.beschattung_manual_garderobe
+            - name: Abstellraum
+              cover: cover.shelf_blinds
+              type: raffstore
+              dir: nord
+              hitze_tilt: 0
+              lock: input_boolean.beschattung_lock_abstellraum
+              manual: input_boolean.beschattung_manual_abstellraum
+            # WC EG: kein Hitzeschutz (Carport)
+            - name: WC EG
+              cover: cover.wc_eg_blinds
+              type: raffstore
+              no_hitze: true
+              lock: input_boolean.beschattung_lock_wc_eg
+              manual: input_boolean.beschattung_manual_wc_eg
+            - name: Küche
+              cover: cover.kitchen_blinds
+              type: raffstore
+              dir: west
+              hitze_tilt: 10
+              lock: input_boolean.beschattung_lock_kueche
+              manual: input_boolean.beschattung_manual_kueche
+            - name: Esszimmer
+              cover: cover.dining_blinds
+              type: raffstore
+              dir: west
+              hitze_tilt: 10
+              lock: input_boolean.beschattung_lock_esszimmer
+              manual: input_boolean.beschattung_manual_esszimmer
+            - name: Wohnzimmer
+              cover: cover.livingroom_blinds
+              type: raffstore
+              dir: sued
+              hitze_tilt: 25
+              lock: input_boolean.beschattung_lock_wohnzimmer
+              manual: input_boolean.beschattung_manual_wohnzimmer
+            - name: Terrasse
+              cover: cover.terrace_blinds_2
+              type: raffstore
+              dir: sued
+              hitze_tilt: 25
+              aussperr: true
+              # Manuelle Sperre: 2 h statt 1 h. Solange der Raffstore komplett
+              # offen ist (100 %), fährt die Automation nichts (man ist evtl.
+              # draußen).
+              manual_timeout: 7200
+              skip_fully_open: true
+              lock: input_boolean.beschattung_lock_terrasse
+              manual: input_boolean.beschattung_manual_terrasse
+            - name: WC OG
+              cover: cover.wc_og_blinds
+              type: raffstore
+              dir: west
+              hitze_tilt: 0
+              lock: input_boolean.beschattung_lock_wc_og
+              manual: input_boolean.beschattung_manual_wc_og
+            - name: Badezimmer
+              cover: cover.bathroom_blinds
+              type: raffstore
+              dir: nord
+              hitze_tilt: 0
+              privacy: true
+              lock: input_boolean.beschattung_lock_badezimmer
+              manual: input_boolean.beschattung_manual_badezimmer
+            # Rollo: Position ändert sich (100 offen / 0 zu)
+            - name: Gast
+              cover: cover.guest_shutter
+              type: rollo
+              dir: sued
+              hitze_pos: 10
+              fenster: binary_sensor.shelly_blu_door_window_bb57_window
+              lock: input_boolean.beschattung_lock_gaestezimmer
+              manual: input_boolean.beschattung_manual_gaestezimmer
+            # Büro: Hitzeschutz = Blendschutz nach Anwesenheit
+            - name: Büro
+              cover: cover.office_shutter
+              type: rollo
+              dir: sued
+              blend: true
+              fenster: binary_sensor.shelly_blu_door_window_a173_window
+              lock: input_boolean.beschattung_lock_buero
+              manual: input_boolean.beschattung_manual_buero
+            # Schlafzimmer: erst nach Wake-Zeit öffnen (Werktag 7 / WE 10)
+            - name: Schlafzimmer
+              cover: cover.bedroom_shutter
+              type: rollo
+              dir: nord
+              hitze_pos: 0
+              waketime: true
+              fenster: binary_sensor.fenster_schlafzimmer_window
+              lock: input_boolean.beschattung_lock_schlafzimmer
+              manual: input_boolean.beschattung_manual_schlafzimmer
+      - repeat:
+          for_each: "{{ rooms }}"
+          sequence:
+            - variables:
+                cover: "{{ repeat.item.cover }}"
+                room_name: "{{ repeat.item.name }}"
+                rtype: "{{ repeat.item.type }}"
+                dir: "{{ repeat.item.get('dir') }}"
+                cur_pos: "{{ state_attr(cover, 'current_position') }}"
+                cur_tilt: "{{ state_attr(cover, 'current_tilt_position') }}"
+                locked: "{{ is_state(repeat.item.lock, 'on') }}"
+                manual: "{{ is_state(repeat.item.manual, 'on') }}"
+                fenster_offen: "{{ repeat.item.get('fenster') is not none and is_state(repeat.item.get('fenster'), 'on') }}"
+                wind: "{{ is_state('binary_sensor.windalarm_schwelle_1', 'on') }}"
+                twilight_on: "{{ is_state('switch.twilight', 'on') }}"
+                sun: "{{ dir is not none and is_state('binary_sensor.sonne_trifft_' ~ dir, 'on') }}"
+                privacy_active: "{{ is_state('input_boolean.badezimmer_privacy_active', 'on') }}"
+                tuer_offen: "{{ is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') }}"
+                timer_aktiv: "{{ is_state('timer.terrassentuer_aussperrschutz', 'active') }}"
+            # Zustand nicht lesbar → nächsten Raum (nächster Lauf holt das nach)
+            - if:
+                - condition: template
+                  value_template: "{{ cur_pos is none or (rtype == 'raffstore' and cur_tilt is none) }}"
+              then:
+                - continue: Zustand nicht lesbar
+            - variables:
+                # 30 Min nach Dämmerungs-Ende → Nacht
+                nacht: "{{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
+                # Sonne auf der Fassade → Hitzeschutz
+                hitze: "{{ twilight_on and sun }}"
+                # Manuelle Sperre: Standard 1 h (Terrasse 2 h). Terrasse zusätzlich:
+                # solange komplett offen, keine Aktion (skip_fully_open).
+                # Nachts greift die Sperre nie — die Konvergenz schließt trotzdem.
+                manual_block: >-
+                  {% set timeout = repeat.item.get('manual_timeout', 3600) %}
+                  {% set frisch = (now() - states[repeat.item.manual].last_changed).total_seconds() < timeout %}
+                  {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99 %}
+                  {{ manual and not nacht and (frisch or skip) }}
+                # Schlafzimmer: erst nach Wake-Zeit öffnen
+                tag_erlaubt: >-
+                  {% if repeat.item.get('waketime', false) %}
+                    {% set workday = is_state('binary_sensor.workday_sensor', 'on') %}
+                    {% set h = now().hour %}
+                    {{ (workday and h >= 7) or (not workday and h >= 10) }}
+                  {% else %}true{% endif %}
+                gesperrt: >-
+                  {{ locked or wind or fenster_offen or manual_block
+                     or (repeat.item.get('privacy', false) and privacy_active)
+                     or (repeat.item.get('aussperr', false) and (tuer_offen or timer_aktiv)) }}
+            - if:
+                - condition: template
+                  value_template: "{{ gesperrt }}"
+              then:
+                - continue: Raum gesperrt
+            - choose:
+                - conditions:
+                    - condition: template
+                      value_template: "{{ nacht }}"
+                  sequence:
+                    - variables:
+                        mode: nacht
+                        target_pos: 0
+                        target_tilt: "{{ 0 if rtype == 'raffstore' else none }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ hitze and not repeat.item.get('no_hitze', false) }}"
+                  sequence:
+                    - variables:
+                        mode: hitze
+                        target_pos: >-
+                          {% if rtype == 'raffstore' %}0
+                          {% elif repeat.item.get('blend', false) %}
+                            {% if is_state('binary_sensor.workday_sensor', 'on') and is_state('device_tracker.iphone_von_sebastian', 'home') %}
+                              {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
+                            {% else %}10{% endif %}
+                          {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
+                        target_tilt: "{{ repeat.item.hitze_tilt if rtype == 'raffstore' else none }}"
+                - conditions:
+                    - condition: template
+                      value_template: "{{ not nacht and not hitze and tag_erlaubt }}"
+                  sequence:
+                    - variables:
+                        mode: tag
+                        target_pos: "{{ 0 if rtype == 'raffstore' else 100 }}"
+                        target_tilt: "{{ 50 if rtype == 'raffstore' else none }}"
+              default:
+                - variables:
+                    mode: skip
+                    target_pos: -1
+                    target_tilt: -1
+            # Nur fahren, wenn der Ist-Zustand wirklich abweicht
+            - if:
+                - condition: template
+                  value_template: >-
+                    {% if mode == 'skip' %}false
+                    {% elif rtype == 'raffstore' %}
+                      {{ cur_tilt | int(-1) != target_tilt | int or cur_pos | int(-1) > 2 }}
+                    {% else %}
+                      {{ cur_pos | int(-1) != target_pos | int }}
+                    {% endif %}
+              then:
+                # Als Auto-Befehl markieren (für die Manuell-Erkennung)
+                - service: input_datetime.set_datetime
+                  target:
+                    entity_id: input_datetime.beschattung_letzter_auto_befehl
+                  data:
+                    datetime: "{{ now().isoformat() }}"
+                # Raffstore: erst Behang unten (falls oben), dann Lamellen.
+                # Warten bis unten, sonst unterbricht der Tilt-Befehl die Fahrt.
+                - if:
+                    - condition: template
+                      value_template: "{{ rtype == 'raffstore' and cur_pos | int(-1) > 2 }}"
+                  then:
+                    - service: cover.set_cover_position
+                      target:
+                        entity_id: "{{ cover }}"
+                      data:
+                        position: 0
+                    - wait_template: "{{ state_attr(cover, 'current_position') | int(default=0) <= 2 }}"
+                      timeout: "00:01:30"
+                      continue_on_timeout: true
+                - if:
+                    - condition: template
+                      value_template: "{{ rtype == 'raffstore' }}"
+                  then:
+                    - service: cover.set_cover_tilt_position
+                      target:
+                        entity_id: "{{ cover }}"
+                      data:
+                        tilt_position: "{{ target_tilt }}"
+                  else:
+                    - service: cover.set_cover_position
+                      target:
+                        entity_id: "{{ cover }}"
+                      data:
+                        position: "{{ target_pos }}"
+                # Nach dem Eingriff eine evtl. Manuell-Sperre wieder löschen
+                - service: input_boolean.turn_off
+                  target:
+                    entity_id: "{{ repeat.item.manual }}"
+                # Push nur beim (Neu-)Eintreten in den Hitzeschutz
+                - if:
+                    - condition: template
+                      value_template: "{{ mode == 'hitze' }}"
+                  then:
+                    - variables:
+                        msg: >-
+                          {% if rtype == 'raffstore' %}
+                            Lamellen auf {{ target_tilt }} % gefahren (war {{ cur_tilt }} %). Sonne trifft {{ {'nord':'Nord','sued':'Süd','west':'West'}[dir] }}.
+                          {% elif repeat.item.get('blend', false) %}
+                            Rollo {{ cur_pos }} % → {{ target_pos }} %. Sonne trifft {{ {'nord':'Nord','sued':'Süd','west':'West'}[dir] }}.
+                          {% else %}
+                            Rollo auf {{ target_pos }} % gefahren (war {{ cur_pos }} %). Sonne trifft {{ {'nord':'Nord','sued':'Süd','west':'West'}[dir] }}.
+                          {% endif %}
+                    - service: notify.mobile_app_iphone_von_sebastian
+                      data:
+                        title: "{{ room_name }} – Hitzeschutz aktiv"
+                        message: "{{ msg }}"
 
-  - id: beschattung_terrasse_nacht
-    alias: "Terrasse – Nacht (Lamellen zu)"
+  # ----------------------------------------------------------
+  # MANUELLE BEDIENUNG ERKENNEN
+  # Bewegt sich eine Beschattung, ohne dass die Konvergenz (oder eine der
+  # Privacy-/Messfahrt-Automationen) sie vor <3 Min beauftragt hat, gilt das
+  # als manueller Eingriff. Der betroffene Raum wird für 1 Stunde von der
+  # Automation verschont (Terrasse: 2 h; bei komplett offenem Raffstore
+  # fährt sie gar nichts — siehe manual_block).
+  # ----------------------------------------------------------
+  - id: beschattung_manual_erkennung
+    alias: "Beschattung – Manuelle Bedienung erkennen"
+    description: >
+      Erkennt manuelle Eingriffe an jeder Beschattung (KNX-Taster, App,
+      Hand). Bewegt sich eine Beschattung ohne vorherigen Auto-Befehl,
+      wird input_boolean.beschattung_manual_<raum> gesetzt — die Konvergenz
+      fasst den Raum dann 1 Stunde lang nicht mehr an (Terrasse: 2 Stunden;
+      bei komplett offenem Raffstore keine Aktion, siehe manual_block).
+    mode: queued
     trigger:
+      # Lamellen (nur Raffstores)
+      - platform: state
+        entity_id:
+          - cover.wardrobe_blinds
+          - cover.shelf_blinds
+          - cover.wc_eg_blinds
+          - cover.kitchen_blinds
+          - cover.dining_blinds
+          - cover.livingroom_blinds
+          - cover.terrace_blinds_2
+          - cover.wc_og_blinds
+          - cover.bathroom_blinds
+        attribute: current_tilt_position
+      # Behang / Rollo-Position (alle)
+      - platform: state
+        entity_id:
+          - cover.wardrobe_blinds
+          - cover.shelf_blinds
+          - cover.wc_eg_blinds
+          - cover.kitchen_blinds
+          - cover.dining_blinds
+          - cover.livingroom_blinds
+          - cover.terrace_blinds_2
+          - cover.wc_og_blinds
+          - cover.bathroom_blinds
+          - cover.guest_shutter
+          - cover.office_shutter
+          - cover.bedroom_shutter
+        attribute: current_position
+    condition:
+      - condition: template
+        value_template: >
+          {% set last = state_attr('input_datetime.beschattung_letzter_auto_befehl', 'timestamp') %}
+          {% set seit = (now().timestamp() - last) if last is not none else 99999 %}
+          {{ not is_state('input_boolean.beschattung_messfahrt_running', 'on') and seit > 180 }}
+    action:
+      - service: input_boolean.turn_on
+        target:
+          entity_id: >-
+            {% set m = {
+              'cover.wardrobe_blinds':  'input_boolean.beschattung_manual_garderobe',
+              'cover.shelf_blinds':     'input_boolean.beschattung_manual_abstellraum',
+              'cover.wc_eg_blinds':     'input_boolean.beschattung_manual_wc_eg',
+              'cover.kitchen_blinds':   'input_boolean.beschattung_manual_kueche',
+              'cover.dining_blinds':    'input_boolean.beschattung_manual_esszimmer',
+              'cover.livingroom_blinds':'input_boolean.beschattung_manual_wohnzimmer',
+              'cover.terrace_blinds_2': 'input_boolean.beschattung_manual_terrasse',
+              'cover.wc_og_blinds':     'input_boolean.beschattung_manual_wc_og',
+              'cover.bathroom_blinds':  'input_boolean.beschattung_manual_badezimmer',
+              'cover.guest_shutter':    'input_boolean.beschattung_manual_gaestezimmer',
+              'cover.office_shutter':   'input_boolean.beschattung_manual_buero',
+              'cover.bedroom_shutter':  'input_boolean.beschattung_manual_schlafzimmer'
+            }[trigger.entity_id] %}
+            {{ m }}
+
+  # ----------------------------------------------------------
+  # MANUELLE SPERREN BEIM TAG/NACHT-WECHSEL LÖSCHEN
+  # Sicherheitsnetz: die Konvergenz räumt die Sperren nach 1 h selbst ab
+  # (Terrasse 2 h, siehe manual_block). Hier wird beim Dämmerungs-Wechsel
+  # aufgeräumt — falls die Konvergenz den Wechsel verpasst (mode: single,
+  # längerer Lauf), sind die Sperren spätestens dann weg.
+  # ----------------------------------------------------------
+  - id: beschattung_manual_reset_tag_nacht
+    alias: "Beschattung – Manuelle Sperren beim Tag/Nacht-Wechsel zurücksetzen"
+    description: >
+      Löscht alle manuell erkannten Sperren bei jedem Wechsel von Tag auf
+      Nacht (switch.twilight). Sicherheitsnetz: falls die Konvergenz den
+      Wechsel verpasst, sind die Sperren (Standard 1 h, Terrasse 2 h)
+      spätestens dann weg.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: switch.twilight
+        to: "on"
       - platform: state
         entity_id: switch.twilight
         to: "off"
-        for:
-          minutes: 30
-      # Aussperr-Schutz-Fenster abgelaufen → Nacht-Modus nachziehen.
-      # Kein Trigger auf "Tür zu" (Race mit dem Timer-Start, siehe Tag).
-      - platform: state
-        entity_id: timer.terrassentuer_aussperrschutz
-        to: "idle"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_terrasse
-        state: "off"
-      # Aussperr-Schutz: keine Bewegung solange die Terrassentür offen ist.
-      # Bewusst strikt auf "off" — bei unavailable (Batterie leer) fährt nichts.
-      - condition: state
-        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
-        state: "off"
-      # ... und 60 Min ab der letzten Türbewegung nicht zufahren (siehe Timer).
-      - condition: state
-        entity_id: timer.terrassentuer_aussperrschutz
-        state: "idle"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
     action:
-      - service: cover.set_cover_position
+      - service: input_boolean.turn_off
         target:
-          entity_id: cover.terrace_blinds_2
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.terrace_blinds_2
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_terrasse_hitze
-    alias: "Terrasse – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "on"
-      # Aussperr-Schutz abgelaufen → Hitzeschutz nachziehen
-      - platform: state
-        entity_id: timer.terrassentuer_aussperrschutz
-        to: "idle"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_terrasse
-        state: "off"
-      # Aussperr-Schutz: keine Bewegung solange die Terrassentür offen ist.
-      # Bewusst strikt auf "off" — bei unavailable (Batterie leer) fährt nichts.
-      - condition: state
-        entity_id: binary_sensor.bthome_sensor_fb9c_fenster
-        state: "off"
-      # ... und 60 Min ab der letzten Türbewegung nicht zufahren (siehe Timer).
-      # Das war der Aussperrer: /15-Raster fuhr direkt nach dem Rausgehen zu.
-      - condition: state
-        entity_id: timer.terrassentuer_aussperrschutz
-        state: "idle"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.terrace_blinds_2', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.terrace_blinds_2
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.terrace_blinds_2', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.terrace_blinds_2
-        data:
-          tilt_position: 25
-      - condition: template
-        value_template: "{{ tilt_before != 25 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Terrasse – Hitzeschutz aktiv"
-          message: "Lamellen auf 25 % gefahren (war {{ tilt_before }} %). Sonne trifft Süd."
-    mode: single
+          entity_id:
+            - input_boolean.beschattung_manual_garderobe
+            - input_boolean.beschattung_manual_abstellraum
+            - input_boolean.beschattung_manual_wc_eg
+            - input_boolean.beschattung_manual_kueche
+            - input_boolean.beschattung_manual_esszimmer
+            - input_boolean.beschattung_manual_wohnzimmer
+            - input_boolean.beschattung_manual_terrasse
+            - input_boolean.beschattung_manual_wc_og
+            - input_boolean.beschattung_manual_badezimmer
+            - input_boolean.beschattung_manual_gaestezimmer
+            - input_boolean.beschattung_manual_buero
+            - input_boolean.beschattung_manual_schlafzimmer
 
   # ----------------------------------------------------------
   # TERRASSENTÜR — Aussperr-Schutz
@@ -2002,13 +1588,19 @@
   # Türkontakt meldet also "zu" während man draußen steht. Deshalb hält jede
   # Türbewegung (auf UND zu) ein 60-Min-Fenster offen, in dem keine
   # Beschattungs-Automation den Terrassen-Raffstore zufährt.
+  #
+  # Fix: Der Timer wird höchstens 1× pro Minute neu gestartet. Ein flatternder
+  # Türkontakt hält ihn damit nicht mehr endlos am Laufen — und die Terrasse
+  # blieb genau deshalb seit Einbau des Türsensors bei Dämmerung hängen.
+  # Die Konvergenz-Automation zieht nach, sobald der Timer abgelaufen ist.
   # ----------------------------------------------------------
   - id: terrassentuer_aussperrschutz_start
     alias: "Terrassentür – Aussperr-Schutz starten (60 Min)"
     description: >
-      Startet/neustartet den 60-Min-Timer bei jeder Bewegung der Terrassentür.
-      Auch beim Zumachen — sonst wäre das Fenster genau dann vorbei, wenn man
-      gerade draußen steht.
+      Startet/neustartet den 60-Min-Timer bei jeder Türbewegung (auf UND zu),
+      aber höchstens einmal pro Minute. Reale Wege nach draußen (meist
+      >1 Min auseinander) verlängern das Fenster wie gewohnt; schnelles
+      Flattern des Kontakts blockiert die Terrasse nicht dauerhaft.
     mode: single
     trigger:
       - platform: state
@@ -2017,6 +1609,11 @@
       - platform: state
         entity_id: binary_sensor.bthome_sensor_fb9c_fenster
         to: "off"
+    condition:
+      - condition: template
+        value_template: >
+          {% set sec = (now() - states.timer.terrassentuer_aussperrschutz.last_changed).total_seconds() %}
+          {{ sec > 60 }}
     action:
       - service: timer.start
         target:
@@ -2041,683 +1638,8 @@
           entity_id: cover.terrace_blinds_2
 
   # ----------------------------------------------------------
-  # WC OG — West, OG, Raffstore (Sichtschutz)
+  # Messfahrt 2-wöchentlich (unverändert, zentral)
   # ----------------------------------------------------------
-  - id: beschattung_wc_og_tag
-    alias: "WC OG – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_west
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wc_og
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_west
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wc_og_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wc_og_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_wc_og_nacht
-    alias: "WC OG – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wc_og
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wc_og_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wc_og_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_wc_og_hitze
-    alias: "WC OG – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_west
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_west
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_wc_og
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.wc_og_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.wc_og_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.wc_og_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.wc_og_blinds
-        data:
-          tilt_position: 0
-      - condition: template
-        value_template: "{{ tilt_before != 0 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "WC OG – Hitzeschutz aktiv"
-          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft West."
-    mode: single
-
-  # ----------------------------------------------------------
-  # BADEZIMMER — Nord, OG, Raffstore (Sichtschutz)
-  # Privacy-Mode (Licht-Kopplung) ist separat in badezimmer_privacy*
-  # ----------------------------------------------------------
-  - id: beschattung_badezimmer_tag
-    alias: "Badezimmer – Tag (Lamellen offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_badezimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: input_boolean.badezimmer_privacy_active
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.bathroom_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.bathroom_blinds
-        data:
-          tilt_position: 50
-    mode: single
-
-  - id: beschattung_badezimmer_nacht
-    alias: "Badezimmer – Nacht (Lamellen zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_badezimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-      - condition: state
-        entity_id: input_boolean.badezimmer_privacy_active
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.bathroom_blinds
-        data:
-          position: 0
-      - delay: "00:00:03"
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.bathroom_blinds
-        data:
-          tilt_position: 0
-    mode: single
-
-  - id: beschattung_badezimmer_hitze
-    alias: "Badezimmer – Hitzeschutz (Lamellen zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_badezimmer
-        state: "off"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: input_boolean.badezimmer_privacy_active
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          tilt_before: "{{ state_attr('cover.bathroom_blinds', 'current_tilt_position') | int(default=-1) }}"
-      # Hitzeschutz: Raffstore erst ausfahren (unten), dann Lamellen stellen.
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.bathroom_blinds
-        data:
-          position: 0
-      # Warten bis Behang wirklich unten ist (Raffstore-Fahrzeit), sonst
-      # unterbricht der Tilt-Befehl die Fahrt. Fallback nach Timeout.
-      - wait_template: "{{ state_attr('cover.bathroom_blinds', 'current_position') | int(default=0) <= 2 }}"
-        timeout: "00:01:30"
-        continue_on_timeout: true
-      - service: cover.set_cover_tilt_position
-        target:
-          entity_id: cover.bathroom_blinds
-        data:
-          tilt_position: 0
-      - condition: template
-        value_template: "{{ tilt_before != 0 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Badezimmer – Hitzeschutz aktiv"
-          message: "Lamellen auf 0 % gefahren (war {{ tilt_before }} %). Sonne trifft Nord."
-    mode: single
-
-  # ----------------------------------------------------------
-  # GAST — Süd, OG, Rollo (Hitzeschutz + Nachtdunkelheit)
-  # ----------------------------------------------------------
-  - id: beschattung_gast_tag
-    alias: "Gast – Tag (Rollo offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_gaestezimmer
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.guest_shutter
-        data:
-          position: 100
-    mode: single
-
-  - id: beschattung_gast_nacht
-    alias: "Gast – Nacht (Rollo zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_gaestezimmer
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.guest_shutter
-        data:
-          position: 0
-    mode: single
-  - id: beschattung_gast_hitze
-    alias: "Gast – Hitzeschutz (Rollo zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_gaestezimmer
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          pos_before: "{{ state_attr('cover.guest_shutter', 'current_position') | int(default=-1) }}"
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.guest_shutter
-        data:
-          position: 10
-      - condition: template
-        value_template: "{{ pos_before != 10 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Gast – Hitzeschutz aktiv"
-          message: "Rollo auf 10 % gefahren (war {{ pos_before }} %). Sonne trifft Süd."
-    mode: single
-
-  # ----------------------------------------------------------
-  # BÜRO — Süd, OG, Rollo (Hitzeschutz + Blendschutz speziell)
-  # Werktag + zuhause → NUR Blendschutz (Sebastian arbeitet):
-  #   tiefe Sonne (<45°) + viel Lux → 50 % zu, sonst 25 % zu
-  # Sonst (Werktag+abwesend / Wochenende) → Spalt offen (10 %, Luftzirkulation)
-  # ----------------------------------------------------------
-  - id: beschattung_buero_tag
-    alias: "Büro – Tag (Rollo offen)"
-    trigger:
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-      - platform: state
-        entity_id: switch.twilight
-        to: "on"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "off"
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_buero
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "off"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.office_shutter
-        data:
-          position: 100
-    mode: single
-
-  - id: beschattung_buero_nacht
-    alias: "Büro – Nacht (Rollo zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_buero
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.office_shutter
-        data:
-          position: 0
-    mode: single
-
-  - id: beschattung_buero_hitze
-    alias: "Büro – Hitze-/Blendschutz nach Anwesenheit"
-    description: >
-      Werktag+home → nur Blendschutz (50 % bei tiefer Sonne+viel Lux, sonst 75 %).
-      Sonst (Werktag+abwesend, Wochenende) → Spalt offen (10) für Luftzirkulation.
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        to: "on"
-      - platform: state
-        entity_id: device_tracker.iphone_von_sebastian
-        for:
-          minutes: 2
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_sued
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_buero
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          pos_before: "{{ state_attr('cover.office_shutter', 'current_position') | int(default=-1) }}"
-      - choose:
-          # Werktag + zuhause → Blendschutz (zwei Stufen)
-          - conditions:
-              - condition: state
-                entity_id: binary_sensor.workday_sensor
-                state: "on"
-              - condition: state
-                entity_id: device_tracker.iphone_von_sebastian
-                state: "home"
-            sequence:
-              - choose:
-                  # Tiefe Sonne + viel Lux → 50 % zu (max Blendschutz)
-                  - conditions:
-                      - condition: numeric_state
-                        entity_id: sun.sun
-                        attribute: elevation
-                        below: 45
-                      - condition: numeric_state
-                        entity_id: sensor.helligkeit_sud
-                        above: input_number.beschattung_lux_sud
-                    sequence:
-                      - variables:
-                          pos_target: 50
-                      - service: cover.set_cover_position
-                        target:
-                          entity_id: cover.office_shutter
-                        data:
-                          position: 50
-                default:
-                  # Sonst → 25 % zu (mild)
-                  - variables:
-                      pos_target: 75
-                  - service: cover.set_cover_position
-                    target:
-                      entity_id: cover.office_shutter
-                    data:
-                      position: 75
-        # Werktag+abwesend ODER Wochenende → Spalt offen (Luftzirkulation)
-        default:
-          - variables:
-              pos_target: 10
-          - service: cover.set_cover_position
-            target:
-              entity_id: cover.office_shutter
-            data:
-              position: 10
-      - condition: template
-        value_template: "{{ pos_before != (pos_target | default(-1) | int) }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Büro – Hitze-/Blendschutz aktiv"
-          message: "Rollo {{ pos_before }}% → {{ pos_target }}%. Sonne trifft Süd."
-    mode: single
-
-  # ----------------------------------------------------------
-  # SCHLAFZIMMER — Nord, OG, Rollo (Hitzeschutz + Nachtdunkelheit)
-  # Tag-Öffnung: Werktag 07:00 / Wochenende 10:00 (NICHT mit Sonnenaufgang)
-  # ----------------------------------------------------------
-  - id: beschattung_schlafzimmer_tag
-    alias: "Schlafzimmer – Tag (Rollo offen, Werktag 7:00 / WE 10:00)"
-    trigger:
-      - platform: time
-        at: "07:00:00"
-        id: werktag_zeit
-      - platform: time
-        at: "10:00:00"
-        id: we_zeit
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "off"
-        id: hitze_aus
-      # Nach Messfahrt zurück in Tag-Modus (Flag-Reset am Ende der Messfahrt)
-      - platform: state
-        entity_id: input_boolean.beschattung_messfahrt_running
-        to: "off"
-        id: messfahrt_ende
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_schlafzimmer
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.fenster_schlafzimmer_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "off"
-      # Werktag-Trigger nur an Werktagen, WE-Trigger nur am Wochenende,
-      # andere Trigger nur nach Wake-Zeit (07:00 Werktag / 10:00 WE)
-      - condition: template
-        value_template: >
-          {% set tid = trigger.id %}
-          {% set workday = is_state('binary_sensor.workday_sensor', 'on') %}
-          {% if tid == 'werktag_zeit' %}
-            {{ workday }}
-          {% elif tid == 'we_zeit' %}
-            {{ not workday }}
-          {% else %}
-            {% set h = now().hour %}
-            {{ (workday and h >= 7) or (not workday and h >= 10) }}
-          {% endif %}
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.bedroom_shutter
-        data:
-          position: 100
-    mode: single
-
-  - id: beschattung_schlafzimmer_nacht
-    alias: "Schlafzimmer – Nacht (Rollo zu)"
-    trigger:
-      - platform: state
-        entity_id: switch.twilight
-        to: "off"
-        for:
-          minutes: 30
-    condition:
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_schlafzimmer
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.fenster_schlafzimmer_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "off"
-      # Erst 30 Min nach Sonnenuntergang schließen
-      - condition: template
-        value_template: "{{ (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
-    action:
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.bedroom_shutter
-        data:
-          position: 0
-    mode: single
-
-  - id: beschattung_schlafzimmer_hitze
-    alias: "Schlafzimmer – Hitzeschutz (Rollo zu)"
-    trigger:
-      - platform: homeassistant
-        event: start
-      - platform: time_pattern
-        minutes: "/15"
-      - platform: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        to: "on"
-    condition:
-      - condition: state
-        entity_id: binary_sensor.sonne_trifft_nord
-        state: "on"
-      - condition: state
-        entity_id: input_boolean.beschattung_lock_schlafzimmer
-        state: "off"
-      # Fenster-offen-Override: keine Bewegung wenn Fenster offen
-      - condition: template
-        value_template: "{{ not is_state('binary_sensor.fenster_schlafzimmer_window', 'on') }}"
-      - condition: state
-        entity_id: binary_sensor.windalarm_schwelle_1
-        state: "off"
-      - condition: state
-        entity_id: switch.twilight
-        state: "on"
-    action:
-      - variables:
-          pos_before: "{{ state_attr('cover.bedroom_shutter', 'current_position') | int(default=-1) }}"
-      - service: cover.set_cover_position
-        target:
-          entity_id: cover.bedroom_shutter
-        data:
-          position: 0
-      - condition: template
-        value_template: "{{ pos_before != 0 }}"
-      - service: notify.mobile_app_iphone_von_sebastian
-        data:
-          title: "Schlafzimmer – Hitzeschutz aktiv"
-          message: "Rollo wird zugefahren (war {{ pos_before }} %). Sonne trifft Nord."
-    mode: single
-
   - id: beschattung_messfahrt_2_wochen
     alias: "Beschattung – Messfahrt 2-wöchentlich (Vormittag, abwesend)"
     description: >
@@ -2817,9 +1739,16 @@
         target:
           entity_id: switch.messfahrt_rollo_buro
       # Messfahrt-Flag nach 3 Min zurücksetzen — Covers sind dann fertig gefahren.
-      # Der Reset triggert die Tag-Automations (via messfahrt_running -> off),
-      # sodass alle Beschattungen aus "offen" zurück in den Tag-Modus gehen.
+      # Der Reset triggert die Konvergenz (beschattung_messfahrt_running -> off),
+      # sodass alle Beschattungen zurück in den Tag-Modus gehen.
       - delay: "00:03:00"
+      # Die Abschluss-Bewegung als Auto-Befehl markieren, damit die
+      # Manuell-Erkennung die letzten Kalibrierfahrten nicht ankreidet.
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.beschattung_letzter_auto_befehl
+        data:
+          datetime: "{{ now().isoformat() }}"
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.beschattung_messfahrt_running

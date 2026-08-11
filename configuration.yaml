@@ -872,6 +872,60 @@ input_boolean:
     name: Badezimmer Privacy Mode Aktiv
   beschattung_messfahrt_running:
     name: Beschattung Messfahrt läuft
+  # Manuell erkannte Bedienung: setzt die Konvergenz-Automation automatisch,
+  # wenn eine Beschattung bewegt wird, ohne dass sie den Auftrag hatte.
+  # Gilt 1 Stunde (Terrasse 2 h), dann greift die Automation wieder ein.
+  # Manuell abschaltbar (Dashboard).
+  beschattung_manual_garderobe:
+    name: Manuell erkannt – Garderobe
+    icon: mdi:gesture-tap
+  beschattung_manual_abstellraum:
+    name: Manuell erkannt – Abstellraum
+    icon: mdi:gesture-tap
+  beschattung_manual_wc_eg:
+    name: Manuell erkannt – WC EG
+    icon: mdi:gesture-tap
+  beschattung_manual_kueche:
+    name: Manuell erkannt – Küche
+    icon: mdi:gesture-tap
+  beschattung_manual_esszimmer:
+    name: Manuell erkannt – Esszimmer
+    icon: mdi:gesture-tap
+  beschattung_manual_wohnzimmer:
+    name: Manuell erkannt – Wohnzimmer
+    icon: mdi:gesture-tap
+  beschattung_manual_terrasse:
+    name: Manuell erkannt – Terrasse
+    icon: mdi:gesture-tap
+  beschattung_manual_wc_og:
+    name: Manuell erkannt – WC OG
+    icon: mdi:gesture-tap
+  beschattung_manual_badezimmer:
+    name: Manuell erkannt – Badezimmer
+    icon: mdi:gesture-tap
+  beschattung_manual_gaestezimmer:
+    name: Manuell erkannt – Gästezimmer
+    icon: mdi:gesture-tap
+  beschattung_manual_buero:
+    name: Manuell erkannt – Büro
+    icon: mdi:gesture-tap
+  beschattung_manual_schlafzimmer:
+    name: Manuell erkannt – Schlafzimmer
+    icon: mdi:gesture-tap
+
+
+# ========================
+# INPUT DATETIME
+# ========================
+input_datetime:
+  # Zeitstempel des letzten Auto-Befehls der Beschattungs-Konvergenz
+  # (und der Privacy/Messfahrt-Automationen). Die Manuell-Erkennung
+  # vergleicht damit: Bewegt sich eine Beschattung, ohne dass vor kurzem
+  # ein Auto-Befehl erging, gilt das als manueller Eingriff.
+  beschattung_letzter_auto_befehl:
+    name: Beschattung letzter Auto-Befehl
+    has_date: true
+    has_time: true
 
 
 # ========================
