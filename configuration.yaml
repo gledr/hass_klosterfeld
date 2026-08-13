@@ -1036,26 +1036,32 @@ utility_meter:
     cycle: monthly
 
 #########################################################
-# HOMEKIT BRIDGE (YAML statt GUI-Config-Eintrag)
+# HOMEKIT BRIDGES (YAML statt GUI-Config-Eintrag)
 # -------------------------------------------------------
 # WICHTIG: Vorher den GUI-Konfig-Eintrag "HomeKit" löschen
 # (Einstellungen → Geräte & Dienste → HomeKit → ⋮ → Löschen),
-# sonst gibt es zwei Bridges. Danach HA neu starten, den neuen
-# Bridge neu koppeln (QR-Code) und die Räume EINMAL neu zuweisen.
+# sonst gibt es zwei Bridges. Danach HA neu starten, die Bridges
+# neu koppeln (QR-Codes) und die Räume EINMAL neu zuweisen.
 #
-# Filter: Eine HomeKit-Bridge ist auf max. 150 Accessories begrenzt.
-# Ohne Filter würde die Bridge >150 Geräte sehen (30 KNX-Lichter,
-# 12 Rollläden, 14 Schalter, 95 Sensoren, BTHome, Shelly, Altherma…)
-# und je nach Lade-Reihenfolge mal was rauswerfen → HomeKit legt
-# Geräte als 'neu' an und vergisst Raum-Zuordnungen.
+# Warum zwei Bridges: Eine HomeKit-Bridge ist auf max. 150
+# Accessories begrenzt. Das Haus hat aber deutlich mehr Geräte
+# (30 KNX-Lichter, Rollläden, Schalter, Altherma, Shelly, BTHome,
+# Medien, 95 Sensoren …). Ohne Aufteilung würde die Bridge je nach
+# Lade-Reihenfolge mal Geräte rauswerfen → HomeKit legt sie als
+# 'neu' an und vergisst Raum-Zuordnungen.
 #
-# Es werden nur die Steuer-Domains + Temperatur/Feuchte/Helligkeit/
-# Wind-Sensoren eingeschlossen. Strommessung (Leistung/Arbeit/Strom/
-# Spannung/Leistungsfaktor, Tag-/Nacht-Zähler, Shelly power/energy,
-# Energiemeter) bleibt außen vor.
+#   Bridge 1 (Hass Bridge):    Steuerung (Lichter, Rollläden,
+#                              Schalter, Klima, Schlösser, Medien)
+#   Bridge 2 (Hass Bridge 2):  Sensoren (Temp/Feuchte/Helligkeit/
+#                              Wind) + Binär-Sensoren (Fenster etc.)
+#
+# Strommessung (Leistung/Arbeit/Strom/Spannung/Leistungsfaktor,
+# Tag-/Nacht-Zähler, Shelly power/energy, Energiemeter) bleibt
+# komplett außen vor.
 #########################################################
 homekit:
   - name: "Hass Bridge"
+    port: 21063
     filter:
       include_domains:
         - light
@@ -1065,6 +1071,10 @@ homekit:
         - lock
         - fan
         - media_player
+  - name: "Hass Bridge 2"
+    port: 21064
+    filter:
+      include_domains:
         - binary_sensor
       include_entity_globs:
         - sensor.*_temperature
