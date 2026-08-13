@@ -1043,11 +1043,31 @@ utility_meter:
 # sonst gibt es zwei Bridges. Danach HA neu starten, den neuen
 # Bridge neu koppeln (QR-Code) und die Räume EINMAL neu zuweisen.
 #
-# Achtung: `auto_start` gibt es in modernen HA-Versionen nicht mehr
-# (2022 entfernt). Der Bridge startet automatisch — HA lädt alle
-# Entities beim Start sofort (als 'unavailable'), Accessories werden
-# deshalb nicht als 'neu' angelegt und die Raum-Zuordnung bleibt
-# in der Apple Home App erhalten.
+# Filter: Eine HomeKit-Bridge ist auf max. 150 Accessories begrenzt.
+# Ohne Filter würde die Bridge >150 Geräte sehen (30 KNX-Lichter,
+# 12 Rollläden, 14 Schalter, 95 Sensoren, BTHome, Shelly, Altherma…)
+# und je nach Lade-Reihenfolge mal was rauswerfen → HomeKit legt
+# Geräte als 'neu' an und vergisst Raum-Zuordnungen.
+#
+# Es werden nur die Steuer-Domains + Temperatur/Feuchte/Helligkeit/
+# Wind-Sensoren eingeschlossen. Strommessung (Leistung/Arbeit/Strom/
+# Spannung/Leistungsfaktor, Tag-/Nacht-Zähler, Shelly power/energy,
+# Energiemeter) bleibt außen vor.
 #########################################################
 homekit:
   - name: "Hass Bridge"
+    filter:
+      include_domains:
+        - light
+        - cover
+        - switch
+        - climate
+        - lock
+        - fan
+        - media_player
+        - binary_sensor
+      include_entity_globs:
+        - sensor.*_temperature
+        - sensor.*_humidity
+        - sensor.*helligkeit*
+        - sensor.wind_speed
