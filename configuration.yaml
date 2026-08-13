@@ -1061,7 +1061,7 @@ utility_meter:
 #########################################################
 homekit:
   - name: "Hass Bridge"
-    port: 21063
+    port: 21065
     filter:
       include_domains:
         - light
