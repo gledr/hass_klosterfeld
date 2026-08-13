@@ -80,7 +80,7 @@ views:
                 Schließt um {{ close.strftime('%H:%M') }}
               {% else %}
                 Geschlossen {{ close.strftime('%H:%M') }}
-              {% endif %}
+              {% endif %} (switch.twilight: {{ states('switch.twilight') }})
             icon: >
               {% if is_state('switch.twilight','on') %}mdi:weather-sunny-up{% else %}mdi:weather-night{% endif %}
             icon_color: >
