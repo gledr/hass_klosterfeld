@@ -1043,13 +1043,11 @@ utility_meter:
 # sonst gibt es zwei Bridges. Danach HA neu starten, den neuen
 # Bridge neu koppeln (QR-Code) und die Räume EINMAL neu zuweisen.
 #
-# auto_start: false → der Bridge startet erst, wenn die Automation
-# "HomeKit – Bridge starten nach Geräte-Load" (automations.yaml)
-# alle relevanten Entities als geladen sieht. Verhindert das
-# HomeKit-Problem, dass Geräte, die beim HA-Start noch nicht
-# verfügbar sind, als neue Accessories angelegt werden und dadurch
-# ihre Raum-Zuordnung in der Apple Home App verlieren.
+# Achtung: `auto_start` gibt es in modernen HA-Versionen nicht mehr
+# (2022 entfernt). Der Bridge startet automatisch — HA lädt alle
+# Entities beim Start sofort (als 'unavailable'), Accessories werden
+# deshalb nicht als 'neu' angelegt und die Raum-Zuordnung bleibt
+# in der Apple Home App erhalten.
 #########################################################
 homekit:
   - name: "Hass Bridge"
-    auto_start: false
