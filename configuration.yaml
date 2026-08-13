@@ -1034,3 +1034,22 @@ utility_meter:
   energie_bezug_monat:
     source: sensor.arbeit_bezug_gesamt
     cycle: monthly
+
+#########################################################
+# HOMEKIT BRIDGE (YAML statt GUI-Config-Eintrag)
+# -------------------------------------------------------
+# WICHTIG: Vorher den GUI-Konfig-Eintrag "HomeKit" löschen
+# (Einstellungen → Geräte & Dienste → HomeKit → ⋮ → Löschen),
+# sonst gibt es zwei Bridges. Danach HA neu starten, den neuen
+# Bridge neu koppeln (QR-Code) und die Räume EINMAL neu zuweisen.
+#
+# auto_start: false → der Bridge startet erst, wenn die Automation
+# "HomeKit – Bridge starten nach Geräte-Load" (automations.yaml)
+# alle relevanten Entities als geladen sieht. Verhindert das
+# HomeKit-Problem, dass Geräte, die beim HA-Start noch nicht
+# verfügbar sind, als neue Accessories angelegt werden und dadurch
+# ihre Raum-Zuordnung in der Apple Home App verlieren.
+#########################################################
+homekit:
+  - name: "Hass Bridge"
+    auto_start: false
