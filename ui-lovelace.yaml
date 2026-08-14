@@ -49,8 +49,13 @@ views:
                   state: "on"
                 - entity_id: binary_sensor.*door*
                   state: "on"
+                - entity_id: lock.haustur
+                  state: "unlocked"
               exclude:
                 - entity_id: binary_sensor.garage_door_garage_door_light
+                # Shelly-Blu-Kontakte matchen "window" UND "door" → sonst
+                # erscheinen sie doppelt (Büro-Fenster etc.)
+                - entity_id: binary_sensor.shelly_blu_door_window_*
             show_empty: false
 
           # Windalarm aktiv
