@@ -336,8 +336,9 @@ views:
             content: >
               Hier aufgeführt, wenn die Automation eine Hand-Bedienung erkannt
               hat. Solange aktiv, fasst die Automation den Raum nicht mehr an
-              (1 Stunde; Terrasse 2 Stunden). Ist der Terrassen-Raffstore
-              komplett offen, fährt die Automation gar nichts.
+              (1 Stunde; Terrasse 2 Stunden) und wird danach automatisch
+              gelöscht. Ist der Terrassen-Raffstore komplett offen, bleibt die
+              Sperre aktiv (man ist evtl. draußen).
 
           - type: grid
             columns: 2
