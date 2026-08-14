@@ -113,6 +113,8 @@ views:
                 name: Schlafzimmer
               - entity: binary_sensor.bthome_sensor_fb9c_fenster
                 name: Terrassentür
+              - entity: lock.haustur
+                name: Haustür
 
           # Garagentor
           - type: entities
