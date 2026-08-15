@@ -351,7 +351,7 @@
                     - light.licht_spuele_kueche
                     - light.licht_vitrine_kueche
                     - light.esszimmer_licht
-                    - light.livingroom_main_light
+                    - light.livingroom_main_light_2
                     - light.livingroom_reading_light
           # Dunkel geworden → aktuellen Modus ausführen
           - conditions:
@@ -456,7 +456,7 @@
                 - light.licht_spuele_kueche
                 - light.licht_vitrine_kueche
                 - light.esszimmer_licht
-                - light.livingroom_main_light
+                - light.livingroom_main_light_2
                 - light.livingroom_reading_light
   - alias: Keller Luftfeuchte Warnungen
     description: Mehrstufige Warnungen bei erhöhter Keller-Luftfeuchte
@@ -495,7 +495,7 @@
         - condition: template
           value_template: '{{ feuchte >= 60 and feuchte < 65 }}'
         sequence:
-        - service: notify.mobile_app_iphone_von_sebastian
+        - service: notify.iphone_von_sebastian
           data:
             title: Keller – Hinweis
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
@@ -506,7 +506,7 @@
         - condition: template
           value_template: '{{ feuchte >= 65 and feuchte < 70 }}'
         sequence:
-        - service: notify.mobile_app_iphone_von_sebastian
+        - service: notify.iphone_von_sebastian
           data:
             title: Keller – Warnung
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 3 Stunden über
@@ -517,7 +517,7 @@
         - condition: template
           value_template: '{{ feuchte >= 70 }}'
         sequence:
-        - service: notify.mobile_app_iphone_von_sebastian
+        - service: notify.iphone_von_sebastian
           data:
             title: Keller – ALARM
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
@@ -1210,6 +1210,18 @@
             state: "on"
         then:
           - stop: Messfahrt läuft
+      # Start-Lauf: Auto-Befehl einmal stempeln. KNX synct nach dem Neustart
+      # alle Positionen neu → die Manual-Erkennung würde sie sonst als
+      # Hand-Bedienung flaggen (seit > 180 gilt nur für gefahrene Räume).
+      - if:
+          - condition: template
+            value_template: "{{ trigger.platform == 'homeassistant' }}"
+        then:
+          - service: input_datetime.set_datetime
+            target:
+              entity_id: input_datetime.beschattung_letzter_auto_befehl
+            data:
+              datetime: "{{ now().isoformat() }}"
       - variables:
           rooms:
             # Raffstore: immer unten (Position 0), nur Lamellen ändern sich
@@ -1449,7 +1461,7 @@
                           {% else %}
                             Rollo auf {{ target_pos }} % gefahren (war {{ cur_pos }} %). Sonne trifft {{ {'nord':'Nord','sued':'Süd','west':'West'}[dir] }}.
                           {% endif %}
-                    - service: notify.mobile_app_iphone_von_sebastian
+                    - service: notify.iphone_von_sebastian
                       data:
                         title: "{{ room_name }} – Hitzeschutz aktiv"
                         message: "{{ msg }}"
@@ -1651,13 +1663,25 @@
     alias: "Terrassentür – Öffnung stoppt laufende Raffstore-Fahrt"
     description: >
       Notbremse: wird die Tür geöffnet während der Raffstore gerade fährt, wird
-      die Fahrt sofort gestoppt. stop_cover auf einen stehenden Raffstore ist
-      ein No-Op, deshalb ohne Zustandsprüfung (KNX-State ist unzuverlässig).
+      die Fahrt sofort gestoppt — ABER nur, wenn die Fahrt von der Automation
+      stammt (letzter Auto-Befehl < 3 Min). Manuelle Fahrten per KNX-Taster
+      (Tür aufmachen während der Raffstore hoch-/runterfährt) werden nicht
+      mehr gestoppt. stop_cover auf einen stehenden Raffstore ist ein No-Op,
+      deshalb ohne Zustandsprüfung (KNX-State ist unzuverlässig).
     mode: single
     trigger:
       - platform: state
         entity_id: binary_sensor.bthome_sensor_fb9c_fenster
         to: "on"
+    condition:
+      # Nur Auto-Fahrten stoppen: die Konvergenz stempelt jeden eigenen
+      # Befehl in input_datetime.beschattung_letzter_auto_befehl (gleiche
+      # Heuristik wie die Manuell-Erkennung, seit > 180 = manuell).
+      - condition: template
+        value_template: >
+          {% set last = state_attr('input_datetime.beschattung_letzter_auto_befehl', 'timestamp') %}
+          {% set seit = (now().timestamp() - last) if last is not none else 99999 %}
+          {{ seit <= 180 }}
     action:
       - service: cover.stop_cover
         target:
@@ -1712,7 +1736,7 @@
       - service: input_boolean.turn_on
         target:
           entity_id: input_boolean.beschattung_messfahrt_running
-      - service: notify.mobile_app_iphone_von_sebastian
+      - service: notify.iphone_von_sebastian
         data:
           title: Beschattung – Messfahrt
           message: "KNX-Messfahrt aller Raffstores/Rollos startet jetzt (~40 s)."

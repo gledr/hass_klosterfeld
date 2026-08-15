@@ -374,19 +374,19 @@ notify_smoke_alarm:
       example: Hobbyraum Keller
 
   sequence:
-    - service: notify.mobile_app_ipad_von_sebastian
+    - service: notify.ipad_von_sebastian
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
-    - service: notify.mobile_app_iphone_von_sebastian
+    - service: notify.iphone_von_sebastian
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
-    - service: notify.mobile_app_macbook_von_sebastian
+    - service: notify.macbook_von_sebastian
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
-    - service: notify.mobile_app_sebastians_company_macbook_pro
+    - service: notify.sebastians_company_macbook_pro
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
@@ -407,19 +407,19 @@ notify_wind_alarm:
       example: aktiviert
 
   sequence:
-    - service: notify.mobile_app_ipad_von_sebastian
+    - service: notify.ipad_von_sebastian
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
-    - service: notify.mobile_app_iphone_von_sebastian
+    - service: notify.iphone_von_sebastian
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
-    - service: notify.mobile_app_macbook_von_sebastian
+    - service: notify.macbook_von_sebastian
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
-    - service: notify.mobile_app_sebastians_company_macbook_pro
+    - service: notify.sebastians_company_macbook_pro
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
@@ -438,16 +438,16 @@ notify_garage_offen:
       example: "🚗 Garagentor ist um 21 Uhr noch offen!"
 
   sequence:
-    - service: notify.mobile_app_ipad_von_sebastian
+    - service: notify.ipad_von_sebastian
       data:
         message: "{{ message }}"
-    - service: notify.mobile_app_iphone_von_sebastian
+    - service: notify.iphone_von_sebastian
       data:
         message: "{{ message }}"
-    - service: notify.mobile_app_macbook_von_sebastian
+    - service: notify.macbook_von_sebastian
       data:
         message: "{{ message }}"
-    - service: notify.mobile_app_sebastians_company_macbook_pro
+    - service: notify.sebastians_company_macbook_pro
       data:
         message: "{{ message }}"
 
