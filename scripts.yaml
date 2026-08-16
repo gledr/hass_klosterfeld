@@ -70,6 +70,41 @@ wohnkueche_lichtmodus_ausfuehren:
 
 
 #########################################################
+# LICHTMODUS SETZEN + SOFORT AUSFÜHREN (Manuell, z. B. Dashboard-Taster)
+# Ein einziger Service-Call: setzt input_select.wohnkueche_lichtmodus
+# und ruft dann den Dispatcher auf. Vermeidet Mehrfach-Service-Actions
+# im Dashboard (die sonst z. T. ignoriert werden).
+#########################################################
+wohnkueche_lichtszene_aktivieren:
+  alias: Wohnküche – Lichtszene aktivieren
+  mode: restart
+  fields:
+    scene:
+      description: Zu aktivierender Lichtmodus
+      example: fruehstueck
+      required: true
+      selector:
+        select:
+          options:
+            - fruehstueck
+            - werktag_abend_aktiv
+            - werktag_relax
+            - spaetabend
+            - nacht
+            - wochenende_tag
+            - wochenende_nachmittag
+            - wochenende_abend
+            - alles_aus
+  sequence:
+    - service: input_select.select_option
+      target:
+        entity_id: input_select.wohnkueche_lichtmodus
+      data:
+        option: "{{ scene }}"
+    - service: script.wohnkueche_lichtmodus_ausfuehren
+
+
+#########################################################
 # WERKTAG – FRÜHSTÜCK (06:00–08:00)
 #########################################################
 wohnkueche_fruehstueck:
