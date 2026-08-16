@@ -56,6 +56,168 @@ views:
                 name: Helligkeit Süd (aktuell)
 
       ###########################################################################
+      # WOHNKÜCHE – LICHTSZENEN                                                  #
+      # Manueller Modus-Wechsel: setzt input_select.wohnkueche_lichtmodus und     #
+      # führt ihn sofort aus (Dispatcher-Script, egal ob Präsenz/dunkel).         #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Wohnküche – Lichtszenen
+            icon: mdi:lightbulb-multiple
+
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:lightbulb-group
+                content: >
+                  {% set names = {
+                    'fruehstueck': 'Frühstück',
+                    'werktag_abend_aktiv': 'Abend aktiv',
+                    'werktag_relax': 'Relax',
+                    'spaetabend': 'Spätabend',
+                    'nacht': 'Nacht',
+                    'wochenende_tag': 'Tag (WE)',
+                    'wochenende_nachmittag': 'Nachmittag (WE)',
+                    'wochenende_abend': 'Abend (WE)',
+                    'alles_aus': 'Alles aus'
+                  } %}
+                  {% set m = states('input_select.wohnkueche_lichtmodus') %}
+                  Modus: {{ names.get(m, m) }}
+
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Frühstück
+                icon: mdi:coffee
+                icon_color: amber
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: fruehstueck
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Abend aktiv
+                icon: mdi:silverware-fork-knife
+                icon_color: orange
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: werktag_abend_aktiv
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Relax
+                icon: mdi:sofa
+                icon_color: deep-orange
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: werktag_relax
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Tag (WE)
+                icon: mdi:white-balance-sunny
+                icon_color: green
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: wochenende_tag
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Nachmittag (WE)
+                icon: mdi:weather-partly-cloudy
+                icon_color: teal
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: wochenende_nachmittag
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Abend (WE)
+                icon: mdi:weather-sunset
+                icon_color: orange
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: wochenende_abend
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Spätabend
+                icon: mdi:weather-night
+                icon_color: indigo
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: spaetabend
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Nacht
+                icon: mdi:bed
+                icon_color: deep-purple
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: nacht
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+              - type: custom:mushroom-template-card
+                primary: Alles aus
+                icon: mdi:lightbulb-off
+                icon_color: grey
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service:
+                    - service: input_select.select_option
+                      target:
+                        entity_id: input_select.wohnkueche_lichtmodus
+                      data:
+                        option: alles_aus
+                    - service: script.wohnkueche_lichtmodus_ausfuehren
+
+      ###########################################################################
       # KÜCHE                                                                   #
       ###########################################################################
       - type: grid
