@@ -410,18 +410,22 @@ notify_smoke_alarm:
 
   sequence:
     - service: notify.ipad_von_sebastian
+      continue_on_error: true
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
     - service: notify.iphone_von_sebastian
+      continue_on_error: true
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
     - service: notify.macbook_von_sebastian
+      continue_on_error: true
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
     - service: notify.sebastians_company_macbook_pro
+      continue_on_error: true
       data:
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
@@ -443,18 +447,22 @@ notify_wind_alarm:
 
   sequence:
     - service: notify.ipad_von_sebastian
+      continue_on_error: true
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
     - service: notify.iphone_von_sebastian
+      continue_on_error: true
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
     - service: notify.macbook_von_sebastian
+      continue_on_error: true
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
     - service: notify.sebastians_company_macbook_pro
+      continue_on_error: true
       data:
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
@@ -474,15 +482,19 @@ notify_garage_offen:
 
   sequence:
     - service: notify.ipad_von_sebastian
+      continue_on_error: true
       data:
         message: "{{ message }}"
     - service: notify.iphone_von_sebastian
+      continue_on_error: true
       data:
         message: "{{ message }}"
     - service: notify.macbook_von_sebastian
+      continue_on_error: true
       data:
         message: "{{ message }}"
     - service: notify.sebastians_company_macbook_pro
+      continue_on_error: true
       data:
         message: "{{ message }}"
 

@@ -742,8 +742,6 @@ knx:
       address: "4/2/78"
     - name: "Messfahrt Rollo Büro"
       address: "4/2/98"
-    - name: "Twilight"
-      address: "8/4/0"
 
   button:
     - name: "Gallerie Deckenlicht Mess-Reset"
@@ -782,6 +780,8 @@ knx:
   # ========================
   binary_sensor:
     # Bewegungsmelder / Präsenz / Locks / Twilight
+    - name: "Twilight"
+      state_address: "8/4/0"
     - name: "Bewegungsmelder Galerie OG"
       state_address: "5/3/0"
       device_class: motion

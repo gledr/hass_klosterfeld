@@ -496,6 +496,7 @@
           value_template: '{{ feuchte >= 60 and feuchte < 65 }}'
         sequence:
         - service: notify.iphone_von_sebastian
+          continue_on_error: true
           data:
             title: Keller – Hinweis
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
@@ -507,6 +508,7 @@
           value_template: '{{ feuchte >= 65 and feuchte < 70 }}'
         sequence:
         - service: notify.iphone_von_sebastian
+          continue_on_error: true
           data:
             title: Keller – Warnung
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 3 Stunden über
@@ -518,6 +520,7 @@
           value_template: '{{ feuchte >= 70 }}'
         sequence:
         - service: notify.iphone_von_sebastian
+          continue_on_error: true
           data:
             title: Keller – ALARM
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
@@ -1164,7 +1167,7 @@
         minutes: "/15"
       # Dämmerung (Morgen/Abend) — klärt auch manuelle Sperren
       - platform: state
-        entity_id: switch.twilight
+        entity_id: binary_sensor.twilight
       # Sonne auf Fassade (Hitze-Episoden)
       - platform: state
         entity_id:
@@ -1186,7 +1189,7 @@
       # Manuelle Sperren beim Tag/Nacht-Wechsel löschen
       - if:
           - condition: template
-            value_template: "{{ trigger.platform == 'state' and trigger.entity_id == 'switch.twilight' }}"
+            value_template: "{{ trigger.platform == 'state' and trigger.entity_id == 'binary_sensor.twilight' }}"
         then:
           - service: input_boolean.turn_off
             target:
@@ -1337,7 +1340,7 @@
                 manual: "{{ is_state(repeat.item.manual, 'on') }}"
                 fenster_offen: "{{ repeat.item.get('fenster') is not none and is_state(repeat.item.get('fenster'), 'on') }}"
                 wind: "{{ is_state('binary_sensor.windalarm_schwelle_1', 'on') }}"
-                twilight_on: "{{ is_state('switch.twilight', 'on') }}"
+                twilight_on: "{{ is_state('binary_sensor.twilight', 'on') }}"
                 sun: "{{ dir is not none and is_state('binary_sensor.sonne_trifft_' ~ dir, 'on') }}"
                 privacy_active: "{{ is_state('input_boolean.badezimmer_privacy_active', 'on') }}"
                 tuer_offen: "{{ is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') }}"
@@ -1346,7 +1349,7 @@
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
                 # 30 Min nach Dämmerungs-Ende → Nacht
-                nacht: "{{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
+                nacht: "{{ not twilight_on and (now() - states.binary_sensor.twilight.last_changed).total_seconds() >= 1800 }}"
                 # Offenes Fenster blockt nur nachts (lüften) — Hitzeschutz
                 # und Tag fahren trotzdem. Terrasse: kein fenster, läuft über aussperr.
                 fenster_blockt: "{{ fenster_offen and nacht }}"
@@ -1462,6 +1465,7 @@
                             Rollo auf {{ target_pos }} % gefahren (war {{ cur_pos }} %). Sonne trifft {{ {'nord':'Nord','sued':'Süd','west':'West'}[dir] }}.
                           {% endif %}
                     - service: notify.iphone_von_sebastian
+                      continue_on_error: true
                       data:
                         title: "{{ room_name }} – Hitzeschutz aktiv"
                         message: "{{ msg }}"
@@ -1550,16 +1554,16 @@
     alias: "Beschattung – Manuelle Sperren beim Tag/Nacht-Wechsel zurücksetzen"
     description: >
       Löscht alle manuell erkannten Sperren bei jedem Wechsel von Tag auf
-      Nacht (switch.twilight). Sicherheitsnetz: falls die Konvergenz den
+      Nacht (binary_sensor.twilight). Sicherheitsnetz: falls die Konvergenz den
       Wechsel verpasst, sind die Sperren (Standard 1 h, Terrasse 2 h)
       spätestens dann weg.
     mode: single
     trigger:
       - platform: state
-        entity_id: switch.twilight
+        entity_id: binary_sensor.twilight
         to: "on"
       - platform: state
-        entity_id: switch.twilight
+        entity_id: binary_sensor.twilight
         to: "off"
     action:
       - service: input_boolean.turn_off
@@ -1737,6 +1741,7 @@
         target:
           entity_id: input_boolean.beschattung_messfahrt_running
       - service: notify.iphone_von_sebastian
+        continue_on_error: true
         data:
           title: Beschattung – Messfahrt
           message: "KNX-Messfahrt aller Raffstores/Rollos startet jetzt (~40 s)."
