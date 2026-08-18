@@ -1201,10 +1201,13 @@
       # Templates mit now() rendert HA minütlich neu → Genauigkeit ≤ 1 Min.
       - platform: template
         value_template: >-
-          {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
-          {% set stamp = states('input_datetime.beschattung_daemmerung_ende') | as_datetime %}
-          {{ is_state('switch.twilight', 'off') and stamp is not none
-             and now() >= (stamp | as_local + timedelta(minutes=delay)) }}
+          {% set raw = states('input_datetime.beschattung_daemmerung_ende') %}
+          {% if raw in ['unknown', 'unavailable', ''] or not is_state('switch.twilight', 'off') %}
+            false
+          {% else %}
+            {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
+            {{ now() >= (raw | as_datetime | as_local + timedelta(minutes=delay)) }}
+          {% endif %}
     action:
       # Manuelle Sperren beim Tag/Nacht-Wechsel löschen
       - if:
