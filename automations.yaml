@@ -1191,6 +1191,10 @@
       # Terrassentür bewegt → Terrasse neu bewerten
       - platform: state
         entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+      # Nacht-Verzögerung verstellt → sofort neu bewerten (statt bis zum
+      # nächsten /15-Lauf zu warten)
+      - platform: state
+        entity_id: input_number.beschattung_nacht_verzoegerung
     action:
       # Manuelle Sperren beim Tag/Nacht-Wechsel löschen
       - if:
@@ -1358,8 +1362,11 @@
             - variables:
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
-                # 30 Min nach Dämmerungs-Ende → Nacht
-                nacht: "{{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
+                # Nacht erst nach der eingestellten Verzögerung
+                # (input_number.beschattung_nacht_verzoegerung, Minuten).
+                nacht: >-
+                  {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) * 60 %}
+                  {{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= delay }}
                 # Offenes Fenster blockt nur nachts (lüften) — Hitzeschutz
                 # und Tag fahren trotzdem. Terrasse: kein fenster, läuft über aussperr.
                 fenster_blockt: "{{ fenster_offen and nacht }}"

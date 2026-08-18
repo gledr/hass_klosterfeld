@@ -73,7 +73,8 @@ views:
               {% if is_state('switch.twilight','on') %}Tag{% else %}Nacht{% endif %}
             secondary: >
               {% set t = states.switch.twilight.last_changed %}
-              {% set close = t + timedelta(minutes=30) %}
+              {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
+              {% set close = t + timedelta(minutes=delay) %}
               {% if is_state('switch.twilight','on') %}
                 Tag seit {{ t.strftime('%H:%M') }}
               {% elif now() < close %}
@@ -173,6 +174,17 @@ views:
               - entity: input_number.beschattung_lux_sud
               - entity: input_number.beschattung_lux_west
               - entity: input_number.beschattung_lux_nord
+
+          - type: entities
+            title: Nacht-Verzögerung
+            entities:
+              - entity: input_number.beschattung_nacht_verzoegerung
+                name: Schließen nach Dämmerung
+          - type: markdown
+            content: >
+              Wartezeit nach Dämmerungs-Ende, bis alles zufährt. 0 = sofort.
+              Die Konvergenz läuft alle 15 Min — der tatsächliche
+              Schließzeitpunkt kann also bis zu 15 Min später liegen.
 
 
       ###########################################################################

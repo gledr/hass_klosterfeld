@@ -1023,6 +1023,18 @@ input_number:
     step: 1000
     initial: 15000
     unit_of_measurement: "lx"
+  # Wartezeit nach Dämmerungs-Ende (switch.twilight → off), bis die
+  # Konvergenz auf Nacht schaltet und alles zufährt. 0 = sofort.
+  # Achtung: die Konvergenz läuft alle 15 Min, d.h. der tatsächliche
+  # Schließzeitpunkt liegt bis zu 15 Min nach der eingestellten Zeit.
+  beschattung_nacht_verzoegerung:
+    name: Beschattung Nacht-Verzögerung nach Dämmerung
+    min: 0
+    max: 120
+    step: 5
+    initial: 30
+    unit_of_measurement: "min"
+    icon: mdi:weather-night
 
 utility_meter:
   energie_bezug_tag:
