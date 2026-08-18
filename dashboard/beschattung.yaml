@@ -74,7 +74,8 @@ views:
             secondary: >
               {% set t = states.switch.twilight.last_changed %}
               {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
-              {% set close = t + timedelta(minutes=delay) %}
+              {% set stamp = states('input_datetime.beschattung_daemmerung_ende') | as_datetime | as_local %}
+              {% set close = (stamp if stamp else t) + timedelta(minutes=delay) %}
               {% if is_state('switch.twilight','on') %}
                 Tag seit {{ t.strftime('%H:%M') }}
               {% elif now() < close %}
@@ -182,9 +183,9 @@ views:
                 name: Schließen nach Dämmerung
           - type: markdown
             content: >
-              Wartezeit nach Dämmerungs-Ende, bis alles zufährt. 0 = sofort.
-              Die Konvergenz läuft alle 15 Min — der tatsächliche
-              Schließzeitpunkt kann also bis zu 15 Min später liegen.
+              Wartezeit nach Dämmerungs-Ende, bis alles zufährt. 0 = sofort
+              mit der Dämmerungs-Flanke, sonst auf die Minute genau danach.
+              Aufgefahren wird unabhängig davon immer sofort bei Tagesbeginn.
 
 
       ###########################################################################

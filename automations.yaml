@@ -1195,6 +1195,16 @@
       # nächsten /15-Lauf zu warten)
       - platform: state
         entity_id: input_number.beschattung_nacht_verzoegerung
+      # Nacht-Verzögerung abgelaufen → jetzt zufahren. Ohne diesen Trigger
+      # würde der Schließ-Zeitpunkt auf das /15-Raster gerundet, denn die
+      # Dämmerungs-Flanke liegt zu diesem Zeitpunkt schon Minuten zurück.
+      # Templates mit now() rendert HA minütlich neu → Genauigkeit ≤ 1 Min.
+      - platform: template
+        value_template: >-
+          {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
+          {% set stamp = states('input_datetime.beschattung_daemmerung_ende') | as_datetime %}
+          {{ is_state('switch.twilight', 'off') and stamp is not none
+             and now() >= (stamp | as_local + timedelta(minutes=delay)) }}
     action:
       # Manuelle Sperren beim Tag/Nacht-Wechsel löschen
       - if:
@@ -1363,10 +1373,15 @@
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
                 # Nacht erst nach der eingestellten Verzögerung
-                # (input_number.beschattung_nacht_verzoegerung, Minuten).
+                # (input_number.beschattung_nacht_verzoegerung, Minuten) ab dem
+                # gestempelten Dämmerungs-Ende. Kein Stempel vorhanden (erster
+                # Start) → sofort Nacht, das ist die sichere Seite.
                 nacht: >-
                   {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) * 60 %}
-                  {{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= delay }}
+                  {% set stamp = states('input_datetime.beschattung_daemmerung_ende') %}
+                  {% set seit = (now() - stamp | as_datetime | as_local).total_seconds()
+                                if stamp not in ['unknown', 'unavailable', ''] else delay %}
+                  {{ not twilight_on and seit >= delay }}
                 # Offenes Fenster blockt nur nachts (lüften) — Hitzeschutz
                 # und Tag fahren trotzdem. Terrasse: kein fenster, läuft über aussperr.
                 fenster_blockt: "{{ fenster_offen and nacht }}"
@@ -1559,6 +1574,31 @@
               'cover.bedroom_shutter':  'input_boolean.beschattung_manual_schlafzimmer'
             }[trigger.entity_id] %}
             {{ m }}
+
+  # ----------------------------------------------------------
+  # DÄMMERUNGS-ENDE STEMPELN
+  # Basis für die Nacht-Verzögerung (input_number.beschattung_nacht_
+  # verzoegerung). Eigene, kurze Automation, damit der Stempel auch dann
+  # sicher gesetzt wird, wenn die Konvergenz (mode: single) gerade läuft.
+  # ----------------------------------------------------------
+  - id: beschattung_daemmerung_ende_stempel
+    alias: "Beschattung – Dämmerungs-Ende stempeln"
+    description: >
+      Schreibt den Zeitpunkt des Dämmerungs-Endes nach
+      input_datetime.beschattung_daemmerung_ende. Die Konvergenz rechnet die
+      Nacht-Verzögerung ab diesem Stempel — nicht ab switch.twilight.
+      last_changed, weil das bei jedem HA-Neustart auf "jetzt" springt.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: switch.twilight
+        to: "off"
+    action:
+      - service: input_datetime.set_datetime
+        target:
+          entity_id: input_datetime.beschattung_daemmerung_ende
+        data:
+          datetime: "{{ now().isoformat() }}"
 
   # ----------------------------------------------------------
   # MANUELLE SPERREN BEIM TAG/NACHT-WECHSEL LÖSCHEN

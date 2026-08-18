@@ -928,6 +928,15 @@ input_datetime:
     name: Beschattung letzter Auto-Befehl
     has_date: true
     has_time: true
+  # Zeitpunkt des letzten Dämmerungs-Endes (switch.twilight → off).
+  # Basis für die Nacht-Verzögerung. Bewusst ein input_datetime und nicht
+  # switch.twilight.last_changed: letzteres wird bei jedem HA-Neustart auf
+  # "jetzt" gesetzt — ein Neustart um 3 Uhr nachts hätte sonst wie ein
+  # frisches Dämmerungs-Ende gewirkt und alles aufgefahren.
+  beschattung_daemmerung_ende:
+    name: Beschattung letztes Dämmerungs-Ende
+    has_date: true
+    has_time: true
 
 
 # ========================
