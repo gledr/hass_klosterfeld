@@ -1165,12 +1165,15 @@
         event: start
       - platform: time_pattern
         minutes: "/15"
-      # Dämmerung (Morgen/Abend) — klärt auch manuelle Sperren
-      - platform: state
-        entity_id: binary_sensor.twilight
-      # Switch Twilight für manuelles Testen
+      # Dämmerung (Morgen/Abend) — klärt auch manuelle Sperren.
+      # WICHTIG: switch.twilight ist die Quelle der Wahrheit (siehe unten,
+      # Variable twilight_on) — er hört auf 8/4/0 mit und lässt sich zum
+      # Testen umschalten. binary_sensor.twilight liegt auf derselben GA und
+      # dient nur als zusätzlicher Trigger (Sicherheitsnetz).
       - platform: state
         entity_id: switch.twilight
+      - platform: state
+        entity_id: binary_sensor.twilight
       # Sonne auf Fassade (Hitze-Episoden)
       - platform: state
         entity_id:
@@ -1343,7 +1346,11 @@
                 manual: "{{ is_state(repeat.item.manual, 'on') }}"
                 fenster_offen: "{{ repeat.item.get('fenster') is not none and is_state(repeat.item.get('fenster'), 'on') }}"
                 wind: "{{ is_state('binary_sensor.windalarm_schwelle_1', 'on') }}"
-                twilight_on: "{{ is_state('binary_sensor.twilight', 'on') }}"
+                # Quelle der Wahrheit für Tag/Nacht: switch.twilight (KNX 8/4/0).
+                # Nicht auf binary_sensor.twilight umstellen — der ist nicht
+                # schaltbar, d.h. ein Test über den Switch würde hier nicht
+                # ankommen und der Lauf landete im Nacht-Zweig.
+                twilight_on: "{{ is_state('switch.twilight', 'on') }}"
                 sun: "{{ dir is not none and is_state('binary_sensor.sonne_trifft_' ~ dir, 'on') }}"
                 privacy_active: "{{ is_state('input_boolean.badezimmer_privacy_active', 'on') }}"
                 tuer_offen: "{{ is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') }}"
@@ -1352,7 +1359,7 @@
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
                 # 30 Min nach Dämmerungs-Ende → Nacht
-                nacht: "{{ not twilight_on and (now() - states.binary_sensor.twilight.last_changed).total_seconds() >= 1800 }}"
+                nacht: "{{ not twilight_on and (now() - states.switch.twilight.last_changed).total_seconds() >= 1800 }}"
                 # Offenes Fenster blockt nur nachts (lüften) — Hitzeschutz
                 # und Tag fahren trotzdem. Terrasse: kein fenster, läuft über aussperr.
                 fenster_blockt: "{{ fenster_offen and nacht }}"
@@ -1557,7 +1564,7 @@
     alias: "Beschattung – Manuelle Sperren beim Tag/Nacht-Wechsel zurücksetzen"
     description: >
       Löscht alle manuell erkannten Sperren bei jedem Wechsel von Tag auf
-      Nacht (binary_sensor.twilight). Sicherheitsnetz: falls die Konvergenz den
+      Nacht (switch.twilight). Sicherheitsnetz: falls die Konvergenz den
       Wechsel verpasst, sind die Sperren (Standard 1 h, Terrasse 2 h)
       spätestens dann weg.
     mode: single
