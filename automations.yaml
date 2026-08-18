@@ -1168,6 +1168,9 @@
       # Dämmerung (Morgen/Abend) — klärt auch manuelle Sperren
       - platform: state
         entity_id: binary_sensor.twilight
+      # Switch Twilight für manuelles Testen
+      - platform: state
+        entity_id: switch.twilight
       # Sonne auf Fassade (Hitze-Episoden)
       - platform: state
         entity_id:
@@ -1189,7 +1192,7 @@
       # Manuelle Sperren beim Tag/Nacht-Wechsel löschen
       - if:
           - condition: template
-            value_template: "{{ trigger.platform == 'state' and trigger.entity_id == 'binary_sensor.twilight' }}"
+            value_template: "{{ trigger.platform == 'state' and trigger.entity_id in ['binary_sensor.twilight', 'switch.twilight'] }}"
         then:
           - service: input_boolean.turn_off
             target:
@@ -1564,6 +1567,12 @@
         to: "on"
       - platform: state
         entity_id: binary_sensor.twilight
+        to: "off"
+      - platform: state
+        entity_id: switch.twilight
+        to: "on"
+      - platform: state
+        entity_id: switch.twilight
         to: "off"
     action:
       - service: input_boolean.turn_off

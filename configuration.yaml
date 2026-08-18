@@ -742,6 +742,8 @@ knx:
       address: "4/2/78"
     - name: "Messfahrt Rollo Büro"
       address: "4/2/98"
+    - name: "Twilight"
+      address: "8/4/0"
 
   button:
     - name: "Gallerie Deckenlicht Mess-Reset"
