@@ -1229,6 +1229,14 @@
                 - input_boolean.beschattung_manual_gaestezimmer
                 - input_boolean.beschattung_manual_buero
                 - input_boolean.beschattung_manual_schlafzimmer
+      # Nach Neustart: Reste einer vorherigen Messfahrt aufräumen
+      - if:
+          - condition: template
+            value_template: "{{ trigger.platform == 'homeassistant' }}"
+        then:
+          - service: input_boolean.turn_off
+            target:
+              entity_id: input_boolean.beschattung_messfahrt_running
       # Während der Messfahrt nicht eingreifen (KNX kalibriert)
       - if:
           - condition: state
