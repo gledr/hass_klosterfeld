@@ -1,0 +1,261 @@
+###############################################################################
+# KELLER                                                                       #
+#                                                                              #
+# Vorher gab es für das Kellergeschoss überhaupt keine Steuer-Ansicht: Klima    #
+# und Lüften zeigten Messwerte, aber die sechs KNX-Kellerlichter (1/1/0 …       #
+# 1/1/50) waren über kein Dashboard erreichbar.                                #
+#                                                                              #
+# Die Licht-Karte discovert per Muster statt per hartem entity_id: die          #
+# tatsächlichen IDs stehen nicht fest (YAML-Rename ändert nur den              #
+# friendly_name, nicht die entity_id — sichtbar an sensor.basement_hallway_     #
+# temperture, das den alten Tippfehler konserviert hat). show_empty: false      #
+# heißt: was nicht existiert, erzeugt auch keine kaputte Kachel.                #
+# Sobald die IDs bestätigt sind, kann das gegen mushroom-light-cards getauscht  #
+# werden.                                                                      #
+###############################################################################
+title: Keller
+views:
+  - title: Keller
+    path: home
+    icon: mdi:home-floor-b
+    type: sections
+    max_columns: 3
+
+    badges:
+      - type: entity
+        entity: sensor.taupunkt_aussen
+        name: Taupunkt außen
+      - type: entity
+        entity: sensor.outdoor_temperature
+        name: Außen
+
+    sections:
+
+      ###########################################################################
+      # LICHT                                                                   #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Licht
+            icon: mdi:lightbulb-group
+
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: Kellerlichter
+              state_color: true
+            filter:
+              include:
+                - domain: light
+                  entity_id: light.*basement*
+                - domain: light
+                  entity_id: light.*engineering*
+                - domain: light
+                  entity_id: light.*storage*
+                - domain: light
+                  entity_id: light.*hobby*
+                - domain: light
+                  entity_id: light.*stairs_kg*
+              exclude: []
+            sort:
+              method: friendly_name
+            show_empty: false
+
+      ###########################################################################
+      # KLIMA PRO RAUM                                                          #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Klima
+            icon: mdi:home-thermometer
+
+          - type: custom:mushroom-template-card
+            primary: Technikraum
+            secondary: >
+              {{ states('sensor.engineering_temperature') }} °C ·
+              {{ states('sensor.engineering_humidity') }} % ·
+              Taupunkt {{ states('sensor.taupunkt_technikraum') }} °C
+            icon: mdi:cog
+            icon_color: >
+              {% if states('sensor.engineering_humidity') | float(0) > 65 %}red
+              {% elif states('sensor.engineering_humidity') | float(0) > 55 %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
+
+          - type: custom:mushroom-template-card
+            primary: Hobbyraum
+            secondary: >
+              {{ states('sensor.hobby_temperature') }} °C ·
+              {{ states('sensor.hobby_humidity') }} % ·
+              Taupunkt {{ states('sensor.taupunkt_hobby') }} °C
+            icon: mdi:gamepad-variant
+            icon_color: >
+              {% if states('sensor.hobby_humidity') | float(0) > 65 %}red
+              {% elif states('sensor.hobby_humidity') | float(0) > 55 %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
+
+          - type: custom:mushroom-template-card
+            primary: Lager
+            secondary: >
+              {{ states('sensor.storage_temperature') }} °C ·
+              {{ states('sensor.storage_humidity') }} % ·
+              Taupunkt {{ states('sensor.taupunkt_lager') }} °C
+            icon: mdi:package-variant
+            icon_color: >
+              {% if states('sensor.storage_humidity') | float(0) > 65 %}red
+              {% elif states('sensor.storage_humidity') | float(0) > 55 %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
+
+          - type: custom:mushroom-template-card
+            primary: Flur
+            secondary: "{{ states('sensor.basement_hallway_temperture') }} °C"
+            icon: mdi:hallway-variant
+            icon_color: grey
+
+          - type: custom:mushroom-template-card
+            primary: Stiege KG → EG
+            secondary: "{{ states('sensor.stairs_kg_eg_temperature_eg') }} °C"
+            icon: mdi:stairs-up
+            icon_color: grey
+
+      ###########################################################################
+      # LÜFTEN — Empfehlung pro Raum                                            #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Lüften
+            icon: mdi:hvac
+
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Technikraum
+                secondary: "{{ states('sensor.luftung_technikraum') }}"
+                icon: >
+                  {% set s = states('sensor.luftung_technikraum') %}
+                  {% if 'stark' in s %}mdi:fan-speed-3
+                  {% elif 'wenig' in s %}mdi:fan-speed-1
+                  {% elif 'Nicht' in s %}mdi:fan-off
+                  {% else %}mdi:check-circle{% endif %}
+                icon_color: >
+                  {% set s = states('sensor.luftung_technikraum') %}
+                  {% if 'stark' in s %}red
+                  {% elif 'wenig' in s %}amber
+                  {% elif 'Nicht' in s %}grey
+                  {% else %}green{% endif %}
+                layout: vertical
+              - type: custom:mushroom-template-card
+                primary: Hobbyraum
+                secondary: "{{ states('sensor.luftung_hobbyraum') }}"
+                icon: >
+                  {% set s = states('sensor.luftung_hobbyraum') %}
+                  {% if 'stark' in s %}mdi:fan-speed-3
+                  {% elif 'wenig' in s %}mdi:fan-speed-1
+                  {% elif 'Nicht' in s %}mdi:fan-off
+                  {% else %}mdi:check-circle{% endif %}
+                icon_color: >
+                  {% set s = states('sensor.luftung_hobbyraum') %}
+                  {% if 'stark' in s %}red
+                  {% elif 'wenig' in s %}amber
+                  {% elif 'Nicht' in s %}grey
+                  {% else %}green{% endif %}
+                layout: vertical
+              - type: custom:mushroom-template-card
+                primary: Lager
+                secondary: "{{ states('sensor.luftung_lager') }}"
+                icon: >
+                  {% set s = states('sensor.luftung_lager') %}
+                  {% if 'stark' in s %}mdi:fan-speed-3
+                  {% elif 'wenig' in s %}mdi:fan-speed-1
+                  {% elif 'Nicht' in s %}mdi:fan-off
+                  {% else %}mdi:check-circle{% endif %}
+                icon_color: >
+                  {% set s = states('sensor.luftung_lager') %}
+                  {% if 'stark' in s %}red
+                  {% elif 'wenig' in s %}amber
+                  {% elif 'Nicht' in s %}grey
+                  {% else %}green{% endif %}
+                layout: vertical
+
+          - type: markdown
+            content: >
+              Empfehlung vergleicht Innen-Taupunkt gegen Außen-Taupunkt
+              ({{ states('sensor.taupunkt_aussen') }} °C) und schaut erst ab
+              55 % rel. Feuchte hin. „Nicht lüften" heißt: draußen ist feuchter
+              als drinnen — Fenster zu lassen.
+
+      ###########################################################################
+      # RAUCHMELDER KELLER                                                      #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Rauchmelder
+            icon: mdi:smoke-detector
+
+          - type: entities
+            state_color: true
+            entities:
+              - entity: binary_sensor.rauchmelder_hobbyraum_smoke
+                name: Hobbyraum
+              - entity: binary_sensor.rauchmelder_lager_smoke
+                name: Lager
+              - entity: binary_sensor.rauchmelder_kg_eg_smoke
+                name: Stiege Keller/EG
+              - entity: binary_sensor.shellyplussmoke_2cbcbbf70698_smoke
+                name: Technikraum
+
+      ###########################################################################
+      # TRENDS                                                                  #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Trends 48 h
+            icon: mdi:chart-line
+
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Luftfeuchte Keller vs. außen
+              show_states: true
+            graph_span: 48h
+            series:
+              - entity: sensor.outdoor_humidity
+                name: Außen
+                stroke_width: 3
+              - entity: sensor.engineering_humidity
+                name: Technik
+              - entity: sensor.hobby_humidity
+                name: Hobby
+              - entity: sensor.storage_humidity
+                name: Lager
+
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Taupunkt Keller vs. außen
+              show_states: true
+            graph_span: 48h
+            series:
+              - entity: sensor.taupunkt_aussen
+                name: Außen
+                stroke_width: 3
+              - entity: sensor.taupunkt_technikraum
+                name: Technik
+              - entity: sensor.taupunkt_hobby
+                name: Hobby
+              - entity: sensor.taupunkt_lager
+                name: Lager

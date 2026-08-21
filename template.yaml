@@ -199,6 +199,101 @@ sensor:
         Nicht lüften
       {% endif %}
 
+  # =========================================================
+  # OFFENE ÖFFNUNGEN — einzige Quelle der Wahrheit
+  # =========================================================
+  # Vorher hatte jedes Dashboard sein eigenes search()-Regex über alle
+  # binary_sensor: 'window|fenster|door' matchte auch
+  # binary_sensor.garage_door_garage_door_light (Garagenlicht zählte als
+  # offenes Fenster!) und lock.haustur wurde nie mitgezählt. Übersicht und
+  # Sicherheit zählten dazu mit verschiedenen Mustern → zwei Zahlen für
+  # denselben Hauszustand. Jetzt liest beides diesen Sensor.
+  #
+  # Neuen Kontakt einbauen: in BEIDEN Dicts unten ergänzen (state + namen).
+  - name: "Offene Oeffnungen"
+    unique_id: offene_oeffnungen
+    state_class: measurement
+    icon: mdi:window-open-variant
+    state: >
+      {% set k = [
+        'binary_sensor.shelly_blu_door_window_a173_window',
+        'binary_sensor.shelly_blu_door_window_bb57_window',
+        'binary_sensor.fenster_schlafzimmer_window',
+        'binary_sensor.bthome_sensor_fb9c_fenster' ] %}
+      {{ (k | select('is_state', 'on') | list | count)
+         + (1 if is_state('lock.haustur', 'unlocked') else 0) }}
+    attributes:
+      namen: >
+        {% set k = {
+          'binary_sensor.shelly_blu_door_window_a173_window': 'Büro',
+          'binary_sensor.shelly_blu_door_window_bb57_window': 'Gästezimmer',
+          'binary_sensor.fenster_schlafzimmer_window': 'Schlafzimmer',
+          'binary_sensor.bthome_sensor_fb9c_fenster': 'Terrassentür' } %}
+        {% set ns = namespace(o=[]) %}
+        {% for e, n in k.items() if is_state(e, 'on') %}
+          {% set ns.o = ns.o + [n] %}
+        {% endfor %}
+        {% if is_state('lock.haustur', 'unlocked') %}
+          {% set ns.o = ns.o + ['Haustür'] %}
+        {% endif %}
+        {{ ns.o | join(', ') }}
+      # Ältester Zeitpunkt, zu dem einer der Kontakte zuletzt etwas gemeldet
+      # hat. Das ist die echte "letzte Prüfung" — im Gegensatz zu now(),
+      # das immer frisch aussieht, auch wenn ein Sensor seit Stunden tot ist.
+      aeltester_kontakt: >
+        {% set k = [
+          'binary_sensor.shelly_blu_door_window_a173_window',
+          'binary_sensor.shelly_blu_door_window_bb57_window',
+          'binary_sensor.fenster_schlafzimmer_window',
+          'binary_sensor.bthome_sensor_fb9c_fenster',
+          'lock.haustur' ] %}
+        {% set ts = expand(k) | map(attribute='last_reported') | list %}
+        {{ (ts | min).isoformat() if ts else '' }}
+      # expand() lässt unavailable/unbekannte Entities still weg — ohne diese
+      # Zahl würde 'aeltester_kontakt' bei einem toten Sensor fälschlich
+      # frisch aussehen, weil nur die lebenden gemittelt werden.
+      offline: >
+        {% set k = [
+          'binary_sensor.shelly_blu_door_window_a173_window',
+          'binary_sensor.shelly_blu_door_window_bb57_window',
+          'binary_sensor.fenster_schlafzimmer_window',
+          'binary_sensor.bthome_sensor_fb9c_fenster',
+          'lock.haustur' ] %}
+        {{ k | reject('has_value') | list | count }}
+
+  # =========================================================
+  # BESCHATTUNG BLOCKER — was hält die Automation gerade auf
+  # =========================================================
+  # Zählt beide Override-Ebenen (User-Sperre + erkannte Hand-Bedienung) und
+  # liefert eine lesbare Liste. Iteriert über die input_boolean-Domain, damit
+  # ein neuer Raum nicht zusätzlich hier nachgetragen werden muss.
+  - name: "Beschattung Blocker"
+    unique_id: beschattung_blocker
+    state_class: measurement
+    icon: mdi:hand-back-right-off
+    state: >
+      {{ states.input_boolean
+         | selectattr('state', 'eq', 'on')
+         | selectattr('object_id', 'search', '^beschattung_(lock|manual)_')
+         | list | count }}
+    attributes:
+      namen: >
+        {% set n = {
+          'wc_eg': 'WC EG', 'wc_og': 'WC OG', 'gaestezimmer': 'Gästezimmer',
+          'buero': 'Büro', 'kueche': 'Küche', 'badezimmer': 'Bad' } %}
+        {% set ns = namespace(t=[]) %}
+        {% for s in states.input_boolean
+           if s.state == 'on' and s.object_id.startswith('beschattung_lock_') %}
+          {% set r = s.object_id | replace('beschattung_lock_', '') %}
+          {% set ns.t = ns.t + [n.get(r, r | title) ~ ' (Sperre)'] %}
+        {% endfor %}
+        {% for s in states.input_boolean
+           if s.state == 'on' and s.object_id.startswith('beschattung_manual_') %}
+          {% set r = s.object_id | replace('beschattung_manual_', '') %}
+          {% set ns.t = ns.t + [n.get(r, r | title) ~ ' (Hand)'] %}
+        {% endfor %}
+        {{ ns.t | join(', ') }}
+
   # Scheinleistung S = U × I pro Phase (Strom-Sensor liefert mA → /1000)
   - name: "Scheinleistung Bezug L1"
     unique_id: scheinleistung_bezug_l1

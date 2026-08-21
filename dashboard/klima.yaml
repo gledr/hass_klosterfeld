@@ -121,6 +121,45 @@ views:
             show_empty: false
 
       ###########################################################################
+      # HEIZUNG (Daikin Altherma)                                               #
+      ###########################################################################
+      # Bisher gab es zur Heizung ausschließlich Verbrauchszahlen auf dem
+      # Energie-Dashboard — keine Bedienung. Die Altherma-Entities stammen aus
+      # der UI-Integration und stehen nicht im YAML, deshalb discovery über die
+      # Domains statt geratener entity_ids. Sobald die IDs bekannt sind, ist
+      # eine thermostat-Karte hier die bessere Wahl.
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Heizung
+            icon: mdi:heat-pump
+
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: Wärmepumpe & Warmwasser
+              state_color: true
+            filter:
+              include:
+                - domain: climate
+                - domain: water_heater
+            sort:
+              method: friendly_name
+            show_empty: false
+
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: sensor.altherma_climatecontrol_outdoor_temperature
+                icon: mdi:thermometer
+                name: Außen (Nord)
+              - type: entity
+                entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                icon: mdi:lightning-bolt
+                name: Heizen heute
+
+      ###########################################################################
       # ERDGESCHOSS                                                             #
       ###########################################################################
       - type: grid

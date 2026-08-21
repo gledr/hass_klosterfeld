@@ -21,14 +21,66 @@ views:
             heading: Wohnzimmer
             icon: mdi:sofa
 
+          # light.livingroom_main_light war auf keinem Dashboard erreichbar,
+          # während light.livingroom_main_light_2 fälschlich "Hauptlicht" hieß.
+          # _2 ist das Wandlicht — sein Leuchtmittel kann unter 50 % nicht,
+          # deshalb Festwert-Knöpfe statt eines Schiebers, dessen untere
+          # Hälfte nur flackern produziert.
           - type: custom:mushroom-light-card
-            entity: light.livingroom_main_light_2
+            entity: light.livingroom_main_light
             name: Hauptlicht
             show_brightness_control: true
           - type: custom:mushroom-light-card
             entity: light.livingroom_reading_light
             name: Leselicht
             show_brightness_control: true
+          - type: custom:mushroom-template-card
+            entity: light.livingroom_main_light_2
+            primary: Wandlicht
+            secondary: >
+              {% if is_state('light.livingroom_main_light_2', 'on') %}
+                {{ (state_attr('light.livingroom_main_light_2', 'brightness') | int(0) / 2.55) | round(0) }} %
+              {% else %}
+                Aus
+              {% endif %}
+            icon: mdi:wall-sconce
+            icon_color: >
+              {% if is_state('light.livingroom_main_light_2', 'on') %}amber{% else %}disabled{% endif %}
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-chips-card
+            alignment: start
+            chips:
+              - type: template
+                content: "50 %"
+                icon: mdi:brightness-5
+                tap_action:
+                  action: call-service
+                  service: light.turn_on
+                  target:
+                    entity_id: light.livingroom_main_light_2
+                  data:
+                    brightness_pct: 50
+              - type: template
+                content: "75 %"
+                icon: mdi:brightness-6
+                tap_action:
+                  action: call-service
+                  service: light.turn_on
+                  target:
+                    entity_id: light.livingroom_main_light_2
+                  data:
+                    brightness_pct: 75
+              - type: template
+                content: "100 %"
+                icon: mdi:brightness-7
+                tap_action:
+                  action: call-service
+                  service: light.turn_on
+                  target:
+                    entity_id: light.livingroom_main_light_2
+                  data:
+                    brightness_pct: 100
           - type: custom:mushroom-cover-card
             entity: cover.livingroom_blinds
             name: Raffstore
@@ -47,13 +99,6 @@ views:
                 icon: mdi:hvac
                 content_info: name
                 name: HVAC
-          - type: entities
-            title: Wohnküche Licht
-            entities:
-              - entity: input_number.wohnkueche_licht_outdoor_lux
-                name: Lux-Schwelle (Süd)
-              - entity: sensor.helligkeit_sud
-                name: Helligkeit Süd (aktuell)
 
       ###########################################################################
       # WOHNKÜCHE – LICHTSZENEN                                                  #
@@ -93,7 +138,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Frühstück
                 icon: mdi:coffee
-                icon_color: amber
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'fruehstueck') %}amber{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'fruehstueck') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -103,7 +150,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Abend aktiv
                 icon: mdi:silverware-fork-knife
-                icon_color: orange
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_abend_aktiv') %}orange{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_abend_aktiv') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -113,7 +162,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Relax
                 icon: mdi:sofa
-                icon_color: deep-orange
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_relax') %}deep-orange{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_relax') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -123,7 +174,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Tag (WE)
                 icon: mdi:white-balance-sunny
-                icon_color: green
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_tag') %}green{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_tag') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -133,7 +186,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Nachmittag (WE)
                 icon: mdi:weather-partly-cloudy
-                icon_color: teal
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_nachmittag') %}teal{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_nachmittag') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -143,7 +198,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Abend (WE)
                 icon: mdi:weather-sunset
-                icon_color: orange
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_abend') %}orange{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_abend') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -153,7 +210,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Spätabend
                 icon: mdi:weather-night
-                icon_color: indigo
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'spaetabend') %}indigo{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'spaetabend') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -163,7 +222,9 @@ views:
               - type: custom:mushroom-template-card
                 primary: Nacht
                 icon: mdi:bed
-                icon_color: deep-purple
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'nacht') %}deep-purple{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'nacht') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
@@ -173,13 +234,28 @@ views:
               - type: custom:mushroom-template-card
                 primary: Alles aus
                 icon: mdi:lightbulb-off
-                icon_color: grey
+                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'alles_aus') %}grey{% else %}disabled{% endif %}"
+                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'alles_aus') %}mdi:check{% endif %}"
+                badge_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
                   service: script.wohnkueche_lichtszene_aktivieren
                   data:
                     scene: alles_aus
+
+          # Gehört hierher, nicht unter die Wohnzimmer-Überschrift: die Schwelle
+          # entscheidet, ab welcher Außenhelligkeit die Wohnküchen-Szenen
+          # überhaupt Licht machen.
+          - type: entities
+            title: Auslöse-Schwelle
+            entities:
+              - entity: input_number.wohnkueche_licht_outdoor_lux
+                name: Lux-Schwelle (Süd)
+              - entity: sensor.helligkeit_sud
+                name: Helligkeit Süd (aktuell)
+              - entity: input_select.wohnkueche_lichtmodus
+                name: Modus (Rohwert)
 
       ###########################################################################
       # KÜCHE                                                                   #
@@ -207,8 +283,7 @@ views:
             name: Vitrine
           - type: custom:mushroom-cover-card
             entity: cover.kitchen_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
           - type: custom:mushroom-chips-card
             chips:
@@ -235,8 +310,7 @@ views:
             show_brightness_control: true
           - type: custom:mushroom-cover-card
             entity: cover.dining_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
 
       ###########################################################################
@@ -254,8 +328,7 @@ views:
             name: Licht
           - type: custom:mushroom-cover-card
             entity: cover.shelf_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
           - type: custom:mushroom-chips-card
             chips:
@@ -278,8 +351,7 @@ views:
             name: Licht
           - type: custom:mushroom-cover-card
             entity: cover.wc_eg_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
           - type: custom:mushroom-chips-card
             chips:
@@ -305,8 +377,7 @@ views:
             name: Eingang
           - type: custom:mushroom-cover-card
             entity: cover.wardrobe_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
           - type: custom:mushroom-chips-card
             chips:

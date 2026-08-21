@@ -92,6 +92,13 @@ lovelace:
       icon: mdi:home-roof
       show_in_sidebar: true
       require_admin: false
+    lovelace-keller:
+      mode: yaml
+      filename: dashboard/keller.yaml
+      title: Keller
+      icon: mdi:home-floor-b
+      show_in_sidebar: true
+      require_admin: false
     lovelace-aussen:
       mode: yaml
       filename: dashboard/aussen.yaml

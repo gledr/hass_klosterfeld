@@ -1,6 +1,10 @@
 ###############################################################################
 # SICHERHEIT — combined Rauchmelder + Fenster + Türen                          #
 # auto-entities render filtered lists, so "alles ruhig" collapses to nothing.  #
+#                                                                              #
+# Die Zählung offener Öffnungen kommt aus sensor.offene_oeffnungen             #
+# (template.yaml) — vorher zählte jede Seite selbst per Regex über alle        #
+# binary_sensor und beide zählten falsch.                                     #
 ###############################################################################
 title: Sicherheit
 views:
@@ -9,6 +13,15 @@ views:
     icon: mdi:shield-home
     type: sections
     max_columns: 4
+
+    badges:
+      - type: entity
+        entity: sensor.offene_oeffnungen
+        name: Offen
+      - type: entity
+        entity: sensor.wind_speed
+        name: Wind
+
     sections:
 
       ###########################################################################
@@ -20,13 +33,26 @@ views:
           - type: custom:mushroom-template-card
             primary: >
               {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
-              {% set win = expand(states.binary_sensor) | selectattr('entity_id','search','(window|fenster|door)') | selectattr('state','eq','on') | list | count %}
+              {% set offen = states('sensor.offene_oeffnungen') | int(0) %}
               {% if smoke > 0 %}🚨 RAUCHALARM ({{ smoke }})
-              {% elif win > 0 %}🪟 {{ win }} Fenster/Türen offen
+              {% elif offen > 0 %}🪟 {{ offen }} offen
               {% else %}✅ Alles ruhig
               {% endif %}
+            # Kein now() mehr: das war die Render-Zeit und sah immer frisch aus,
+            # auch wenn ein Kontakt seit Stunden nichts mehr gemeldet hatte.
+            # Jetzt: was offen ist, bzw. wie alt die älteste Sensor-Meldung ist.
             secondary: >
-              Letzte Prüfung {{ now().strftime('%H:%M') }}
+              {% set namen = state_attr('sensor.offene_oeffnungen', 'namen') %}
+              {% set off = state_attr('sensor.offene_oeffnungen', 'offline') | int(0) %}
+              {% if namen %}{{ namen }}
+              {% else %}
+                {% set ts = state_attr('sensor.offene_oeffnungen', 'aeltester_kontakt') %}
+                {% if ts %}Alle Kontakte geschlossen · ältestes Lebenszeichen
+                  {{ (ts | as_datetime | as_local).strftime('%d.%m. %H:%M') }}
+                {% else %}Alle Kontakte geschlossen
+                {% endif %}
+              {% endif %}
+              {%- if off > 0 %} · ⚠️ {{ off }} Kontakt(e) offline{% endif %}
             icon: >
               {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
               {% if smoke > 0 %}mdi:fire-alert
@@ -34,9 +60,10 @@ views:
               {% endif %}
             icon_color: >
               {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
-              {% set win = expand(states.binary_sensor) | selectattr('entity_id','search','(window|fenster|door)') | selectattr('state','eq','on') | list | count %}
-              {% if smoke > 0 %}red{% elif win > 0 %}amber{% else %}green{% endif %}
-            multiline_secondary: false
+              {% if smoke > 0 %}red
+              {% elif states('sensor.offene_oeffnungen') | int(0) > 0 %}amber
+              {% else %}green{% endif %}
+            multiline_secondary: true
             fill_container: true
 
       ###########################################################################
@@ -64,6 +91,9 @@ views:
             show_empty: false
 
           # Alle (statisch mit Override-Namen — Inferenz aus alter Rauchmelder-Dashboard)
+          # ACHTUNG: die Zuordnung hängt an der Shelly-MAC im entity_id. Wird ein
+          # Melder getauscht, zeigt die Zeile still den falschen Raum. Die
+          # Catch-all-Karte darunter fängt Melder auf, die hier fehlen.
           - type: entities
             title: Alle (Status)
             state_color: true
@@ -88,6 +118,31 @@ views:
                 name: Keller Lager
               - entity: binary_sensor.shellyplussmoke_2cbcbbf70698_smoke
                 name: "Technikraum"
+
+          # Fängt Melder, die in der Liste oben fehlen (Neugerät, Tausch,
+          # geänderte entity_id). Ist nichts unbekannt, rendert die Karte nicht.
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: ⚠️ Nicht zugeordnete Rauchmelder
+              state_color: true
+            filter:
+              include:
+                - domain: binary_sensor
+                  attributes:
+                    device_class: smoke
+              exclude:
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf67960_smoke
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf73fc0_smoke
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf68278_smoke
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf68028_smoke
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf59758_smoke
+                - entity_id: binary_sensor.shellyplussmoke_2cbcbbf70698_smoke
+                - entity_id: binary_sensor.rauchmelder_hobbyraum_smoke
+                - entity_id: binary_sensor.rauchmelder_kg_eg_smoke
+                - entity_id: binary_sensor.rauchmelder_lager_smoke
+            show_empty: false
 
       ###########################################################################
       # FENSTER & TÜREN                                                         #

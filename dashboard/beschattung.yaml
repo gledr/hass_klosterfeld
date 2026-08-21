@@ -1,3 +1,15 @@
+###############################################################################
+# BESCHATTUNG                                                                  #
+#                                                                              #
+# Aufbau: eine Zeile pro Raum. Links Zustand (Behang + Lamelle + Grund, warum  #
+# die Automation ggf. nicht anfasst), rechts die zwei Override-Schalter         #
+# (Sperre = du, Hand = automatisch erkannt). Antippen der linken Karte öffnet   #
+# den Cover-Dialog mit den vollen Schiebern.                                   #
+#                                                                              #
+# WICHTIG — Sections nehmen `column_span`, NICHT `columns`. Mit `columns` wird  #
+# der Schlüssel still ignoriert und jede Section rendert auf 1 von 4 Spalten    #
+# (das war der Grund, warum diese Seite als schmaler Streifen erschien).       #
+###############################################################################
 title: Beschattung
 views:
   - title: Übersicht
@@ -6,288 +18,596 @@ views:
     type: sections
     max_columns: 4
 
+    # Die drei Zahlen, die man beim Draufschauen braucht — ohne Scrollen.
+    badges:
+      - type: entity
+        entity: sensor.outdoor_temperature_avg
+        name: Außen Ø
+      - type: entity
+        entity: sensor.wind_speed
+        name: Wind
+      - type: entity
+        entity: sensor.beschattung_blocker
+        name: Blockiert
+
     sections:
 
       ###########################################################################
-      # AUSSENBEDINGUNGEN                                                      #
+      # STATUS — Tag/Nacht + was gerade blockiert                               #
       ###########################################################################
       - type: grid
-        columns: 1
+        column_span: 4
         cards:
-
           - type: heading
-            heading: Außenbedingungen
-            icon: mdi:weather-sunny
-
-          - type: grid
-            columns: 3
-            square: false
-            cards:
-              - type: custom:mini-graph-card
-                name: Helligkeit Süd
-                entities:
-                  - entity: sensor.helligkeit_sud
-                hours_to_show: 12
-                points_per_hour: 4
-                show:
-                  labels: true
-                  extrema: true
-
-              - type: custom:mini-graph-card
-                name: Helligkeit West
-                entities:
-                  - entity: sensor.helligkeit_west
-                hours_to_show: 12
-                points_per_hour: 4
-                show:
-                  labels: true
-                  extrema: true
-
-              - type: custom:mini-graph-card
-                name: Helligkeit Nord
-                entities:
-                  - entity: sensor.helligkeit_nord
-                hours_to_show: 12
-                points_per_hour: 4
-                show:
-                  labels: true
-                  extrema: true
-
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.outdoor_temperature_avg
-                name: Außen Ø
-              - type: entity
-                entity: sensor.outdoor_temperature
-                name: Jetzt
-              - type: entity
-                entity: sensor.wind_speed
-                name: Wind
-              - type: entity
-                entity: sun.sun
-                name: Sonne
+            heading: Status
+            icon: mdi:information-outline
 
           - type: custom:mushroom-template-card
             primary: >
-              {% if is_state('switch.twilight','on') %}Tag{% else %}Nacht{% endif %}
+              {% if is_state('switch.twilight', 'on') %}Tag{% else %}Nacht{% endif %}
             secondary: >
               {% set t = states.switch.twilight.last_changed %}
               {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
               {% set stamp = states('input_datetime.beschattung_daemmerung_ende') | as_datetime | as_local %}
               {% set close = (stamp if stamp else t) + timedelta(minutes=delay) %}
-              {% if is_state('switch.twilight','on') %}
+              {% if is_state('switch.twilight', 'on') %}
                 Tag seit {{ t.strftime('%H:%M') }}
               {% elif now() < close %}
                 Schließt um {{ close.strftime('%H:%M') }}
               {% else %}
-                Geschlossen {{ close.strftime('%H:%M') }}
-              {% endif %} (switch.twilight: {{ states('switch.twilight') }})
-            icon: >
-              {% if is_state('switch.twilight','on') %}mdi:weather-sunny-up{% else %}mdi:weather-night{% endif %}
-            icon_color: >
-              {% if is_state('switch.twilight','on') %}amber{% else %}indigo{% endif %}
-
-
-      ###########################################################################
-      # SONNENERKENNUNG                                                        #
-      ###########################################################################
-      - type: grid
-        columns: 1
-        cards:
-
-          - type: heading
-            heading: Sonne trifft Fassade
-            icon: mdi:compass-outline
-
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: template
-                icon: mdi:compass-outline
-                content: >
-                  {{ state_attr('sun.sun','azimuth') | round(0) }}°
-                icon_color: >
-                  {% set az = state_attr('sun.sun','azimuth') | float(0) %}
-                  {% if 135 <= az < 225 %}amber
-                  {% elif 225 <= az < 315 %}orange
-                  {% elif az >= 315 or az < 45 %}blue
-                  {% else %}grey{% endif %}
-              - type: template
-                icon: mdi:angle-acute
-                content: >
-                  {{ state_attr('sun.sun','elevation') | round(0) }}°
-              - type: template
-                icon: mdi:weather-sunny
-                content: "Süd 135–250°"
-              - type: template
-                icon: mdi:weather-sunset
-                content: "West 200–315°"
-              - type: template
-                icon: mdi:weather-hazy
-                content: "Nord 290–70°"
-
-          - type: grid
-            columns: 3
-            cards:
-              - type: custom:mushroom-template-card
-                primary: Süd
-                secondary: >
-                  {% if is_state('binary_sensor.sonne_trifft_sued','on') %}Aktiv{% else %}–{% endif %}
-                icon: mdi:weather-sunny
-
-              - type: custom:mushroom-template-card
-                primary: West
-                secondary: >
-                  {% if is_state('binary_sensor.sonne_trifft_west','on') %}Aktiv{% else %}–{% endif %}
-                icon: mdi:weather-sunset
-
-              - type: custom:mushroom-template-card
-                primary: Nord
-                secondary: >
-                  {% if is_state('binary_sensor.sonne_trifft_nord','on') %}Aktiv{% else %}–{% endif %}
-                icon: mdi:weather-hazy
-
-          - type: custom:mushroom-template-card
-            primary: Windalarm
-            secondary: >
-              {% if is_state('binary_sensor.windalarm_schwelle_1','on') %}
-                AKTIV — Automationen blockiert
-              {% else %}
-                Inaktiv
+                Geschlossen seit {{ close.strftime('%H:%M') }}
               {% endif %}
-            icon: mdi:shield-alert
+            icon: >
+              {% if is_state('switch.twilight', 'on') %}mdi:weather-sunny-up{% else %}mdi:weather-night{% endif %}
+            icon_color: >
+              {% if is_state('switch.twilight', 'on') %}amber{% else %}indigo{% endif %}
+            fill_container: true
 
+          # Nur sichtbar, wenn tatsächlich etwas blockiert. Vorher standen hier
+          # 24 Dauer-"off"-Kacheln, die zwei Drittel der Seite gefressen haben.
+          - type: conditional
+            conditions:
+              - condition: numeric_state
+                entity: sensor.beschattung_blocker
+                above: 0
+            card:
+              type: custom:mushroom-template-card
+              primary: >
+                {{ states('sensor.beschattung_blocker') }} Beschattung(en) blockiert
+              secondary: "{{ state_attr('sensor.beschattung_blocker', 'namen') }}"
+              icon: mdi:hand-back-right-off
+              icon_color: amber
+              multiline_secondary: true
+
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.windalarm_schwelle_1
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              primary: Windalarm aktiv
+              secondary: Alle Beschattungs-Automationen blockiert
+              icon: mdi:shield-alert
+              icon_color: red
+
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: input_boolean.beschattung_messfahrt_running
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              primary: Messfahrt läuft
+              secondary: Automation greift bis zum Ende nicht ein
+              icon: mdi:cog-refresh
+              icon_color: orange
 
       ###########################################################################
-      # STEUERUNG                                                             #
+      # RÄUME — eine Zeile pro Raum, nach Fassade gruppiert                     #
+      #                                                                         #
+      # Zeilen-Aufbau:                                                          #
+      #   [ Raum + Behang/Lamelle + Blockier-Grund ]  [ 🔒 Sperre ] [ ✋ Hand ]  #
+      # Tippen links  → Cover-Dialog (Position + Lamellen-Schieber)             #
+      # Tippen rechts → Override direkt umschalten                             #
       ###########################################################################
       - type: grid
-        columns: 1
+        column_span: 2
         cards:
-
           - type: heading
-            heading: Steuerung
-            icon: mdi:tune
+            heading: Räume
+            icon: mdi:home-floor-1
 
-          - type: entities
-            title: Lux-Schwellen (Hitzeschutz-Trigger)
-            entities:
-              - entity: input_number.beschattung_lux_sud
-              - entity: input_number.beschattung_lux_west
-              - entity: input_number.beschattung_lux_nord
-
-          - type: entities
-            title: Nacht-Verzögerung
-            entities:
-              - entity: input_number.beschattung_nacht_verzoegerung
-                name: Schließen nach Dämmerung
-          - type: markdown
-            content: >
-              Wartezeit nach Dämmerungs-Ende, bis alles zufährt. 0 = sofort
-              mit der Dämmerungs-Flanke, sonst auf die Minute genau danach.
-              Aufgefahren wird unabhängig davon immer sofort bei Tagesbeginn.
-
-
-      ###########################################################################
-      # SPERREN (Urlaub / Ausschlafen)                                         #
-      ###########################################################################
-      - type: grid
-        columns: 1
-        cards:
-
+          # ---------------------------------------------------------------- SÜD
           - type: heading
-            heading: Sperren
-            icon: mdi:lock
+            heading: Süd
+            heading_style: subtitle
+            icon: mdi:weather-sunny
 
-          - type: markdown
-            content: >
-              Wenn aktiv, fasst keine Auto-Beschattung diese Beschattung an.
-              Auf Verstellen reagiert nur noch die Hand. Ideal für Urlaub
-              oder Ausschlafen.
-
-          - type: grid
-            columns: 2
-            square: false
+          # Wohnzimmer -----------------------------------------------------
+          - type: horizontal-stack
             cards:
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_schlafzimmer
-                name: Schlafzimmer
-                icon: mdi:lock
+              - type: custom:mushroom-template-card
+                entity: cover.livingroom_blinds
+                primary: Wohnzimmer
+                secondary: >
+                  {% set c = 'cover.livingroom_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_wohnzimmer', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_wohnzimmer', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_wohnzimmer', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_wohnzimmer', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
+                  {% else %}disabled{% endif %}
                 tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_gaestezimmer
-                name: Gästezimmer
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_buero
-                name: Büro
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_wohnzimmer
-                name: Wohnzimmer
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_terrasse
-                name: Terrasse
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_kueche
-                name: Küche
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_esszimmer
-                name: Esszimmer
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_wc_eg
-                name: WC EG
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_wc_og
-                name: WC OG
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_badezimmer
-                name: Badezimmer
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_abstellraum
-                name: Abstellraum
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_lock_garderobe
-                name: Garderobe
-                icon: mdi:lock
-                tap_action:
-                  action: toggle
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_wohnzimmer
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_wohnzimmer
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
 
+          # Terrasse -------------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.terrace_blinds_2
+                primary: Terrasse
+                secondary: >
+                  {% set c = 'cover.terrace_blinds_2' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_terrasse', 'on') %} · gesperrt
+                  {%- elif is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') %} · Tür offen
+                  {%- elif is_state('timer.terrassentuer_aussperrschutz', 'active') %} · Aussperr-Schutz
+                  {%- elif is_state('input_boolean.beschattung_manual_terrasse', 'on') %} · Hand (2 h)
+                  {%- elif state_attr(c, 'current_position') | int(0) >= 100 %} · ganz offen, bleibt so
+                  {%- endif %}
+                icon: mdi:umbrella-beach
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_terrasse', 'on') %}red
+                  {% elif is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on')
+                       or is_state('timer.terrassentuer_aussperrschutz', 'active') %}purple
+                  {% elif is_state('input_boolean.beschattung_manual_terrasse', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_terrasse
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_terrasse
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Büro ----------------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.office_shutter
+                primary: Büro
+                secondary: >
+                  Rollo {{ state_attr('cover.office_shutter', 'current_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_buero', 'on') %} · gesperrt
+                  {%- elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %} · Fenster offen
+                  {%- elif is_state('input_boolean.beschattung_manual_buero', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:roller-shade
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_buero', 'on') %}red
+                  {% elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %}purple
+                  {% elif is_state('input_boolean.beschattung_manual_buero', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_buero
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_buero
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Gästezimmer ---------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.guest_shutter
+                primary: Gästezimmer
+                secondary: >
+                  Rollo {{ state_attr('cover.guest_shutter', 'current_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_gaestezimmer', 'on') %} · gesperrt
+                  {%- elif is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') %} · Fenster offen
+                  {%- elif is_state('input_boolean.beschattung_manual_gaestezimmer', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:roller-shade
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_gaestezimmer', 'on') %}red
+                  {% elif is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') %}purple
+                  {% elif is_state('input_boolean.beschattung_manual_gaestezimmer', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_gaestezimmer
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_gaestezimmer
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # --------------------------------------------------------------- WEST
+          - type: heading
+            heading: West
+            heading_style: subtitle
+            icon: mdi:weather-sunset
+
+          # Küche ---------------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.kitchen_blinds
+                primary: Küche
+                secondary: >
+                  {% set c = 'cover.kitchen_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_kueche', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_kueche', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_kueche', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_kueche', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_west', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_kueche
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_kueche
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Esszimmer -----------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.dining_blinds
+                primary: Esszimmer
+                secondary: >
+                  {% set c = 'cover.dining_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_esszimmer', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_esszimmer', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_esszimmer', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_esszimmer', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_west', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_esszimmer
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_esszimmer
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # WC OG ---------------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.wc_og_blinds
+                primary: WC OG
+                secondary: >
+                  {% set c = 'cover.wc_og_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_wc_og', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_wc_og', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_wc_og', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_wc_og', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_west', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_wc_og
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_wc_og
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # WC EG ---------------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.wc_eg_blinds
+                primary: WC EG
+                secondary: >
+                  {% set c = 'cover.wc_eg_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_wc_eg', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_wc_eg', 'on') %} · Hand
+                  {%- else %} · kein Hitzeschutz (Carport)
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_wc_eg', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_wc_eg', 'on') %}amber
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_wc_eg
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_wc_eg
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # --------------------------------------------------------------- NORD
+          - type: heading
+            heading: Nord
+            heading_style: subtitle
+            icon: mdi:weather-hazy
+
+          # Schlafzimmer --------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.bedroom_shutter
+                primary: Schlafzimmer
+                secondary: >
+                  Rollo {{ state_attr('cover.bedroom_shutter', 'current_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_schlafzimmer', 'on') %} · gesperrt
+                  {%- elif is_state('binary_sensor.fenster_schlafzimmer_window', 'on') %} · Fenster offen
+                  {%- elif is_state('input_boolean.beschattung_manual_schlafzimmer', 'on') %} · Hand
+                  {%- else %} · öffnet ab {% if now().weekday() < 5 %}07:00{% else %}10:00{% endif %}
+                  {%- endif %}
+                icon: mdi:roller-shade
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_schlafzimmer', 'on') %}red
+                  {% elif is_state('binary_sensor.fenster_schlafzimmer_window', 'on') %}purple
+                  {% elif is_state('input_boolean.beschattung_manual_schlafzimmer', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_schlafzimmer
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_schlafzimmer
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Badezimmer ----------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.bathroom_blinds
+                primary: Badezimmer
+                secondary: >
+                  {% set c = 'cover.bathroom_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_badezimmer', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.badezimmer_privacy_active', 'on') %} · Privacy aktiv
+                  {%- elif is_state('input_boolean.beschattung_manual_badezimmer', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_badezimmer', 'on') %}red
+                  {% elif is_state('input_boolean.badezimmer_privacy_active', 'on') %}purple
+                  {% elif is_state('input_boolean.beschattung_manual_badezimmer', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_badezimmer
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_badezimmer
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Garderobe -----------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.wardrobe_blinds
+                primary: Garderobe
+                secondary: >
+                  {% set c = 'cover.wardrobe_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_garderobe', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_garderobe', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_garderobe', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_garderobe', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_garderobe
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_garderobe
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Abstellraum ---------------------------------------------------
+          - type: horizontal-stack
+            cards:
+              - type: custom:mushroom-template-card
+                entity: cover.shelf_blinds
+                primary: Abstellraum
+                secondary: >
+                  {% set c = 'cover.shelf_blinds' %}
+                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
+                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+                  {%- if is_state('input_boolean.beschattung_lock_abstellraum', 'on') %} · gesperrt
+                  {%- elif is_state('input_boolean.beschattung_manual_abstellraum', 'on') %} · Hand
+                  {%- endif %}
+                icon: mdi:blinds-horizontal
+                icon_color: >
+                  {% if is_state('input_boolean.beschattung_lock_abstellraum', 'on') %}red
+                  {% elif is_state('input_boolean.beschattung_manual_abstellraum', 'on') %}amber
+                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
+                  {% else %}disabled{% endif %}
+                tap_action:
+                  action: more-info
+              - type: custom:mushroom-chips-card
+                alignment: end
+                chips:
+                  - type: template
+                    entity: input_boolean.beschattung_lock_abstellraum
+                    icon: >
+                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
+                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+                  - type: template
+                    entity: input_boolean.beschattung_manual_abstellraum
+                    icon: mdi:gesture-tap
+                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+                    tap_action:
+                      action: toggle
+
+          # Sammel-Aktionen für die Override-Spalten ----------------------
           - type: grid
             columns: 2
             square: false
             cards:
               - type: custom:mushroom-template-card
                 primary: Alle sperren
+                secondary: Urlaub / Ausschlafen
                 icon: mdi:lock
                 icon_color: red
                 layout: vertical
@@ -309,8 +629,9 @@ views:
                       - input_boolean.beschattung_lock_abstellraum
                       - input_boolean.beschattung_lock_garderobe
               - type: custom:mushroom-template-card
-                primary: Alle entsperren
-                icon: mdi:lock-open
+                primary: Alles freigeben
+                secondary: Sperren + Hand
+                icon: mdi:lock-open-variant
                 icon_color: green
                 layout: vertical
                 tap_action:
@@ -330,221 +651,121 @@ views:
                       - input_boolean.beschattung_lock_badezimmer
                       - input_boolean.beschattung_lock_abstellraum
                       - input_boolean.beschattung_lock_garderobe
-
-
-      ###########################################################################
-      # MANUELL ERKANNT                                                       #
-      # Automatisch gesetzt, wenn eine Beschattung von Hand bewegt wurde.      #
-      # Gilt 1 Stunde (Terrasse 2 h) — oder per Antippen hier löschen.         #
-      ###########################################################################
-      - type: grid
-        columns: 1
-        cards:
-
-          - type: heading
-            heading: Manuell erkannt
-            icon: mdi:gesture-tap
+                      - input_boolean.beschattung_manual_schlafzimmer
+                      - input_boolean.beschattung_manual_gaestezimmer
+                      - input_boolean.beschattung_manual_buero
+                      - input_boolean.beschattung_manual_wohnzimmer
+                      - input_boolean.beschattung_manual_terrasse
+                      - input_boolean.beschattung_manual_kueche
+                      - input_boolean.beschattung_manual_esszimmer
+                      - input_boolean.beschattung_manual_wc_eg
+                      - input_boolean.beschattung_manual_wc_og
+                      - input_boolean.beschattung_manual_badezimmer
+                      - input_boolean.beschattung_manual_abstellraum
+                      - input_boolean.beschattung_manual_garderobe
 
           - type: markdown
             content: >
-              Hier aufgeführt, wenn die Automation eine Hand-Bedienung erkannt
-              hat. Solange aktiv, fasst die Automation den Raum nicht mehr an
-              (1 Stunde; Terrasse 2 Stunden) und wird danach automatisch
-              gelöscht. Ist der Terrassen-Raffstore komplett offen, bleibt die
-              Sperre aktiv (man ist evtl. draußen).
-
-          - type: grid
-            columns: 2
-            square: false
-            cards:
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_schlafzimmer
-                name: Schlafzimmer
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_gaestezimmer
-                name: Gästezimmer
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_buero
-                name: Büro
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_wohnzimmer
-                name: Wohnzimmer
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_terrasse
-                name: Terrasse
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_kueche
-                name: Küche
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_esszimmer
-                name: Esszimmer
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_wc_eg
-                name: WC EG
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_wc_og
-                name: WC OG
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_badezimmer
-                name: Badezimmer
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_abstellraum
-                name: Abstellraum
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-              - type: custom:mushroom-entity-card
-                entity: input_boolean.beschattung_manual_garderobe
-                name: Garderobe
-                icon: mdi:gesture-tap
-                tap_action:
-                  action: toggle
-
-          - type: custom:mushroom-template-card
-            primary: Alle aufheben
-            icon: mdi:gesture-tap-hold
-            icon_color: amber
-            layout: vertical
-            tap_action:
-              action: call-service
-              service: input_boolean.turn_off
-              target:
-                entity_id:
-                  - input_boolean.beschattung_manual_schlafzimmer
-                  - input_boolean.beschattung_manual_gaestezimmer
-                  - input_boolean.beschattung_manual_buero
-                  - input_boolean.beschattung_manual_wohnzimmer
-                  - input_boolean.beschattung_manual_terrasse
-                  - input_boolean.beschattung_manual_kueche
-                  - input_boolean.beschattung_manual_esszimmer
-                  - input_boolean.beschattung_manual_wc_eg
-                  - input_boolean.beschattung_manual_wc_og
-                  - input_boolean.beschattung_manual_badezimmer
-                  - input_boolean.beschattung_manual_abstellraum
-                  - input_boolean.beschattung_manual_garderobe
-
+              🔒 **Sperre** — du hast pausiert, hält bis Mitternacht.
+              ✋ **Hand** — automatisch erkannt, weil die Beschattung ohne
+              Auftrag gefahren ist; läuft nach 1 h ab (Terrasse 2 h) oder beim
+              nächsten Tag/Nacht-Wechsel. Beide grau = Automation arbeitet.
 
       ###########################################################################
-      # SÜD                                                                  #
+      # AUSSENBEDINGUNGEN                                                       #
       ###########################################################################
       - type: grid
-        columns: 2
+        column_span: 2
         cards:
-
           - type: heading
-            heading: Süd-Fassade
+            heading: Außenbedingungen
             icon: mdi:weather-sunny
 
-          - type: custom:mushroom-cover-card
-            entity: cover.livingroom_blinds
-            name: Wohnzimmer
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: template
+                icon: mdi:compass-outline
+                content: "{{ state_attr('sun.sun', 'azimuth') | round(0) }}° Azimut"
+                icon_color: >
+                  {% set az = state_attr('sun.sun', 'azimuth') | float(0) %}
+                  {% if 135 <= az < 225 %}amber
+                  {% elif 225 <= az < 315 %}orange
+                  {% elif az >= 315 or az < 45 %}blue
+                  {% else %}grey{% endif %}
+              - type: template
+                icon: mdi:angle-acute
+                content: "{{ state_attr('sun.sun', 'elevation') | round(0) }}° Höhe"
+              - type: entity
+                entity: sensor.outdoor_temperature
+                name: Jetzt
+              - type: entity
+                entity: sun.sun
+                name: Sonne
 
-          - type: custom:mushroom-cover-card
-            entity: cover.terrace_blinds_2
-            name: Terrasse
+          # Welche Fassade wird gerade getroffen — mit den Schwellen, die
+          # dafür gelten (Winkel + Lux + Ø-Temperatur > 15 °C).
+          - type: grid
+            columns: 3
+            square: false
+            cards:
+              - type: custom:mushroom-template-card
+                primary: Süd
+                secondary: >
+                  {% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}Aktiv
+                  {% else %}{{ states('sensor.helligkeit_sud') | int(0) }} /
+                  {{ states('input_number.beschattung_lux_sud') | int(0) }} lx{% endif %}
+                icon: mdi:weather-sunny
+                icon_color: >
+                  {% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange{% else %}disabled{% endif %}
+                layout: vertical
+              - type: custom:mushroom-template-card
+                primary: West
+                secondary: >
+                  {% if is_state('binary_sensor.sonne_trifft_west', 'on') %}Aktiv
+                  {% else %}{{ states('sensor.helligkeit_west') | int(0) }} /
+                  {{ states('input_number.beschattung_lux_west') | int(0) }} lx{% endif %}
+                icon: mdi:weather-sunset
+                icon_color: >
+                  {% if is_state('binary_sensor.sonne_trifft_west', 'on') %}orange{% else %}disabled{% endif %}
+                layout: vertical
+              - type: custom:mushroom-template-card
+                primary: Nord
+                secondary: >
+                  {% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}Aktiv
+                  {% else %}{{ states('sensor.helligkeit_nord') | int(0) }} /
+                  {{ states('input_number.beschattung_lux_nord') | int(0) }} lx{% endif %}
+                icon: mdi:weather-hazy
+                icon_color: >
+                  {% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange{% else %}disabled{% endif %}
+                layout: vertical
 
-          - type: custom:mushroom-cover-card
-            entity: cover.office_shutter
-            name: Büro
-
-          - type: custom:mushroom-cover-card
-            entity: cover.guest_shutter
-            name: Gästezimmer
-
+          # Ein Diagramm mit allen drei Himmelsrichtungen statt drei
+          # gequetschten Einzel-Charts.
+          - type: custom:mini-graph-card
+            name: Helligkeit 12 h
+            entities:
+              - entity: sensor.helligkeit_sud
+                name: Süd
+                color: '#f59e0b'
+              - entity: sensor.helligkeit_west
+                name: West
+                color: '#ef4444'
+              - entity: sensor.helligkeit_nord
+                name: Nord
+                color: '#0ea5e9'
+            hours_to_show: 12
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
 
       ###########################################################################
-      # WEST                                                                 #
+      # SCHNELL-AKTIONEN                                                        #
       ###########################################################################
       - type: grid
-        columns: 2
+        column_span: 2
         cards:
-
-          - type: heading
-            heading: West-Fassade
-            icon: mdi:weather-sunset
-
-          - type: custom:mushroom-cover-card
-            entity: cover.kitchen_blinds
-            name: Küche
-
-          - type: custom:mushroom-cover-card
-            entity: cover.dining_blinds
-            name: Esszimmer
-
-          - type: custom:mushroom-cover-card
-            entity: cover.wc_eg_blinds
-            name: WC EG
-
-          - type: custom:mushroom-cover-card
-            entity: cover.wc_og_blinds
-            name: WC OG
-
-
-      ###########################################################################
-      # NORD / INNEN                                                        #
-      ###########################################################################
-      - type: grid
-        columns: 2
-        cards:
-
-          - type: heading
-            heading: Nord-Fassade
-            icon: mdi:weather-hazy
-
-          - type: custom:mushroom-cover-card
-            entity: cover.wardrobe_blinds
-            name: Garderobe
-
-          - type: custom:mushroom-cover-card
-            entity: cover.shelf_blinds
-            name: Abstellraum
-
-          - type: custom:mushroom-cover-card
-            entity: cover.bathroom_blinds
-            name: Badezimmer
-
-          - type: custom:mushroom-cover-card
-            entity: cover.bedroom_shutter
-            name: Schlafzimmer
-
-
-      ###########################################################################
-      # SCHNELL-AKTIONEN                                                     #
-      ###########################################################################
-      - type: grid
-        columns: 1
-        cards:
-
           - type: heading
             heading: Schnell-Aktionen
             icon: mdi:gesture-tap-button
@@ -553,9 +774,9 @@ views:
             columns: 2
             square: false
             cards:
-
               - type: custom:mushroom-template-card
                 primary: Mittagshitze
+                secondary: Lamellen zu (Süd + West)
                 icon: mdi:weather-sunny-alert
                 icon_color: red
                 layout: vertical
@@ -573,6 +794,7 @@ views:
 
               - type: custom:mushroom-template-card
                 primary: Blendschutz
+                secondary: Lamellen halb
                 icon: mdi:blinds-horizontal
                 icon_color: amber
                 layout: vertical
@@ -588,35 +810,93 @@ views:
                       - cover.dining_blinds
 
               - type: custom:mushroom-template-card
-                primary: Alles auf
-                icon: mdi:arrow-up-bold-box
+                primary: Lamellen auf
+                secondary: alle Raffstore
+                icon: mdi:blinds-horizontal
                 icon_color: green
                 layout: vertical
                 tap_action:
                   action: call-service
-                  service: cover.set_cover_position
+                  service: cover.set_cover_tilt_position
                   data:
-                    position: 100
+                    tilt_position: 100
                   target:
                     entity_id:
                       - cover.livingroom_blinds
+                      - cover.terrace_blinds_2
                       - cover.kitchen_blinds
                       - cover.dining_blinds
-                      - cover.bedroom_shutter
+                      - cover.wc_eg_blinds
+                      - cover.wc_og_blinds
+                      - cover.bathroom_blinds
+                      - cover.wardrobe_blinds
+                      - cover.shelf_blinds
 
               - type: custom:mushroom-template-card
-                primary: Alles zu
-                icon: mdi:arrow-down-bold-box
-                icon_color: indigo
+                primary: Messfahrt
+                secondary: alle Raffstore kalibrieren
+                icon: mdi:cog-refresh
+                icon_color: orange
                 layout: vertical
                 tap_action:
                   action: call-service
-                  service: cover.set_cover_position
-                  data:
-                    position: 0
-                  target:
-                    entity_id:
-                      - cover.livingroom_blinds
-                      - cover.kitchen_blinds
-                      - cover.dining_blinds
-                      - cover.bedroom_shutter
+                  service: script.messfahrt_alle
+                  confirmation:
+                    text: Messfahrt für alle Raffstore starten? Sie fahren komplett auf und zu.
+
+          - type: markdown
+            content: >
+              Diese Knöpfe fahren die Beschattung direkt — die Automation
+              erkennt das als Hand-Bedienung und lässt die betroffenen Räume
+              danach **1 Stunde** in Ruhe (Terrasse 2 h). Wenn das nicht
+              gewollt ist, danach oben „Alles freigeben" tippen.
+
+      ###########################################################################
+      # EINSTELLUNGEN                                                           #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Einstellungen
+            icon: mdi:tune
+
+          - type: entities
+            title: Lux-Schwellen (Hitzeschutz-Trigger)
+            entities:
+              - entity: input_number.beschattung_lux_sud
+                name: Süd
+              - entity: input_number.beschattung_lux_west
+                name: West
+              - entity: input_number.beschattung_lux_nord
+                name: Nord
+
+          - type: entities
+            title: Nacht-Verzögerung
+            entities:
+              - entity: input_number.beschattung_nacht_verzoegerung
+                name: Schließen nach Dämmerung
+
+          - type: markdown
+            content: >
+              **Lux-Schwellen** greifen nur zusammen mit Ø-Außentemperatur
+              > 15 °C und Sonnenstand über 10° — Helligkeit allein löst nichts
+              aus (sonst reicht diffuser Nebel).
+
+              **Nacht-Verzögerung**: Wartezeit nach Dämmerungs-Ende, bis alles
+              zufährt. 0 = sofort mit der Flanke. Aufgefahren wird unabhängig
+              davon immer sofort bei Tagesbeginn.
+
+          - type: entities
+            title: Diagnose
+            entities:
+              - entity: switch.twilight
+                name: Tag/Nacht (KNX 8/4/0)
+              - entity: input_datetime.beschattung_daemmerung_ende
+                name: Letztes Dämmerungs-Ende
+              - entity: input_datetime.beschattung_letzter_auto_befehl
+                name: Letzter Auto-Befehl
+              - entity: input_boolean.beschattung_messfahrt_running
+                name: Messfahrt läuft
+              - entity: binary_sensor.windalarm_schwelle_1
+                name: Windalarm Schwelle 1

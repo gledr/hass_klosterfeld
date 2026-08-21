@@ -127,9 +127,26 @@ views:
             icon: mdi:radiator
           - type: custom:mushroom-cover-card
             entity: cover.bathroom_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
+          # Privacy tauchte bisher nur als Warnung auf der Übersicht auf —
+          # ausschalten ließ es sich dort nicht. Solange aktiv, fasst die
+          # Beschattungs-Konvergenz das Bad nicht an.
+          - type: custom:mushroom-template-card
+            entity: input_boolean.badezimmer_privacy_active
+            primary: Privacy
+            secondary: >
+              {% if is_state('input_boolean.badezimmer_privacy_active', 'on') %}
+                Aktiv — Beschattung bleibt stehen
+              {% else %}
+                Aus — Beschattung automatisch
+              {% endif %}
+            icon: >
+              {% if is_state('input_boolean.badezimmer_privacy_active', 'on') %}mdi:eye-off{% else %}mdi:eye{% endif %}
+            icon_color: >
+              {% if is_state('input_boolean.badezimmer_privacy_active', 'on') %}purple{% else %}disabled{% endif %}
+            tap_action:
+              action: toggle
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
@@ -155,8 +172,7 @@ views:
             show_brightness_control: true
           - type: custom:mushroom-cover-card
             entity: cover.wc_og_blinds
-            name: Raffstore
-            show_position_control: true
+            name: Raffstore (Lamellen)
             show_tilt_position_control: true
           - type: custom:mushroom-chips-card
             chips:
@@ -168,21 +184,44 @@ views:
                 icon: mdi:water-percent
 
       ###########################################################################
-      # GALERIE                                                                 #
+      # GALERIE & STIEGE                                                        #
       ###########################################################################
       - type: grid
         column_span: 1
         cards:
           - type: heading
-            heading: Galerie
+            heading: Galerie & Stiege
             icon: mdi:bridge
 
           - type: custom:mushroom-light-card
             entity: light.gallery_og_light
-            name: Licht
+            name: Galerie
             show_brightness_control: true
+
+          # "Stairway EG-OG Light" (KNX 1/2/120) war über kein Dashboard
+          # erreichbar. Discovery per Muster, weil die tatsächliche entity_id
+          # nicht feststeht (YAML-Rename ändert nur den friendly_name).
+          - type: custom:auto-entities
+            card:
+              type: entities
+              title: Stiege EG ↔ OG
+              state_color: true
+            filter:
+              include:
+                - domain: light
+                  entity_id: light.*stairway*
+                - domain: light
+                  entity_id: light.*stiege*
+                - domain: light
+                  entity_id: light.*stairs_eg*
+            show_empty: false
+
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
                 entity: sensor.gallery_og_temperature
                 icon: mdi:thermometer
+              - type: entity
+                entity: sensor.stairs_eg_og_temperature_eg
+                icon: mdi:stairs-up
+                name: Stiege
