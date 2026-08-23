@@ -1398,12 +1398,22 @@
                 # JEDEM Lauf den Istzustand, ein reiner Trigger-Delay würde den
                 # Raffstore beim nächsten /15-Lauf sofort absenken. Raffstore-
                 # Fahrten dauern ~90 s und sind laut — Flattern vermeiden.
+                #
+                # ACHTUNG, nicht in {% if %}-Zweige zurückbauen: HA typisiert
+                # Template-Ergebnisse per literal_eval. "False"/"True" werden zu
+                # echten Booleans, ein selbst geschriebenes "false" in Klein-
+                # schreibung ist KEIN Python-Literal — es bleibt ein String, und
+                # ein nicht-leerer String ist truthy. Genau das hat am
+                # 2026-08-23 ALLE Raffstores hochgefahren, weil praesenz_da für
+                # jeden Raum ohne Melder wahr war. Ein einziger {{ }}-Ausdruck
+                # liefert garantiert einen Boolean. Die and-Kette kurzschließt,
+                # states[p] wird also nie mit p = None ausgewertet.
                 praesenz_da: >-
                   {% set p = repeat.item.get('praesenz') %}
-                  {% if p is none %}false
-                  {% elif states(p) in ['unknown', 'unavailable'] %}false
-                  {% elif is_state(p, 'on') %}true
-                  {% else %}{{ (now() - states[p].last_changed).total_seconds() < 900 }}{% endif %}
+                  {{ p is not none
+                     and states(p) not in ['unknown', 'unavailable']
+                     and (is_state(p, 'on')
+                          or (now() - states[p].last_changed).total_seconds() < 900) }}
             - variables:
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
@@ -1459,13 +1469,17 @@
                         {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
                       {% else %}10{% endif %}
                     {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
-                  {% else %}{{ (100 if praesenz_da else 0) if rtype == 'raffstore' else 100 }}{% endif %}
+                  {% else %}{{ (100 if praesenz_da | string | lower == 'true' else 0) if rtype == 'raffstore' else 100 }}{% endif %}
+                # Der Vergleich gegen 'true' als String ist Absicht, nicht
+                # Umständlichkeit: ein truthy String hat hier am 2026-08-23 das
+                # ganze Haus hochgefahren. So schlägt ein Typ-Unfall höchstens
+                # in "Feature tut nichts" um, nie in "alles fährt".
                 target_tilt: >-
                   {% if mode == 'skip' %}-1
                   {% elif rtype == 'raffstore' %}
                     {% if mode == 'nacht' %}0
                     {% elif mode == 'hitze' %}{{ repeat.item.hitze_tilt }}
-                    {% else %}{{ -1 if praesenz_da else 50 }}{% endif %}
+                    {% else %}{{ -1 if praesenz_da | string | lower == 'true' else 50 }}{% endif %}
                   {% else %}none{% endif %}
             # Nur fahren, wenn der Ist-Zustand wirklich abweicht.
             # Position mit ±2 Toleranz vergleichen — KNX meldet 0 gern als 1/2
