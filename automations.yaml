@@ -1408,9 +1408,19 @@
                 # jeden Raum ohne Melder wahr war. Ein einziger {{ }}-Ausdruck
                 # liefert garantiert einen Boolean. Die and-Kette kurzschließt,
                 # states[p] wird also nie mit p = None ausgewertet.
+                # Der Lift gilt nur bei Tageslicht (switch.twilight on). Ab
+                # Dämmerungsbeginn zählt Anwesenheit nicht mehr: der Behang
+                # fährt sofort zu, die Lamellen bleiben aber noch auf 50 —
+                # denn der Modus ist dann noch 'tag' (nacht greift erst nach
+                # beschattung_nacht_verzoegerung, Standard 30 Min). Nach der
+                # Verzögerung schaltet mode auf 'nacht' und die Lamellen gehen
+                # mit allen anderen Räumen zu. twilight hier direkt abfragen
+                # statt über die Variable twilight_on — keine Abhängigkeit von
+                # der Auswertungsreihenfolge innerhalb desselben variables-Blocks.
                 praesenz_da: >-
                   {% set p = repeat.item.get('praesenz') %}
                   {{ p is not none
+                     and is_state('switch.twilight', 'on')
                      and states(p) not in ['unknown', 'unavailable']
                      and (is_state(p, 'on')
                           or (now() - states[p].last_changed).total_seconds() < 900) }}
