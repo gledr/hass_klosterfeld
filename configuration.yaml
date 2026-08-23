@@ -881,6 +881,13 @@ input_boolean:
     name: Badezimmer Privacy Mode Aktiv
   beschattung_messfahrt_running:
     name: Beschattung Messfahrt läuft
+    # initial: false — das Flag darf einen HA-Neustart NICHT überleben.
+    # Abgeschaltet wird es sonst nur am Ende der Messfahrt-Automation hinter
+    # einem delay von 3 Min; ein Neustart in diesem Fenster ließe es dauerhaft
+    # on und würde die Manuell-Erkennung hausweit blockieren. Gegen
+    # automation.reload (kein Neustart) greift zusätzlich die Automation
+    # beschattung_messfahrt_flag_watchdog.
+    initial: false
   # Manuell erkannte Bedienung: setzt die Konvergenz-Automation automatisch,
   # wenn eine Beschattung bewegt wird, ohne dass sie den Auftrag hatte.
   # Gilt 1 Stunde (Terrasse 2 h), dann greift die Automation wieder ein.

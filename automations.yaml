@@ -1180,6 +1180,13 @@
           - binary_sensor.sonne_trifft_nord
           - binary_sensor.sonne_trifft_sued
           - binary_sensor.sonne_trifft_west
+      # Präsenz in einem Raum mit praesenz-Option → Raffstore hoch/runter.
+      # Nur "to on" als Kante: das Absenken nach dem Verlassen steuert die
+      # Nachlaufzeit in der Variable praesenz_da (15 Min), nicht der Trigger —
+      # sonst würde der /15-Lauf direkt nach dem Weggehen sofort zufahren.
+      - platform: state
+        entity_id: binary_sensor.praesenzmelder_wohnzimmer
+        to: "on"
       # Nach Messfahrt zurück in den normalen Betrieb
       - platform: state
         entity_id: input_boolean.beschattung_messfahrt_running
@@ -1299,6 +1306,12 @@
               type: raffstore
               dir: sued
               hitze_tilt: 25
+              # Anwesenheit im Raum → Behang hoch (freie Sicht), statt wie
+              # sonst unten mit Lamellen auf 50. Gilt nur im Tag-Modus:
+              # Hitzeschutz und Nacht haben Vorrang (mode-Reihenfolge unten),
+              # der Hitzeschutz fährt also weiter zu, auch wenn jemand da ist.
+              # Nach dem Verlassen 15 Min Nachlauf, siehe praesenz_da.
+              praesenz: binary_sensor.praesenzmelder_wohnzimmer
               lock: input_boolean.beschattung_lock_wohnzimmer
               manual: input_boolean.beschattung_manual_wohnzimmer
             - name: Terrasse
@@ -1380,6 +1393,17 @@
                 privacy_active: "{{ is_state('input_boolean.badezimmer_privacy_active', 'on') }}"
                 tuer_offen: "{{ is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') }}"
                 timer_aktiv: "{{ is_state('timer.terrassentuer_aussperrschutz', 'active') }}"
+                # Anwesenheit im Raum, mit 15 Min Nachlauf. Der Nachlauf muss
+                # hier sitzen und nicht im Trigger: die Konvergenz bewertet bei
+                # JEDEM Lauf den Istzustand, ein reiner Trigger-Delay würde den
+                # Raffstore beim nächsten /15-Lauf sofort absenken. Raffstore-
+                # Fahrten dauern ~90 s und sind laut — Flattern vermeiden.
+                praesenz_da: >-
+                  {% set p = repeat.item.get('praesenz') %}
+                  {% if p is none %}false
+                  {% elif states(p) in ['unknown', 'unavailable'] %}false
+                  {% elif is_state(p, 'on') %}true
+                  {% else %}{{ (now() - states[p].last_changed).total_seconds() < 900 }}{% endif %}
             - variables:
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
@@ -1435,21 +1459,24 @@
                         {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
                       {% else %}10{% endif %}
                     {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
-                  {% else %}{{ 0 if rtype == 'raffstore' else 100 }}{% endif %}
+                  {% else %}{{ (100 if praesenz_da else 0) if rtype == 'raffstore' else 100 }}{% endif %}
                 target_tilt: >-
                   {% if mode == 'skip' %}-1
                   {% elif rtype == 'raffstore' %}
                     {% if mode == 'nacht' %}0
                     {% elif mode == 'hitze' %}{{ repeat.item.hitze_tilt }}
-                    {% else %}50{% endif %}
+                    {% else %}{{ -1 if praesenz_da else 50 }}{% endif %}
                   {% else %}none{% endif %}
-            # Nur fahren, wenn der Ist-Zustand wirklich abweicht
+            # Nur fahren, wenn der Ist-Zustand wirklich abweicht.
+            # Position mit ±2 Toleranz vergleichen — KNX meldet 0 gern als 1/2
+            # zurück, ein exakter Vergleich würde bei jedem /15-Lauf neu fahren.
             - if:
                 - condition: template
                   value_template: >-
                     {% if mode == 'skip' %}false
                     {% elif rtype == 'raffstore' %}
-                      {{ cur_tilt | int(-1) != target_tilt | int or cur_pos | int(-1) > 2 }}
+                      {{ (cur_pos | int(-1) - target_pos | int) | abs > 2
+                         or (target_tilt | int(-1) >= 0 and cur_tilt | int(-1) != target_tilt | int) }}
                     {% else %}
                       {{ cur_pos | int(-1) != target_pos | int }}
                     {% endif %}
@@ -1460,30 +1487,38 @@
                     entity_id: input_datetime.beschattung_letzter_auto_befehl
                   data:
                     datetime: "{{ now().isoformat() }}"
-                # Raffstore: erst Behang unten (falls oben), dann Lamellen.
-                # Warten bis unten, sonst unterbricht der Tilt-Befehl die Fahrt.
+                # Raffstore: erst den Behang auf die Zielposition (0 = unten für
+                # Sichtschutz/Hitze, 100 = oben bei Anwesenheit), dann die
+                # Lamellen. Warten bis die Fahrt durch ist, sonst unterbricht
+                # der Tilt-Befehl sie.
                 - if:
                     - condition: template
-                      value_template: "{{ rtype == 'raffstore' and cur_pos | int(-1) > 2 }}"
+                      value_template: "{{ rtype == 'raffstore' and (cur_pos | int(-1) - target_pos | int) | abs > 2 }}"
                   then:
                     - service: cover.set_cover_position
                       target:
                         entity_id: "{{ cover }}"
                       data:
-                        position: 0
-                    - wait_template: "{{ state_attr(cover, 'current_position') | int(default=0) <= 2 }}"
+                        position: "{{ target_pos }}"
+                    - wait_template: "{{ (state_attr(cover, 'current_position') | int(default=-1) - target_pos | int) | abs <= 2 }}"
                       timeout: "00:01:30"
                       continue_on_timeout: true
+                # Lamellen nur bei ausgefahrenem Behang setzen. Steht der
+                # Raffstore oben (Anwesenheit), ist target_tilt = -1 und der
+                # Tilt-Befehl entfällt — die Lamellen sind dann gestapelt.
                 - if:
                     - condition: template
-                      value_template: "{{ rtype == 'raffstore' }}"
+                      value_template: "{{ rtype == 'raffstore' and target_tilt | int(-1) >= 0 }}"
                   then:
                     - service: cover.set_cover_tilt_position
                       target:
                         entity_id: "{{ cover }}"
                       data:
                         tilt_position: "{{ target_tilt }}"
-                  else:
+                - if:
+                    - condition: template
+                      value_template: "{{ rtype != 'raffstore' }}"
+                  then:
                     - service: cover.set_cover_position
                       target:
                         entity_id: "{{ cover }}"
@@ -1878,6 +1913,43 @@
           entity_id: input_datetime.beschattung_letzter_auto_befehl
         data:
           datetime: "{{ now().isoformat() }}"
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_messfahrt_running
+
+  # ----------------------------------------------------------
+  # MESSFAHRT-FLAG WATCHDOG
+  # beschattung_messfahrt_running wird oben nur am Ende der Messfahrt
+  # zurückgesetzt — hinter einem delay von 3 Minuten. Ein HA-Neustart ODER ein
+  # automation.reload in diesem Fenster bricht das Skript ab, das Flag bleibt
+  # dann dauerhaft on. Folge: die Bedingung in beschattung_manual_erkennung
+  # ist für immer false und die Manuell-Erkennung ist HAUSWEIT tot — lautlos,
+  # ohne Fehler, ohne Selbstheilung. Genau das ist am 2026-08-23 aufgefallen
+  # (Wohnzimmer-Raffstore per KNX-Taster geöffnet, nicht erkannt).
+  # Deshalb: nach 10 Minuten aufräumen (die Messfahrt braucht nur 3) und
+  # zusätzlich bei jedem HA-Start. Ein Neustart mitten in der Messfahrt hat
+  # die Messfahrt-Automation ohnehin getötet, das Flag ist dann nur Müll.
+  # ----------------------------------------------------------
+  - id: beschattung_messfahrt_flag_watchdog
+    alias: "Beschattung – Messfahrt-Flag Watchdog"
+    description: >
+      Sicherheitsnetz gegen ein hängendes
+      input_boolean.beschattung_messfahrt_running. Bleibt das Flag länger als
+      10 Minuten on (Messfahrt dauert 3) oder wird HA neu gestartet, wird es
+      abgeräumt — sonst bleibt die Manuell-Erkennung hausweit blockiert.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        to: "on"
+        for: "00:10:00"
+      - platform: homeassistant
+        event: start
+    condition:
+      - condition: state
+        entity_id: input_boolean.beschattung_messfahrt_running
+        state: "on"
+    action:
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.beschattung_messfahrt_running
