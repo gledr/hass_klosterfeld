@@ -987,31 +987,6 @@ input_select:
       - wochenende_nachmittag
       - wochenende_abend
       - alles_aus
-  beschattung_default_garderobe:
-    name: Garderobe
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_abstellraum:
-    name: Abstellraum
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_wc_eg:
-    name: WC EG
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_kueche:
-    name: Küche
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_esszimmer:
-    name: Esszimmer
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
   beschattung_default_wohnzimmer:
     name: Wohnzimmer
     icon: mdi:blinds
@@ -1021,31 +996,6 @@ input_select:
     name: Terrasse
     icon: mdi:blinds
     options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_wc_og:
-    name: WC OG
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_badezimmer:
-    name: Badezimmer
-    icon: mdi:blinds
-    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_gaestezimmer:
-    name: Gästezimmer
-    icon: mdi:window-shutter
-    options: ["Automatisch (Präsenz)", "Offen", "Zu"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_buero:
-    name: Büro
-    icon: mdi:window-shutter
-    options: ["Automatisch (Präsenz)", "Offen", "Zu"]
-    initial: "Automatisch (Präsenz)"
-  beschattung_default_schlafzimmer:
-    name: Schlafzimmer
-    icon: mdi:window-shutter
-    options: ["Automatisch (Präsenz)", "Offen", "Zu"]
     initial: "Automatisch (Präsenz)"
 
 input_number:

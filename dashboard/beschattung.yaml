@@ -912,41 +912,11 @@ views:
             icon: mdi:tune
 
           - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_garderobe
-            name: Garderobe
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_abstellraum
-            name: Abstellraum
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_wc_eg
-            name: WC EG
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_kueche
-            name: Küche
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_esszimmer
-            name: Esszimmer
-          - type: custom:mushroom-select-card
             entity: input_select.beschattung_default_wohnzimmer
             name: Wohnzimmer
           - type: custom:mushroom-select-card
             entity: input_select.beschattung_default_terrasse
             name: Terrasse
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_wc_og
-            name: WC OG
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_badezimmer
-            name: Badezimmer
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_gaestezimmer
-            name: Gästezimmer
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_buero
-            name: Büro
-          - type: custom:mushroom-select-card
-            entity: input_select.beschattung_default_schlafzimmer
-            name: Schlafzimmer
 
           - type: markdown
             content: >
