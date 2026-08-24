@@ -102,11 +102,6 @@ views:
               action: toggle
               entity: input_boolean.beschattung_lock_terrasse
 
-          # TODO Shelly Terrassentür hier ergänzen sobald installiert
-          # - type: custom:mushroom-entity-card
-          #   entity: binary_sensor.<terrassentuer_shelly>_door
-          #   name: Terrassentür
-
       ###########################################################################
       # AUSSENBELEUCHTUNG                                                       #
       ###########################################################################
