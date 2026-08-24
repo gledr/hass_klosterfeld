@@ -900,3 +900,59 @@ views:
                 name: Messfahrt läuft
               - entity: binary_sensor.windalarm_schwelle_1
                 name: Windalarm Schwelle 1
+
+      ###########################################################################
+      # STANDARD-MODUS PRO RAUM                                                #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Standard-Modus
+            icon: mdi:tune
+
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_garderobe
+            name: Garderobe
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_abstellraum
+            name: Abstellraum
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_wc_eg
+            name: WC EG
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_kueche
+            name: Küche
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_esszimmer
+            name: Esszimmer
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_wohnzimmer
+            name: Wohnzimmer
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_terrasse
+            name: Terrasse
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_wc_og
+            name: WC OG
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_badezimmer
+            name: Badezimmer
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_gaestezimmer
+            name: Gästezimmer
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_buero
+            name: Büro
+          - type: custom:mushroom-select-card
+            entity: input_select.beschattung_default_schlafzimmer
+            name: Schlafzimmer
+
+          - type: markdown
+            content: >
+              **Automatisch (Präsenz)**: Standard-Verhalten — Raffstore fährt
+              bei Anwesenheit hoch, nach Verlassen (15 Min) wieder runter.
+              Andere Regeln (Hitzeschutz, Nacht) haben immer Vorrang.
+
+              **Offen / Zu / Lamellen halb**: Überschreibt den Standard in
+              Tag-Modus. Hitzeschutz und Nacht greifen weiterhin.

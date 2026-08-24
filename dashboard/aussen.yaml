@@ -162,6 +162,25 @@ views:
                     icon: mdi:white-balance-sunny
                     name: Sonne
 
+          - type: custom:mushroom-chips-card
+            chips:
+              - type: entity
+                entity: switch.twilight
+                icon: mdi:weather-sunset-up
+                name: Twilight
+              - type: entity
+                entity: binary_sensor.sonne_trifft_sued
+                icon: mdi:weather-sunny
+                name: Sonne Süd
+              - type: entity
+                entity: binary_sensor.sonne_trifft_west
+                icon: mdi:weather-sunset
+                name: Sonne West
+              - type: entity
+                entity: binary_sensor.sonne_trifft_nord
+                icon: mdi:weather-cloudy
+                name: Sonne Nord
+
           - type: horizontal-stack
             cards:
               - type: custom:mini-graph-card

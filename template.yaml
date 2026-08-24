@@ -199,6 +199,32 @@ sensor:
         Nicht lüften
       {% endif %}
 
+  - name: "Taupunkt Vorraum"
+    unique_id: taupunkt_vorraum
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.basement_hallway_temperture') | float %}
+      {% set RH = states('sensor.basement_hallway_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Lüftung Vorraum"
+    unique_id: ventilation_vorraum_level
+    state: >
+      {% set RH = states('sensor.basement_hallway_humidity') | float(0) %}
+      {% set delta = (states('sensor.taupunkt_vorraum') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
+
   # =========================================================
   # OFFENE ÖFFNUNGEN — einzige Quelle der Wahrheit
   # =========================================================

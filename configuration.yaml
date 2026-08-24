@@ -298,6 +298,10 @@ knx:
       state_address: "7/1/15"
       type: "temperature"
       sync_state: true
+    - name: "Basement Hallway Humidity"
+      state_address: "7/1/16"
+      type: "humidity"
+      sync_state: true
     - name: "Wardrobe Temperature"
       state_address: "7/2/10"
       type: "temperature"
@@ -983,6 +987,66 @@ input_select:
       - wochenende_nachmittag
       - wochenende_abend
       - alles_aus
+  beschattung_default_garderobe:
+    name: Garderobe
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_abstellraum:
+    name: Abstellraum
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_wc_eg:
+    name: WC EG
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_kueche:
+    name: Küche
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_esszimmer:
+    name: Esszimmer
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_wohnzimmer:
+    name: Wohnzimmer
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_terrasse:
+    name: Terrasse
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_wc_og:
+    name: WC OG
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_badezimmer:
+    name: Badezimmer
+    icon: mdi:blinds
+    options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_gaestezimmer:
+    name: Gästezimmer
+    icon: mdi:window-shutter
+    options: ["Automatisch (Präsenz)", "Offen", "Zu"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_buero:
+    name: Büro
+    icon: mdi:window-shutter
+    options: ["Automatisch (Präsenz)", "Offen", "Zu"]
+    initial: "Automatisch (Präsenz)"
+  beschattung_default_schlafzimmer:
+    name: Schlafzimmer
+    icon: mdi:window-shutter
+    options: ["Automatisch (Präsenz)", "Offen", "Zu"]
+    initial: "Automatisch (Präsenz)"
 
 input_number:
   raffstore_badezimmer_vorher:

@@ -1325,6 +1325,7 @@
               # draußen).
               manual_timeout: 7200
               skip_fully_open: true
+              praesenz: binary_sensor.praesenzmelder_wohnzimmer
               lock: input_boolean.beschattung_lock_terrasse
               manual: input_boolean.beschattung_manual_terrasse
             - name: WC OG
@@ -1448,8 +1449,12 @@
                 manual_block: >-
                   {% set timeout = repeat.item.get('manual_timeout', 3600) %}
                   {% set frisch = (now() - states[repeat.item.manual].last_changed).total_seconds() < timeout %}
-                  {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99 %}
-                  {{ manual and not nacht and (frisch or skip) }}
+                  {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
+                  {% set default = states('input_select.beschattung_default_' ~ room_key) %}
+                  {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99
+                                and default not in ['Offen'] %}
+                  {% set zuhause = not repeat.item.get('praesenz') or (praesenz_da | string | lower == 'true') %}
+                  {{ manual and not nacht and zuhause and (frisch or skip) }}
                 # Schlafzimmer: erst nach Wake-Zeit öffnen
                 tag_erlaubt: >-
                   {% if repeat.item.get('waketime', false) %}
@@ -1470,6 +1475,8 @@
                   {% elif tag_erlaubt %}tag
                   {% else %}skip{% endif %}
                 target_pos: >-
+                  {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
+                  {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% if mode == 'skip' %}-1
                   {% elif mode == 'nacht' %}0
                   {% elif mode == 'hitze' %}
@@ -1479,16 +1486,24 @@
                         {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
                       {% else %}10{% endif %}
                     {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
+                  {% elif default == 'Offen' %}100
+                  {% elif default == 'Zu' %}0
+                  {% elif default == 'Lamellen halb' %}0
                   {% else %}{{ (100 if praesenz_da | string | lower == 'true' else 0) if rtype == 'raffstore' else 100 }}{% endif %}
                 # Der Vergleich gegen 'true' als String ist Absicht, nicht
                 # Umständlichkeit: ein truthy String hat hier am 2026-08-23 das
                 # ganze Haus hochgefahren. So schlägt ein Typ-Unfall höchstens
                 # in "Feature tut nichts" um, nie in "alles fährt".
                 target_tilt: >-
+                  {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
+                  {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% if mode == 'skip' %}-1
                   {% elif rtype == 'raffstore' %}
                     {% if mode == 'nacht' %}0
                     {% elif mode == 'hitze' %}{{ repeat.item.hitze_tilt }}
+                    {% elif default == 'Offen' %}-1
+                    {% elif default == 'Lamellen halb' %}50
+                    {% elif default == 'Zu' %}0
                     {% else %}{{ -1 if praesenz_da | string | lower == 'true' else 50 }}{% endif %}
                   {% else %}none{% endif %}
             # Nur fahren, wenn der Ist-Zustand wirklich abweicht.
@@ -1722,15 +1737,12 @@
   # aber an, bis der Raum wieder gefahren wurde oder der Tag/Nacht-Wechsel
   # kam — z. B. Schlafzimmer auf Position 100 (Ziel) blieb so dauerhaft
   # "aktiv". Diese Automation räumt abgelaufene Sperren physisch ab.
-  # Terrasse: bleibt gesetzt, solange der Raffstore komplett offen ist
-  # (skip_fully_open-Schutz — man ist evtl. draußen).
   # ----------------------------------------------------------
   - id: beschattung_manual_ablauf_reset
     alias: "Beschattung – Abgelaufene manuelle Sperren löschen"
     description: >
       Schaltet input_boolean.beschattung_manual_<raum> ab, sobald der
-      Timeout abgelaufen ist (Standard 1 h, Terrasse 2 h). Die Terrasse
-      bleibt gesetzt, solange der Raffstore komplett offen ist.
+      Timeout abgelaufen ist (Standard 1 h, Terrasse 2 h).
     mode: single
     trigger:
       - platform: time_pattern
@@ -1743,9 +1755,7 @@
               {% set ent = 'input_boolean.beschattung_manual_' ~ room %}
               {% set timeout = 7200 if room == 'terrasse' else 3600 %}
               {% if is_state(ent, 'on') and (now() - states[ent].last_changed).total_seconds() >= timeout %}
-                {% if room != 'terrasse' or state_attr('cover.terrace_blinds_2', 'current_position') | int(-1) < 99 %}
-                  {% set ns.l = ns.l + [ent] %}
-                {% endif %}
+                {% set ns.l = ns.l + [ent] %}
               {% endif %}
             {% endfor %}
             {{ ns.l }}

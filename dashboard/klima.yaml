@@ -249,7 +249,7 @@ views:
 
           - type: custom:mushroom-template-card
             primary: Flur
-            secondary: "{{ states('sensor.basement_hallway_temperture') }} °C"
+            secondary: "{{ states('sensor.basement_hallway_temperture') }} °C · {{ states('sensor.basement_hallway_humidity') }} %"
             icon: mdi:hallway-variant
             icon_color: grey
           - type: custom:mushroom-template-card
