@@ -1181,12 +1181,16 @@
           - binary_sensor.sonne_trifft_sued
           - binary_sensor.sonne_trifft_west
       # Präsenz in einem Raum mit praesenz-Option → Raffstore hoch/runter.
-      # Nur "to on" als Kante: das Absenken nach dem Verlassen steuert die
-      # Nachlaufzeit in der Variable praesenz_da (15 Min), nicht der Trigger —
-      # sonst würde der /15-Lauf direkt nach dem Weggehen sofort zufahren.
+      # for: muss zur Verweildauer praesenz_dwell passen (600 s) und etwas
+      # darüber liegen, damit die Bedingung beim Feuern sicher erfüllt ist.
+      # Kurzbesuche (Kaffee holen) feuern damit gar nicht mehr.
+      # Das Absenken nach dem Verlassen steuert praesenz_nachlauf in der
+      # Variable, nicht der Trigger — die Konvergenz bewertet bei jedem Lauf
+      # den Istzustand, ein reiner Trigger-Delay würde nichts nützen.
       - platform: state
         entity_id: binary_sensor.praesenzmelder_wohnzimmer
         to: "on"
+        for: "00:10:30"
       # Nach Messfahrt zurück in den normalen Betrieb
       - platform: state
         entity_id: input_boolean.beschattung_messfahrt_running
@@ -1307,11 +1311,14 @@
               dir: sued
               hitze_tilt: 25
               # Anwesenheit im Raum → Behang hoch (freie Sicht), statt wie
-              # sonst unten mit Lamellen auf 50. Gilt nur im Tag-Modus:
-              # Hitzeschutz und Nacht haben Vorrang (mode-Reihenfolge unten),
-              # der Hitzeschutz fährt also weiter zu, auch wenn jemand da ist.
-              # Nach dem Verlassen 15 Min Nachlauf, siehe praesenz_da.
+              # sonst unten mit Lamellen auf 50. Gilt nur im Tag-Modus und nur
+              # bei Tageslicht: Hitzeschutz und Nacht haben Vorrang.
+              # dwell/nachlauf sind die Anti-Flatter-Schwellen, siehe
+              # praesenz_da. 10 Min Verweildauer filtert Durchgänge raus,
+              # 20 Min Nachlauf überbrückt kurzes Rausgehen.
               praesenz: binary_sensor.praesenzmelder_wohnzimmer
+              praesenz_dwell: 600
+              praesenz_nachlauf: 1200
               lock: input_boolean.beschattung_lock_wohnzimmer
               manual: input_boolean.beschattung_manual_wohnzimmer
             - name: Terrasse
@@ -1418,13 +1425,35 @@
                 # mit allen anderen Räumen zu. twilight hier direkt abfragen
                 # statt über die Variable twilight_on — keine Abhängigkeit von
                 # der Auswertungsreihenfolge innerhalb desselben variables-Blocks.
+                # Zwei Schwellen, damit der Raffstore nicht wegen jedem
+                # Durchgang fährt (Kaffee holen = ~2 Min Präsenz):
+                #   praesenz_dwell    So lange muss der Melder DURCHGEHEND on
+                #                     sein, bevor gehoben wird. Kurzbesuche
+                #                     erreichen das nie.
+                #   praesenz_nachlauf So lange bleibt er nach dem Verlassen
+                #                     oben — aber NUR wenn er schon oben ist
+                #                     (oben-Check). Sonst würde der Nachlauf
+                #                     einen Kurzbesuch nachträglich zum Lift
+                #                     machen, also genau das Flattern erzeugen,
+                #                     das er verhindern soll.
+                # Der oben-Zweig hängt absichtlich nicht an off: flackert der
+                # Melder kurz off/on, ist seit wieder klein und der dwell-Zweig
+                # trägt nicht — ohne oben-Zweig würde er dann mitten im
+                # Aufenthalt absenken.
+                # Position direkt über repeat.item.cover lesen, nicht über die
+                # Variable cur_pos — die steht im selben variables-Block und ist
+                # hier noch nicht garantiert gesetzt.
                 praesenz_da: >-
                   {% set p = repeat.item.get('praesenz') %}
-                  {{ p is not none
+                  {% set dwell = repeat.item.get('praesenz_dwell', 600) %}
+                  {% set nach = repeat.item.get('praesenz_nachlauf', 1200) %}
+                  {% set lesbar = p is not none and states(p) not in ['unknown', 'unavailable'] %}
+                  {% set seit = (now() - states[p].last_changed).total_seconds() if lesbar else 0 %}
+                  {% set oben = state_attr(repeat.item.cover, 'current_position') | int(-1) >= 98 %}
+                  {{ lesbar
                      and is_state('switch.twilight', 'on')
-                     and states(p) not in ['unknown', 'unavailable']
-                     and (is_state(p, 'on')
-                          or (now() - states[p].last_changed).total_seconds() < 900) }}
+                     and ((is_state(p, 'on') and seit >= dwell)
+                          or (oben and seit < nach)) }}
             - variables:
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
