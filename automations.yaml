@@ -1357,6 +1357,9 @@
               dir: sued
               hitze_pos: 10
               fenster: binary_sensor.shelly_blu_door_window_bb57_window
+              # Gast-Modus: nur bei aktivem Toggle (Schlafcouch-Bewohner schonen)
+              waketime: true
+              waketime_aktiv: input_boolean.beschattung_gast_aktiv_gaestezimmer
               lock: input_boolean.beschattung_lock_gaestezimmer
               manual: input_boolean.beschattung_manual_gaestezimmer
             # Büro: Hitzeschutz = Blendschutz nach Anwesenheit
@@ -1366,6 +1369,9 @@
               dir: sued
               blend: true
               fenster: binary_sensor.shelly_blu_door_window_a173_window
+              # Gast-Modus: gleiche Logik wie Gästezimmer, da Schlafcouch
+              waketime: true
+              waketime_aktiv: input_boolean.beschattung_gast_aktiv_buero
               lock: input_boolean.beschattung_lock_buero
               manual: input_boolean.beschattung_manual_buero
             # Schlafzimmer: erst nach Wake-Zeit öffnen (Werktag 7 / WE 10)
@@ -1484,12 +1490,17 @@
                                 and default not in ['Offen'] %}
                   {% set zuhause = not repeat.item.get('praesenz') or (praesenz_da | string | lower == 'true') %}
                   {{ manual and not nacht and zuhause and (frisch or skip) }}
-                # Schlafzimmer: erst nach Wake-Zeit öffnen
+                # Wake-Zeit: Schlafzimmer immer; Gästezimmer/Büro nur bei
+                # aktivem Gast-Toggle (waketime_aktiv). Ohne Toggle → true.
                 tag_erlaubt: >-
                   {% if repeat.item.get('waketime', false) %}
+                    {% set akt = repeat.item.get('waketime_aktiv') %}
+                    {% set aktiv = true if akt is none else is_state(akt, 'on') %}
                     {% set workday = is_state('binary_sensor.workday_sensor', 'on') %}
                     {% set h = now().hour %}
-                    {{ (workday and h >= 7) or (not workday and h >= 10) }}
+                    {% if aktiv %}
+                      {{ (workday and h >= 7) or (not workday and h >= 10) }}
+                    {% else %}true{% endif %}
                   {% else %}true{% endif %}
                 # Gesperrt (auch wenn der Zustand nicht lesbar ist) → skip
                 gesperrt: >-

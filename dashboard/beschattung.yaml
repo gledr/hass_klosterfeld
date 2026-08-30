@@ -926,3 +926,29 @@ views:
 
               **Offen / Zu / Lamellen halb**: Überschreibt den Standard in
               Tag-Modus. Hitzeschutz und Nacht greifen weiterhin.
+
+      ###########################################################################
+      # GAST-MODUS                                                             #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Gast-Modus
+            icon: mdi:bed-empty
+
+          - type: custom:mushroom-entity-card
+            entity: input_boolean.beschattung_gast_aktiv_gaestezimmer
+            name: Gästezimmer
+            icon: mdi:bed-empty
+
+          - type: custom:mushroom-entity-card
+            entity: input_boolean.beschattung_gast_aktiv_buero
+            name: Büro
+            icon: mdi:sofa
+
+          - type: markdown
+            content: >
+              Aktiviert den Wake-Schutz: Die Beschattung fährt am Wochenende
+              nicht mit Sonnenaufgang hoch, sondern erst um **10:00**
+              (Werktag 7:00) — für ausgeschlafene Gäste auf der Schlafcouch.

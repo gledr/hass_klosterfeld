@@ -881,6 +881,15 @@ input_boolean:
   beschattung_lock_garderobe:
     name: Sperre Garderobe
     icon: mdi:lock
+  # Gast-Modus: Schützt ausgeschlafen werden (Schlafcouch). Wenn ON, fährt
+  # Gästezimmer/Büro am Wochenende nicht mit Sonnenaufgang hoch, sondern erst
+  # um 10:00 (Werktag 7:00) — dieselbe Logik wie das Schlafzimmer (waketime).
+  beschattung_gast_aktiv_gaestezimmer:
+    name: Gast aktiv Gästezimmer
+    icon: mdi:bed-empty
+  beschattung_gast_aktiv_buero:
+    name: Gast aktiv Büro
+    icon: mdi:bed-empty
   badezimmer_privacy_active:
     name: Badezimmer Privacy Mode Aktiv
   beschattung_messfahrt_running:
