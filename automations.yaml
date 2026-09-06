@@ -1180,17 +1180,16 @@
           - binary_sensor.sonne_trifft_nord
           - binary_sensor.sonne_trifft_sued
           - binary_sensor.sonne_trifft_west
-      # Präsenz in einem Raum mit praesenz-Option → Raffstore hoch/runter.
-      # for: muss zur Verweildauer praesenz_dwell passen (600 s) und etwas
-      # darüber liegen, damit die Bedingung beim Feuern sicher erfüllt ist.
-      # Kurzbesuche (Kaffee holen) feuern damit gar nicht mehr.
-      # Das Absenken nach dem Verlassen steuert praesenz_nachlauf in der
-      # Variable, nicht der Trigger — die Konvergenz bewertet bei jedem Lauf
-      # den Istzustand, ein reiner Trigger-Delay würde nichts nützen.
+      # Präsenz-Hold abgelaufen → Wohnzimmer/Terrasse wieder normal bewerten.
+      # Der Hold hält einen von Hand geöffneten Raffstore offen, solange
+      # jemand in der Wohnküche ist, plus praesenz_nachlauf (1800 s). Der
+      # Trigger liegt etwas über dem Nachlauf, damit die Bedingung beim
+      # Feuern sicher abgelaufen ist. Für den BEGINN des Holds braucht es
+      # keinen Trigger: der Hold verhindert nur Fahrten, er löst keine aus.
       - platform: state
         entity_id: binary_sensor.praesenzmelder_wohnzimmer
-        to: "on"
-        for: "00:10:30"
+        to: "off"
+        for: "00:30:30"
       # Nach Messfahrt zurück in den normalen Betrieb
       - platform: state
         entity_id: input_boolean.beschattung_messfahrt_running
@@ -1310,15 +1309,15 @@
               type: raffstore
               dir: sued
               hitze_tilt: 25
-              # Anwesenheit im Raum → Behang hoch (freie Sicht), statt wie
-              # sonst unten mit Lamellen auf 50. Gilt nur im Tag-Modus und nur
-              # bei Tageslicht: Hitzeschutz und Nacht haben Vorrang.
-              # dwell/nachlauf sind die Anti-Flatter-Schwellen, siehe
-              # praesenz_da. 10 Min Verweildauer filtert Durchgänge raus,
-              # 20 Min Nachlauf überbrückt kurzes Rausgehen.
+              # Präsenz-Hold: Die Automation fährt hier NICHTS mehr von selbst
+              # hoch. Wer den Raffstore von Hand aufmacht, während jemand in
+              # der Wohnküche ist, behält ihn offen — der Tag-Modus fasst ihn
+              # nicht an, solange der Melder on ist plus praesenz_nachlauf
+              # (30 Min Nachlauf, überbrückt kurzes Rausgehen).
+              # Hitzeschutz und Nacht haben weiterhin Vorrang.
               praesenz: binary_sensor.praesenzmelder_wohnzimmer
-              praesenz_dwell: 600
-              praesenz_nachlauf: 1200
+              praesenz_hold: true
+              praesenz_nachlauf: 1800
               lock: input_boolean.beschattung_lock_wohnzimmer
               manual: input_boolean.beschattung_manual_wohnzimmer
             - name: Terrasse
@@ -1332,7 +1331,10 @@
               # draußen).
               manual_timeout: 7200
               skip_fully_open: true
+              # Präsenz-Hold wie Wohnzimmer — derselbe Melder in der Wohnküche.
               praesenz: binary_sensor.praesenzmelder_wohnzimmer
+              praesenz_hold: true
+              praesenz_nachlauf: 1800
               lock: input_boolean.beschattung_lock_terrasse
               manual: input_boolean.beschattung_manual_terrasse
             - name: WC OG
@@ -1407,59 +1409,36 @@
                 privacy_active: "{{ is_state('input_boolean.badezimmer_privacy_active', 'on') }}"
                 tuer_offen: "{{ is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') }}"
                 timer_aktiv: "{{ is_state('timer.terrassentuer_aussperrschutz', 'active') }}"
-                # Anwesenheit im Raum, mit 15 Min Nachlauf. Der Nachlauf muss
-                # hier sitzen und nicht im Trigger: die Konvergenz bewertet bei
-                # JEDEM Lauf den Istzustand, ein reiner Trigger-Delay würde den
-                # Raffstore beim nächsten /15-Lauf sofort absenken. Raffstore-
-                # Fahrten dauern ~90 s und sind laut — Flattern vermeiden.
+                # Anwesenheit im Raum, mit Nachlauf (praesenz_nachlauf, 1800 s).
+                # KEINE Verweildauer-Schwelle mehr: die Variable löst nichts
+                # aus, sie hält nur einen bereits offenen Raffstore offen
+                # (siehe hold). Ein Durchgang "Kaffee holen" kann deshalb
+                # nichts mehr in Bewegung setzen — der 10-Min-Dwell aus dem
+                # alten Präsenz-Lift ist ersatzlos entfallen.
+                # Der Nachlauf muss hier sitzen und nicht im Trigger: die
+                # Konvergenz bewertet bei JEDEM Lauf den Istzustand, ein
+                # reiner Trigger-Delay würde den Raffstore beim nächsten
+                # /15-Lauf sofort absenken.
                 #
                 # ACHTUNG, nicht in {% if %}-Zweige zurückbauen: HA typisiert
                 # Template-Ergebnisse per literal_eval. "False"/"True" werden zu
                 # echten Booleans, ein selbst geschriebenes "false" in Klein-
                 # schreibung ist KEIN Python-Literal — es bleibt ein String, und
                 # ein nicht-leerer String ist truthy. Genau das hat am
-                # 2026-08-23 ALLE Raffstores hochgefahren, weil praesenz_da für
-                # jeden Raum ohne Melder wahr war. Ein einziger {{ }}-Ausdruck
-                # liefert garantiert einen Boolean. Die and-Kette kurzschließt,
-                # states[p] wird also nie mit p = None ausgewertet.
-                # Der Lift gilt nur bei Tageslicht (switch.twilight on). Ab
-                # Dämmerungsbeginn zählt Anwesenheit nicht mehr: der Behang
-                # fährt sofort zu, die Lamellen bleiben aber noch auf 50 —
-                # denn der Modus ist dann noch 'tag' (nacht greift erst nach
-                # beschattung_nacht_verzoegerung, Standard 30 Min). Nach der
-                # Verzögerung schaltet mode auf 'nacht' und die Lamellen gehen
-                # mit allen anderen Räumen zu. twilight hier direkt abfragen
-                # statt über die Variable twilight_on — keine Abhängigkeit von
-                # der Auswertungsreihenfolge innerhalb desselben variables-Blocks.
-                # Zwei Schwellen, damit der Raffstore nicht wegen jedem
-                # Durchgang fährt (Kaffee holen = ~2 Min Präsenz):
-                #   praesenz_dwell    So lange muss der Melder DURCHGEHEND on
-                #                     sein, bevor gehoben wird. Kurzbesuche
-                #                     erreichen das nie.
-                #   praesenz_nachlauf So lange bleibt er nach dem Verlassen
-                #                     oben — aber NUR wenn er schon oben ist
-                #                     (oben-Check). Sonst würde der Nachlauf
-                #                     einen Kurzbesuch nachträglich zum Lift
-                #                     machen, also genau das Flattern erzeugen,
-                #                     das er verhindern soll.
-                # Der oben-Zweig hängt absichtlich nicht an off: flackert der
-                # Melder kurz off/on, ist seit wieder klein und der dwell-Zweig
-                # trägt nicht — ohne oben-Zweig würde er dann mitten im
-                # Aufenthalt absenken.
-                # Position direkt über repeat.item.cover lesen, nicht über die
-                # Variable cur_pos — die steht im selben variables-Block und ist
-                # hier noch nicht garantiert gesetzt.
-                praesenz_da: >-
+                # 2026-08-23 ALLE Raffstores hochgefahren, weil die Vorgänger-
+                # Variable für jeden Raum ohne Melder wahr war. Ein einziger
+                # {{ }}-Ausdruck liefert garantiert einen Boolean. Die and-Kette
+                # kurzschließt, states[p] wird also nie mit p = None ausgewertet.
+                # Nur bei Tageslicht (switch.twilight on): ab Dämmerungsbeginn
+                # zählt Anwesenheit nicht mehr, Nacht hat Vorrang.
+                anwesend: >-
                   {% set p = repeat.item.get('praesenz') %}
-                  {% set dwell = repeat.item.get('praesenz_dwell', 600) %}
-                  {% set nach = repeat.item.get('praesenz_nachlauf', 1200) %}
+                  {% set nach = repeat.item.get('praesenz_nachlauf', 1800) %}
                   {% set lesbar = p is not none and states(p) not in ['unknown', 'unavailable'] %}
                   {% set seit = (now() - states[p].last_changed).total_seconds() if lesbar else 0 %}
-                  {% set oben = state_attr(repeat.item.cover, 'current_position') | int(-1) >= 98 %}
                   {{ lesbar
                      and is_state('switch.twilight', 'on')
-                     and ((is_state(p, 'on') and seit >= dwell)
-                          or (oben and seit < nach)) }}
+                     and (is_state(p, 'on') or seit < nach) }}
             - variables:
                 # Zustand nicht lesbar → Raum überspringen (nächster Lauf holt nach)
                 lesbar: "{{ cur_pos is not none and (rtype != 'raffstore' or cur_tilt is not none) }}"
@@ -1488,8 +1467,32 @@
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99
                                 and default not in ['Offen'] %}
-                  {% set zuhause = not repeat.item.get('praesenz') or (praesenz_da | string | lower == 'true') %}
+                  {% set zuhause = not repeat.item.get('praesenz') or (anwesend | string | lower == 'true') %}
                   {{ manual and not nacht and zuhause and (frisch or skip) }}
+                # PRÄSENZ-HOLD (Wohnzimmer + Terrasse)
+                # Von Hand aufgemachter Raffstore + jemand in der Wohnküche →
+                # der Tag-Modus fasst ihn nicht mehr an. Kein Timeout wie bei
+                # manual_block: der Hold hält, solange der Melder on ist plus
+                # 30 Min Nachlauf (anwesend). Erst danach darf normal zugefahren
+                # werden.
+                # Bewusst NUR gegen 'tag' (siehe mode): Hitzeschutz darf weiter
+                # zufahren — an der Terrasse aber nur bei geschlossener Tür,
+                # dafür sorgt aussperr in 'gesperrt'. Nacht ebenfalls nicht
+                # betroffen, weil anwesend an Tageslicht hängt.
+                # Der Offen-Check ist die Bedingung "ich habe ihn aufgemacht":
+                # steht der Behang unten, gibt es nichts zu halten und die
+                # Lamellen sollen weiter normal nachgeführt werden.
+                # Schwelle 50 statt 98: auch ein halb hochgefahrener Behang ist
+                # eine bewusste Handbedienung. Tiefer sollte sie nicht liegen —
+                # die KNX-Rückmeldung dieser beiden Cover ist unzuverlässig, und
+                # eine Drift von 0 auf z.B. 20 würde den Raffstore sonst den
+                # ganzen Tag einfrieren, sobald jemand im Raum ist.
+                # Der Vergleich gegen 'true' als String ist Absicht — siehe
+                # target_pos.
+                hold: >-
+                  {{ repeat.item.get('praesenz_hold', false)
+                     and (anwesend | string | lower == 'true')
+                     and cur_pos | int(-1) >= 50 }}
                 # Wake-Zeit: Schlafzimmer immer; Gästezimmer/Büro nur bei
                 # aktivem Gast-Toggle (waketime_aktiv). Ohne Toggle → true.
                 tag_erlaubt: >-
@@ -1507,11 +1510,12 @@
                   {{ not lesbar or locked or wind or fenster_blockt or manual_block
                      or (repeat.item.get('privacy', false) and privacy_active)
                      or (repeat.item.get('aussperr', false) and (tuer_offen or timer_aktiv)) }}
-                # Zielmodus ermitteln (Reihenfolge: skip > nacht > hitze > tag)
+                # Zielmodus ermitteln (Reihenfolge: skip > nacht > hitze > hold > tag)
                 mode: >-
                   {% if gesperrt %}skip
                   {% elif nacht %}nacht
                   {% elif hitze and not repeat.item.get('no_hitze', false) %}hitze
+                  {% elif hold %}skip
                   {% elif tag_erlaubt %}tag
                   {% else %}skip{% endif %}
                 target_pos: >-
@@ -1529,11 +1533,12 @@
                   {% elif default == 'Offen' %}100
                   {% elif default == 'Zu' %}0
                   {% elif default == 'Lamellen halb' %}0
-                  {% else %}{{ (100 if praesenz_da | string | lower == 'true' else 0) if rtype == 'raffstore' else 100 }}{% endif %}
-                # Der Vergleich gegen 'true' als String ist Absicht, nicht
-                # Umständlichkeit: ein truthy String hat hier am 2026-08-23 das
-                # ganze Haus hochgefahren. So schlägt ein Typ-Unfall höchstens
-                # in "Feature tut nichts" um, nie in "alles fährt".
+                  {% else %}{{ 0 if rtype == 'raffstore' else 100 }}{% endif %}
+                # Hinweis zum Vergleich gegen 'true' als String (z.B. in hold):
+                # das ist Absicht, nicht Umständlichkeit. Ein truthy String hat
+                # hier am 2026-08-23 das ganze Haus hochgefahren. So schlägt ein
+                # Typ-Unfall höchstens in "Feature tut nichts" um, nie in
+                # "alles fährt".
                 target_tilt: >-
                   {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
@@ -1544,7 +1549,7 @@
                     {% elif default == 'Offen' %}-1
                     {% elif default == 'Lamellen halb' %}50
                     {% elif default == 'Zu' %}0
-                    {% else %}{{ -1 if praesenz_da | string | lower == 'true' else 50 }}{% endif %}
+                    {% else %}50{% endif %}
                   {% else %}none{% endif %}
             # Nur fahren, wenn der Ist-Zustand wirklich abweicht.
             # Position mit ±2 Toleranz vergleichen — KNX meldet 0 gern als 1/2

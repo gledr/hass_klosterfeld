@@ -920,9 +920,12 @@ views:
 
           - type: markdown
             content: >
-              **Automatisch (Präsenz)**: Standard-Verhalten — Raffstore fährt
-              bei Anwesenheit hoch, nach Verlassen (15 Min) wieder runter.
-              Andere Regeln (Hitzeschutz, Nacht) haben immer Vorrang.
+              **Automatisch (Präsenz)**: Standard-Verhalten — Behang zu,
+              Lamellen halb. Die Automation fährt hier **nichts von selbst
+              hoch**. Machst du den Raffstore aber selbst auf, während jemand
+              in der Wohnküche ist, bleibt er offen — bis 30 Min nach dem
+              Verlassen des Raums. Hitzeschutz und Nacht haben weiter Vorrang
+              (Terrasse: Hitzeschutz nur bei geschlossener Terrassentür).
 
               **Offen / Zu / Lamellen halb**: Überschreibt den Standard in
               Tag-Modus. Hitzeschutz und Nacht greifen weiterhin.
