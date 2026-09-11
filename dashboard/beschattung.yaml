@@ -702,8 +702,10 @@ views:
                 entity: sun.sun
                 name: Sonne
 
-          # Welche Fassade wird gerade getroffen — mit den Schwellen, die
-          # dafür gelten (Winkel + Lux + Ø-Temperatur > 15 °C).
+          # Welche Fassade wird gerade getroffen — mit der Schwelle, an der es
+          # gerade scheitert. Temperatur-Gate zuerst: es gilt für alle drei
+          # Fassaden, und ein zu niedriges Gate war der Grund, warum bei 17 °C
+          # draußen Hitzeschutz lief.
           - type: grid
             columns: 3
             square: false
@@ -711,7 +713,10 @@ views:
               - type: custom:mushroom-template-card
                 primary: Süd
                 secondary: >
+                  {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
+                  {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
                   {% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}Aktiv
+                  {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_sud') | int(0) }} /
                   {{ states('input_number.beschattung_lux_sud') | int(0) }} lx{% endif %}
                 icon: mdi:weather-sunny
@@ -721,7 +726,10 @@ views:
               - type: custom:mushroom-template-card
                 primary: West
                 secondary: >
+                  {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
+                  {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
                   {% if is_state('binary_sensor.sonne_trifft_west', 'on') %}Aktiv
+                  {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_west') | int(0) }} /
                   {{ states('input_number.beschattung_lux_west') | int(0) }} lx{% endif %}
                 icon: mdi:weather-sunset
@@ -731,7 +739,10 @@ views:
               - type: custom:mushroom-template-card
                 primary: Nord
                 secondary: >
+                  {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
+                  {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
                   {% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}Aktiv
+                  {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_nord') | int(0) }} /
                   {{ states('input_number.beschattung_lux_nord') | int(0) }} lx{% endif %}
                 icon: mdi:weather-hazy
@@ -862,8 +873,12 @@ views:
             icon: mdi:tune
 
           - type: entities
-            title: Lux-Schwellen (Hitzeschutz-Trigger)
+            title: Hitzeschutz-Schwellen
             entities:
+              - entity: input_number.beschattung_hitze_temp
+                name: Ø-Außentemperatur ab
+              - type: section
+                label: Lux je Fassade
               - entity: input_number.beschattung_lux_sud
                 name: Süd
               - entity: input_number.beschattung_lux_west
@@ -879,9 +894,16 @@ views:
 
           - type: markdown
             content: >
-              **Lux-Schwellen** greifen nur zusammen mit Ø-Außentemperatur
-              > 15 °C und Sonnenstand über 10° — Helligkeit allein löst nichts
-              aus (sonst reicht diffuser Nebel).
+              **Hitzeschutz** braucht alle drei Bedingungen gleichzeitig:
+              Ø-Außentemperatur über der Temperatur-Schwelle, Helligkeit über
+              der Lux-Schwelle der Fassade und Sonnenstand über 10°.
+              Helligkeit allein löst nichts aus (sonst reicht diffuser Nebel).
+
+              **Temperatur-Schwelle**: Der Wert überlebt einen HA-Neustart
+              (anders als die Lux-Schwellen, die per `initial:` auf 15000
+              zurückfallen). Beim allerersten Start steht er auf 15 °C — das
+              ist die alte fest verdrahtete Schwelle, die bei 17 °C draußen
+              schon Hitzeschutz ausgelöst hat. Empfehlung: 22 °C.
 
               **Nacht-Verzögerung**: Wartezeit nach Dämmerungs-Ende, bis alles
               zufährt. 0 = sofort mit der Flanke. Aufgefahren wird unabhängig

@@ -1069,6 +1069,22 @@ input_number:
     step: 1000
     initial: 15000
     unit_of_measurement: "lx"
+  # Temperatur-Gate für den Hitzeschutz: unterhalb dieses Werts gilt Sonne
+  # nicht als Hitze, egal wie hell es ist (binary_sensor.sonne_trifft_*).
+  # Bewusst OHNE initial: — sonst würde HA den Wert bei jedem Neustart
+  # zurücksetzen statt ihn wiederherzustellen (dieselbe Falle wie bei den
+  # Lux-Schwellen darüber). Ohne initial: und ohne gespeicherten Wert startet
+  # HA auf min — deshalb liegt min bei 15 °C, dem alten fest verdrahteten
+  # Wert: schlechtestenfalls verhält sich der Hitzeschutz wie vorher, nie
+  # empfindlicher. Einmal im Beschattungs-Dashboard auf 22 stellen, danach
+  # überlebt der Wert jeden Neustart.
+  beschattung_hitze_temp:
+    name: Beschattung Temperatur-Schwelle Hitzeschutz
+    min: 15
+    max: 30
+    step: 1
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-high
   # Wartezeit nach Dämmerungs-Ende (switch.twilight → off), bis die
   # Konvergenz auf Nacht schaltet und alles zufährt. 0 = sofort.
   # Achtung: die Konvergenz läuft alle 15 Min, d.h. der tatsächliche
