@@ -495,8 +495,7 @@
         - condition: template
           value_template: '{{ feuchte >= 60 and feuchte < 65 }}'
         sequence:
-        - service: notify.iphone_von_sebastian
-          continue_on_error: true
+        - service: script.notify_alle
           data:
             title: Keller – Hinweis
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
@@ -507,8 +506,7 @@
         - condition: template
           value_template: '{{ feuchte >= 65 and feuchte < 70 }}'
         sequence:
-        - service: notify.iphone_von_sebastian
-          continue_on_error: true
+        - service: script.notify_alle
           data:
             title: Keller – Warnung
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 3 Stunden über
@@ -519,8 +517,7 @@
         - condition: template
           value_template: '{{ feuchte >= 70 }}'
         sequence:
-        - service: notify.iphone_von_sebastian
-          continue_on_error: true
+        - service: script.notify_alle
           data:
             title: Keller – ALARM
             message: '{{ raeume[trigger.entity_id] }}: Luftfeuchte seit 1 Stunde über
@@ -1626,8 +1623,7 @@
                           {% else %}
                             Rollo auf {{ target_pos }} % gefahren (war {{ cur_pos }} %). Sonne trifft {{ {'nord':'Nord','sued':'Süd','west':'West'}[dir] }}.
                           {% endif %}
-                    - service: notify.iphone_von_sebastian
-                      continue_on_error: true
+                    - service: script.notify_alle
                       data:
                         title: "{{ room_name }} – Hitzeschutz aktiv"
                         message: "{{ msg }}"
@@ -1928,8 +1924,7 @@
       - service: input_boolean.turn_on
         target:
           entity_id: input_boolean.beschattung_messfahrt_running
-      - service: notify.iphone_von_sebastian
-        continue_on_error: true
+      - service: script.notify_alle
         data:
           title: Beschattung – Messfahrt
           message: "KNX-Messfahrt aller Raffstores/Rollos startet jetzt (~40 s)."

@@ -396,32 +396,55 @@ wohnkueche_alles_aus:
 
 
 #########################################################
+# ALLE GERÄTE – dynamische Benachrichtigung
+# Ermittelt alle gerade registrierten mobile_app-Notify-Ziele
+# aus states.notify. Überlebt Umbenennungen/Neuregistrierungen,
+# statt auf tote notify.*-Namen zu zeigen.
+#########################################################
+
+notify_alle:
+  alias: Alle Geräte benachrichtigen
+  description: Sendet Titel + Nachricht an alle registrierten mobilen Geräte
+  fields:
+    title:
+      description: Optionaler Titel der Benachrichtigung
+      example: Rauchalarm
+    message:
+      description: Nachrichtentext
+      required: true
+      example: Rauchmelder Keller hat ausgelöst!
+  sequence:
+    - variables:
+        targets: >-
+          {{ states.notify
+             | selectattr('entity_id', 'search', 'mobile_app')
+             | map(attribute='entity_id')
+             | list }}
+    - repeat:
+        for_each: "{{ targets }}"
+        sequence:
+          - service: "{{ repeat.item }}"
+            continue_on_error: true
+            data:
+              title: "{{ title | default('') }}"
+              message: "{{ message }}"
+
+#########################################################
 # RAUCHALARM – BENACHRICHTIGUNGEN
 #########################################################
 
 notify_smoke_alarm:
   alias: Rauchalarm Benachrichtigung
   description: Sendet Rauchalarm an alle Geräte
-  mode: parallel
   fields:
     location:
       description: Ort des Rauchmelders (z.B. Keller Hobbyraum)
       example: Hobbyraum Keller
 
   sequence:
-    - service: notify.iphone_von_sebastian
-      continue_on_error: true
+    - service: script.notify_alle
       data:
-        message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
-
-    - service: notify.macbook_von_sebastian
-      continue_on_error: true
-      data:
-        message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
-
-    - service: notify.sebastians_company_macbook_pro
-      continue_on_error: true
-      data:
+        title: "🚨 Rauchalarm"
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
 
 #########################################################
@@ -431,7 +454,6 @@ notify_smoke_alarm:
 notify_wind_alarm:
   alias: Windalarm Benachrichtigung
   description: Sendet Windalarm an alle Geräte
-  mode: parallel
   fields:
     alarm_name:
       description: Name des Windalarms (z.B. Schwelle 1)
@@ -441,19 +463,9 @@ notify_wind_alarm:
       example: aktiviert
 
   sequence:
-    - service: notify.iphone_von_sebastian
-      continue_on_error: true
+    - service: script.notify_alle
       data:
-        message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
-
-    - service: notify.macbook_von_sebastian
-      continue_on_error: true
-      data:
-        message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
-
-    - service: notify.sebastians_company_macbook_pro
-      continue_on_error: true
-      data:
+        title: "💨 Windalarm"
         message: "💨 Windalarm {{ alarm_name }} {{ state }}!"
 
 
@@ -464,24 +476,15 @@ notify_wind_alarm:
 notify_garage_offen:
   alias: Garage – Abendwarnung Benachrichtigung
   description: Sendet Abendwarnung (Garage/Tür noch offen) an alle Geräte
-  mode: parallel
   fields:
     message:
       description: Warnungstext
       example: "🚗 Garagentor ist um 21 Uhr noch offen!"
 
   sequence:
-    - service: notify.iphone_von_sebastian
-      continue_on_error: true
+    - service: script.notify_alle
       data:
-        message: "{{ message }}"
-    - service: notify.macbook_von_sebastian
-      continue_on_error: true
-      data:
-        message: "{{ message }}"
-    - service: notify.sebastians_company_macbook_pro
-      continue_on_error: true
-      data:
+        title: "🚗 Garagentor offen"
         message: "{{ message }}"
 
 #########################################################
