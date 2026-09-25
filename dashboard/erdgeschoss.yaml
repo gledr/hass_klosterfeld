@@ -27,27 +27,13 @@ views:
           # deshalb Festwert-Knöpfe statt eines Schiebers, dessen untere
           # Hälfte nur flackern produziert.
           - type: custom:mushroom-light-card
-            entity: light.livingroom_main_light
+            entity: light.livingroom_main_light_2
             name: Hauptlicht
             show_brightness_control: true
           - type: custom:mushroom-light-card
             entity: light.livingroom_reading_light
             name: Leselicht
             show_brightness_control: true
-          - type: custom:mushroom-template-card
-            entity: light.livingroom_main_light_2
-            primary: Wandlicht
-            secondary: >
-              {% if is_state('light.livingroom_main_light_2', 'on') %}
-                {{ (state_attr('light.livingroom_main_light_2', 'brightness') | int(0) / 2.55) | round(0) }} %
-              {% else %}
-                Aus
-              {% endif %}
-            icon: mdi:wall-sconce
-            icon_color: >
-              {% if is_state('light.livingroom_main_light_2', 'on') %}amber{% else %}disabled{% endif %}
-            tap_action:
-              action: toggle
           - type: custom:mushroom-chips-card
             alignment: start
             chips:
