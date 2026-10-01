@@ -716,6 +716,7 @@ views:
                   {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
                   {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
                   {% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}Aktiv
+                  {% elif is_state('input_select.beschattung_saison', 'Winter') %}Winter – aus
                   {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_sud') | int(0) }} /
                   {{ states('input_number.beschattung_lux_sud') | int(0) }} lx{% endif %}
@@ -729,6 +730,7 @@ views:
                   {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
                   {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
                   {% if is_state('binary_sensor.sonne_trifft_west', 'on') %}Aktiv
+                  {% elif is_state('input_select.beschattung_saison', 'Winter') %}Winter – aus
                   {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_west') | int(0) }} /
                   {{ states('input_number.beschattung_lux_west') | int(0) }} lx{% endif %}
@@ -742,6 +744,7 @@ views:
                   {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
                   {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
                   {% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}Aktiv
+                  {% elif is_state('input_select.beschattung_saison', 'Winter') %}Winter – aus
                   {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_nord') | int(0) }} /
                   {{ states('input_number.beschattung_lux_nord') | int(0) }} lx{% endif %}
@@ -875,6 +878,8 @@ views:
           - type: entities
             title: Hitzeschutz-Schwellen
             entities:
+              - entity: input_select.beschattung_saison
+                name: Saison
               - entity: input_number.beschattung_hitze_temp
                 name: Ø-Außentemperatur ab
               - type: section
@@ -898,6 +903,10 @@ views:
               Ø-Außentemperatur über der Temperatur-Schwelle, Helligkeit über
               der Lux-Schwelle der Fassade und Sonnenstand über 10°.
               Helligkeit allein löst nichts aus (sonst reicht diffuser Nebel).
+
+              **Saison Winter**: Hitzeschutz komplett aus, egal wie warm und
+              hell — die Sonnenwärme soll rein. Tag/Nacht und Sichtschutz
+              laufen unverändert weiter.
 
               **Temperatur-Schwelle**: Der Wert überlebt einen HA-Neustart
               (anders als die Lux-Schwellen, die per `initial:` auf 15000

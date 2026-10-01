@@ -7,6 +7,8 @@ binary_sensor:
   # Dashboard), früher fest 15 °C — zu niedrig: bei 17 °C Außentemperatur ist
   # das Rollo Gästezimmer den ganzen Tag auf und ab gefahren. float(22) ist
   # nur der Fallback, falls der Helper mal nicht lesbar ist.
+  # Winter-Modus (input_select.beschattung_saison): nie Hitze — die
+  # Sonnenwärme soll rein, Beschattung bleibt im normalen Tag-Zustand.
 
   - name: "Sonne trifft Sued"
     unique_id: sonne_trifft_sued
@@ -19,7 +21,8 @@ binary_sensor:
          and state_attr('sun.sun', 'azimuth') | float < 250
          and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(15000)
-         and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22) }}
+         and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
+         and not is_state('input_select.beschattung_saison', 'Winter') }}
 
   - name: "Sonne trifft West"
     unique_id: sonne_trifft_west
@@ -32,7 +35,8 @@ binary_sensor:
          and state_attr('sun.sun', 'azimuth') | float < 315
          and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_west') | float(0) > states('input_number.beschattung_lux_west') | float(15000)
-         and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22) }}
+         and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
+         and not is_state('input_select.beschattung_saison', 'Winter') }}
 
   - name: "Sonne trifft Nord"
     unique_id: sonne_trifft_nord
@@ -45,7 +49,8 @@ binary_sensor:
          or state_attr('sun.sun', 'azimuth') | float < 70)
          and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_nord') | float(0) > states('input_number.beschattung_lux_nord') | float(15000)
-         and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22) }}
+         and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
+         and not is_state('input_select.beschattung_saison', 'Winter') }}
 
 sensor:
 
