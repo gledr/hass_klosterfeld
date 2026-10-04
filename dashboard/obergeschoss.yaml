@@ -174,6 +174,40 @@ views:
             entity: cover.wc_og_blinds
             name: Raffstore (Lamellen)
             show_tilt_position_control: true
+          # Sollwert des WC-Stellantriebs (KNX 7/3/39 schreiben, 7/3/37
+          # zurücklesen). Die Kachel zeigt den Ist-Sollwert des Antriebs,
+          # nicht den in HASS gespeicherten Wunschwert — durch Antippen
+          # öffnet sich der Regler mit Slider und +-Schritten.
+          - type: custom:mushroom-entity-card
+            entity: number.wc_og_sollwert
+            name: Sollwert Heizung
+            icon: mdi:radiator
+            fill_container: true
+          # Zweiter Weg zum selben Sollwert: die Korrektur-KO des Antriebs
+          # (7/3/34, 1 = höher / 0 = niedriger). Nützlich, weil sie genau
+          # das tut, was ein Wandthermostat tut — relativ, ohne dass HASS
+          # den Absolutwert kennen muss.
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:minus
+                content: Sollwert −
+                icon_color: blue
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.wc_og_sollwert_minus
+              - type: template
+                icon: mdi:plus
+                content: Sollwert +
+                icon_color: deep-orange
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.wc_og_sollwert_plus
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
