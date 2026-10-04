@@ -627,3 +627,28 @@ garagen_seitentur_toggle:
         {% endif %}
       target:
         entity_id: lock.garagen_seitentur
+
+
+#########################################################
+# HEIZUNG – WC OG AUF STANDARDSOLLWERT STELLEN
+# Ein bewusst einfacher Einzweck-Befehl: schreibt den
+# Standardsollwert (20 °C) auf das KO "Sollwert setzen" 7/3/39
+# des WC-Stellantriebs. Damit lässt sich der Antrieb jederzeit
+# auf den Ausgangswert zurückstellen, ohne den Regler zu
+# öffnen – praktisch, wenn nach dem Testen wieder Normalbetrieb
+# sein soll.
+# Wichtig: 20 °C muss zusätzlich im ETS-Parameter des
+# Stellantriebs hinterlegt sein. Dieser Befehl setzt den Wert
+# nur aktiv, er ist keine einmalige Grundeinstellung. HASS
+# schreibt beim Start von sich aus nichts auf den Bus.
+#########################################################
+wc_og_sollwert_standard:
+  alias: Heizung – WC OG Sollwert auf Standard (20 °C)
+  icon: mdi:restore
+  mode: single
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.wc_og_sollwert
+      data:
+        value: 20

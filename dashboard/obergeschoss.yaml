@@ -209,6 +209,13 @@ views:
                   target:
                     entity_id: button.wc_og_sollwert_minus
               - type: template
+                icon: mdi:restore
+                content: Standard 20 °C
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: script.wc_og_sollwert_standard
+              - type: template
                 icon: mdi:plus
                 content: Sollwert +
                 icon_color: deep-orange
