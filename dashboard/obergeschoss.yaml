@@ -174,24 +174,38 @@ views:
             entity: cover.wc_og_blinds
             name: Raffstore (Lamellen)
             show_tilt_position_control: true
-          # Sollwert des WC-Stellantriebs (KNX 7/3/39 schreiben, 7/3/37
-          # zurücklesen). Die Kachel zeigt den vom Antrieb gemeldeten
-          # Sollwert, nicht einen in HASS gespeicherten Wunschwert. Solange
-          # noch nichts gemeldet wurde, steht dort der Standard 20 °C —
-          # grau markiert, damit niemand den Wert für einen gelesenen hält.
-          - type: custom:mushroom-template-card
-            primary: Sollwert Heizung
-            secondary: >-
-              {% set soll = states('number.wc_og_sollwert') %}
-              {% if soll in ['unknown', 'unavailable'] %}20 °C (Standard)
-              {% else %}{{ soll }} °C{% endif %}
-            icon: mdi:radiator
-            # einzeilig, sonst greift der Leerraum-Vergleich in mushroom nicht
-            icon_color: "{% if states('number.wc_og_sollwert') in ['unknown','unavailable'] %}grey{% else %}orange{% endif %}"
-            tap_action:
-              action: more-info
-              entity: number.wc_og_sollwert
-            fill_container: true
+          # Sollwert-Regler des WC-Stellantriebs. Entities-Card, weil nur
+          # hier der number-Entity als echter Slider mit +-Schritten
+          # gerendert wird — Mushroom hat keine Card dafür, die den Wert
+          # direkt verstellbar macht. Wert ansehen und verstellen geht
+          # damit in einem Schritt statt über den more-info-Dialog.
+          # Schreiben geht auf 7/3/39, zurückgelesen wird 7/3/37.
+          - type: entities
+            title: Heizung – Sollwert
+            show_header_toggle: false
+            entities:
+              - entity: number.wc_og_sollwert
+                name: Sollwert
+                icon: mdi:radiator
+          # Nur sichtbar, solange der Antrieb noch nichts gemeldet hat:
+          # der Slider zeigt dann "unknown", und 20 °C ist nur der
+          # ETS-Parameter im Gerät, kein von HASS gelesener Wert. Deshalb
+          # der Hinweis als eigene Karte statt als Ersatztext im Slider.
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: number.wc_og_sollwert
+                state:
+                  - unknown
+                  - unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: 20 °C (Standard)
+              secondary: >-
+                Der Antrieb hat noch keinen Sollwert gemeldet. 20 °C steht
+                im ETS-Parameter des Stellantriebs.
+              icon: mdi:information-outline
+              icon_color: grey
           # Zweiter Weg zum selben Sollwert: die Korrektur-KO des Antriebs
           # (7/3/34, 1 = höher / 0 = niedriger). Nützlich, weil sie genau
           # das tut, was ein Wandthermostat tut — relativ, ohne dass HASS
