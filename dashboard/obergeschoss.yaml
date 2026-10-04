@@ -215,6 +215,18 @@ views:
                 tap_action:
                   action: call-service
                   service: script.wc_og_sollwert_standard
+              # Status: zwingt den Antrieb über 7/3/37, seinen
+              # tatsächlichen Sollwert zu melden. Nötig, weil die
+              # Kachel sonst nur zeigt, was HASS zuletzt geschickt
+              # hat — ohne Display am Gerät ist das der einzige Weg,
+              # die Wahrheit zu sehen.
+              - type: template
+                icon: mdi:refresh
+                content: Status
+                icon_color: teal
+                tap_action:
+                  action: call-service
+                  service: script.wc_og_sollwert_status_abfragen
               - type: template
                 icon: mdi:plus
                 content: Sollwert +

@@ -630,6 +630,36 @@ garagen_seitentur_toggle:
 
 
 #########################################################
+# HEIZUNG – WC OG SOLLWERT-STATUS ABFRAGEN
+# Der Stellantrieb hat kein Display, deshalb bleibt nur der Bus
+# als Beobachtungspunkt. Diese Abfrage schickt ein GroupValueRead
+# auf 7/3/37 und zwingt den Antrieb, seinen tatsächlichen
+# Sollwert zurückzumelden.
+#
+# Warum das nötig ist: die Kachel im Dashboard zeigt den Wert, den
+# HASS zuletzt GESCHICKT hat. xknx übernimmt den Wert in den
+# Entity-State, sobald das eigene Telegram abgesetzt ist — die
+# Kachel springt also sofort, unabhängig davon, ob der Antrieb
+# den Wert übernommen hat. Erst die Antwort auf 7/3/37 macht die
+# Anzeige zur Wahrheit. Weicht der zurückgemeldete Wert ab, hat
+# der Antrieb den Sollwert nicht übernommen — Grenze im Gerät,
+# Klemmung oder eine andere Regelung hat Vorrang.
+#
+# HASS fragt den Status beim Start bereits selbst ab
+# (sync_state ist Default). Dieser Knopf ist für den Bedienfall
+# zwischendurch.
+#########################################################
+wc_og_sollwert_status_abfragen:
+  alias: Heizung – WC OG Sollwert-Status abfragen
+  icon: mdi:refresh
+  mode: single
+  sequence:
+    - service: knx.read
+      data:
+        address: "7/3/37"
+
+
+#########################################################
 # HEIZUNG – WC OG AUF STANDARDSOLLWERT STELLEN
 # Ein bewusst einfacher Einzweck-Befehl: schreibt den
 # Standardsollwert (20 °C) auf das KO "Sollwert setzen" 7/3/39
