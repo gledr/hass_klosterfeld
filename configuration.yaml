@@ -1035,16 +1035,26 @@ input_select:
     options: ["Automatisch (Präsenz)", "Offen", "Zu", "Lamellen halb"]
     initial: "Automatisch (Präsenz)"
 
-  # Saison-Modus der Beschattung, manuell im Beschattungs-Dashboard.
+  # Saison-Modus der Beschattung, im Beschattungs-Dashboard.
   # Winter: kein Hitzeschutz — binary_sensor.sonne_trifft_* bleibt off, die
   # Beschattung bleibt im normalen Tag-Zustand (Lamellen halb), damit die
   # Sonnenwärme reinkommt. Sichtschutz bleibt unverändert.
-  # Bewusst OHNE initial:, damit der Wert einen Neustart überlebt; erster
-  # Start → erste Option (Sommer).
+  #
+  # "Automatisch (Heizsaison)" (erste Option, also der Standard) folgt
+  # binary_sensor.heizsaison — dieselbe Heizsaison, nach der auch GA 7/0/0
+  # geschaltet wird. "Sommer"/"Winter" erzwingen stattdessen einen festen
+  # Modus, für die Ausnahme (z. B. "Sommer, aber die Sonne soll heute
+  # ungebremst rein").
+  #
+  # Bewusst OHNE initial:, damit ein gesetzter Wert einen Neustart überlebt.
+  # Werkszustand ist damit die erste Option (Automatisch). Achtung beim
+  # Umstellen: ein schon gespeicherter Sommer/Winter-Wert bleibt erhalten und
+  # gewinnt weiterhin gegen die Heizsaison — einmalig auf "Automatisch
+  # (Heizsaison)" stellen, dann entscheidet die Heizsaison.
   beschattung_saison:
     name: Beschattung Saison
     icon: mdi:sun-snowflake-variant
-    options: ["Sommer", "Winter"]
+    options: ["Automatisch (Heizsaison)", "Sommer", "Winter"]
 
 input_number:
   raffstore_badezimmer_vorher:

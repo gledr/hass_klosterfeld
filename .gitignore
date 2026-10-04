@@ -1,0 +1,18 @@
+# Lokale, maschinenabhängige Dateien — gehören nicht ins Repo.
+
+# PyCharm / JetBrains
+.idea/
+*.iml
+
+# HA-Storage (wird beim Start erzeugt, enthält Entity-/Device-IDs der
+# jeweiligen Installation)
+core.entity_registry
+.storage/
+home-assistant_v2.db*
+home-assistant*.log*
+home-assistant.log*
+
+# Betriebssystem / Python
+.DS_Store
+__pycache__/
+*.pyc

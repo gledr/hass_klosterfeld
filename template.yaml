@@ -7,8 +7,20 @@ binary_sensor:
   # Dashboard), früher fest 15 °C — zu niedrig: bei 17 °C Außentemperatur ist
   # das Rollo Gästezimmer den ganzen Tag auf und ab gefahren. float(22) ist
   # nur der Fallback, falls der Helper mal nicht lesbar ist.
-  # Winter-Modus (input_select.beschattung_saison): nie Hitze — die
-  # Sonnenwärme soll rein, Beschattung bleibt im normalen Tag-Zustand.
+  #
+  # Winterbetrieb: nie Hitze — die Sonnenwärme soll rein, die Beschattung
+  # bleibt im normalen Tag-Zustand. Quelle der Wahrheit ist die Heizsaison
+  # (binary_sensor.heizsaison): wenn es draußen kalt genug ist, dass die
+  # Heizung läuft, soll die Sonne ungehindert durch. Das ist dieselbe
+  # Entscheidung, die automation heizung_betriebsart_automatik für GA 7/0/0
+  # trifft — Rollo und Heizung hängen damit an derselben Jahreszeit-Entscheidung.
+  #
+  # input_select.beschattung_saison übersteuert das nur:
+  #   "Winter"                    -> Hitzeschutz immer aus
+  #   "Sommer"                    -> Hitzeschutz immer an (Ausnahme: zu dunkel/heiß)
+  #   "Automatisch (Heizsaison)"  -> folge binary_sensor.heizsaison (Standard)
+  # Unbekannt/unavailable gilt wie "Automatisch": lieber im Zweifel
+  # beschatten als Sonnenwärme verschenken.
 
   - name: "Sonne trifft Sued"
     unique_id: sonne_trifft_sued
@@ -17,12 +29,15 @@ binary_sensor:
     delay_off:
       minutes: 5
     state: >
+      {% set wahl = states('input_select.beschattung_saison') %}
+      {% set winter = wahl == 'Winter'
+         or (wahl != 'Sommer' and is_state('binary_sensor.heizsaison', 'on')) %}
       {{ state_attr('sun.sun', 'azimuth') | float > 135
          and state_attr('sun.sun', 'azimuth') | float < 250
          and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
-         and not is_state('input_select.beschattung_saison', 'Winter') }}
+         and not winter }}
 
   - name: "Sonne trifft West"
     unique_id: sonne_trifft_west
@@ -31,12 +46,15 @@ binary_sensor:
     delay_off:
       minutes: 5
     state: >
+      {% set wahl = states('input_select.beschattung_saison') %}
+      {% set winter = wahl == 'Winter'
+         or (wahl != 'Sommer' and is_state('binary_sensor.heizsaison', 'on')) %}
       {{ state_attr('sun.sun', 'azimuth') | float > 200
          and state_attr('sun.sun', 'azimuth') | float < 315
          and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_west') | float(0) > states('input_number.beschattung_lux_west') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
-         and not is_state('input_select.beschattung_saison', 'Winter') }}
+         and not winter }}
 
   - name: "Sonne trifft Nord"
     unique_id: sonne_trifft_nord
@@ -45,12 +63,15 @@ binary_sensor:
     delay_off:
       minutes: 5
     state: >
+      {% set wahl = states('input_select.beschattung_saison') %}
+      {% set winter = wahl == 'Winter'
+         or (wahl != 'Sommer' and is_state('binary_sensor.heizsaison', 'on')) %}
       {{ (state_attr('sun.sun', 'azimuth') | float > 290
          or state_attr('sun.sun', 'azimuth') | float < 70)
          and state_attr('sun.sun', 'elevation') | float > 10
          and states('sensor.helligkeit_nord') | float(0) > states('input_number.beschattung_lux_nord') | float(15000)
          and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
-         and not is_state('input_select.beschattung_saison', 'Winter') }}
+         and not winter }}
 
   # Betriebsart der Heizung (KNX 7/0/0): on = Winter = Heizung aktiv,
   # off = Sommer = Heizung abgeschaltet. Bewusst als binary_sensor, damit

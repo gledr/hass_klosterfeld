@@ -715,8 +715,11 @@ views:
                 secondary: >
                   {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
                   {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
+                  {% set wahl = states('input_select.beschattung_saison') %}
+                  {% set winter = wahl == 'Winter'
+                     or (wahl != 'Sommer' and is_state('binary_sensor.heizsaison', 'on')) %}
                   {% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}Aktiv
-                  {% elif is_state('input_select.beschattung_saison', 'Winter') %}Winter – aus
+                  {% elif winter %}Winter – aus
                   {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_sud') | int(0) }} /
                   {{ states('input_number.beschattung_lux_sud') | int(0) }} lx{% endif %}
@@ -729,8 +732,11 @@ views:
                 secondary: >
                   {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
                   {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
+                  {% set wahl = states('input_select.beschattung_saison') %}
+                  {% set winter = wahl == 'Winter'
+                     or (wahl != 'Sommer' and is_state('binary_sensor.heizsaison', 'on')) %}
                   {% if is_state('binary_sensor.sonne_trifft_west', 'on') %}Aktiv
-                  {% elif is_state('input_select.beschattung_saison', 'Winter') %}Winter – aus
+                  {% elif winter %}Winter – aus
                   {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_west') | int(0) }} /
                   {{ states('input_number.beschattung_lux_west') | int(0) }} lx{% endif %}
@@ -743,8 +749,11 @@ views:
                 secondary: >
                   {% set temp = states('sensor.outdoor_temperature_avg') | float(0) %}
                   {% set gate = states('input_number.beschattung_hitze_temp') | float(22) %}
+                  {% set wahl = states('input_select.beschattung_saison') %}
+                  {% set winter = wahl == 'Winter'
+                     or (wahl != 'Sommer' and is_state('binary_sensor.heizsaison', 'on')) %}
                   {% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}Aktiv
-                  {% elif is_state('input_select.beschattung_saison', 'Winter') %}Winter – aus
+                  {% elif winter %}Winter – aus
                   {% elif temp <= gate %}{{ temp | round(0) }} / {{ gate | round(0) }} °C
                   {% else %}{{ states('sensor.helligkeit_nord') | int(0) }} /
                   {{ states('input_number.beschattung_lux_nord') | int(0) }} lx{% endif %}
@@ -875,6 +884,24 @@ views:
             heading: Einstellungen
             icon: mdi:tune
 
+          - type: custom:mushroom-template-card
+            primary: Hitzeschutz
+            secondary: >
+              {% set wahl = states('input_select.beschattung_saison') %}
+              {% if wahl == 'Sommer' %}an – fest eingestellt auf Sommer
+              {% elif wahl == 'Winter' %}aus – fest eingestellt auf Winter
+              {% elif is_state('binary_sensor.heizsaison', 'on') %}aus – Heizsaison, die Sonnenwärme soll rein
+              {% elif is_state('binary_sensor.heizsaison', 'off') %}an – keine Heizsaison
+              {% else %}unklar – Heizsaison nicht verfügbar{% endif %}
+            # icon und icon_color müssen einzeilig bleiben: mushroom prüft
+            # Icons mit icon.startsWith('mdi:') und Farben mit einem exakten
+            # Vergleich. Ein Leerzeichen aus einem gefalteten Template (vor
+            # allem am Anfang) lässt Icon bzw. Farbe still verschwinden.
+            icon: "{% set wahl = states('input_select.beschattung_saison') %}{% if wahl == 'Sommer' or (wahl != 'Winter' and is_state('binary_sensor.heizsaison', 'off')) %}mdi:fire{% elif wahl == 'Winter' or is_state('binary_sensor.heizsaison', 'on') %}mdi:snowflake{% else %}mdi:help{% endif %}"
+            icon_color: "{% set wahl = states('input_select.beschattung_saison') %}{% if wahl == 'Sommer' or (wahl != 'Winter' and is_state('binary_sensor.heizsaison', 'off')) %}orange{% elif wahl == 'Winter' or is_state('binary_sensor.heizsaison', 'on') %}blue{% else %}grey{% endif %}"
+            multiline_secondary: true
+            layout: horizontal
+
           - type: entities
             title: Hitzeschutz-Schwellen
             entities:
@@ -904,9 +931,15 @@ views:
               der Lux-Schwelle der Fassade und Sonnenstand über 10°.
               Helligkeit allein löst nichts aus (sonst reicht diffuser Nebel).
 
-              **Saison Winter**: Hitzeschutz komplett aus, egal wie warm und
-              hell — die Sonnenwärme soll rein. Tag/Nacht und Sichtschutz
-              laufen unverändert weiter.
+              **Saison**: Standard ist *Automatisch (Heizsaison)* — der
+              Hitzeschutz folgt `binary_sensor.heizsaison`, also genau dem
+              Signal, nach dem auch die Heizung zwischen Sommer- und
+              Winterbetrieb schaltet (GA 7/0/0). Wenn es kalt genug ist zum
+              Heizen, soll die Sonne ungehindert durch: **Hitzeschutz aus**,
+              die Rollo bleiben im normalen Tag-Zustand, die Sonnenwärme kommt
+              rein. Tag/Nacht und Sichtschutz laufen unverändert weiter.
+              *Sommer* oder *Winter* überschreiben das für eine Ausnahme
+              dauerhaft.
 
               **Temperatur-Schwelle**: Der Wert überlebt einen HA-Neustart
               (anders als die Lux-Schwellen, die per `initial:` auf 15000
