@@ -175,13 +175,22 @@ views:
             name: Raffstore (Lamellen)
             show_tilt_position_control: true
           # Sollwert des WC-Stellantriebs (KNX 7/3/39 schreiben, 7/3/37
-          # zurücklesen). Die Kachel zeigt den Ist-Sollwert des Antriebs,
-          # nicht den in HASS gespeicherten Wunschwert — durch Antippen
-          # öffnet sich der Regler mit Slider und +-Schritten.
-          - type: custom:mushroom-entity-card
-            entity: number.wc_og_sollwert
-            name: Sollwert Heizung
+          # zurücklesen). Die Kachel zeigt den vom Antrieb gemeldeten
+          # Sollwert, nicht einen in HASS gespeicherten Wunschwert. Solange
+          # noch nichts gemeldet wurde, steht dort der Standard 20 °C —
+          # grau markiert, damit niemand den Wert für einen gelesenen hält.
+          - type: custom:mushroom-template-card
+            primary: Sollwert Heizung
+            secondary: >-
+              {% set soll = states('number.wc_og_sollwert') %}
+              {% if soll in ['unknown', 'unavailable'] %}20 °C (Standard)
+              {% else %}{{ soll }} °C{% endif %}
             icon: mdi:radiator
+            # einzeilig, sonst greift der Leerraum-Vergleich in mushroom nicht
+            icon_color: "{% if states('number.wc_og_sollwert') in ['unknown','unavailable'] %}grey{% else %}orange{% endif %}"
+            tap_action:
+              action: more-info
+              entity: number.wc_og_sollwert
             fill_container: true
           # Zweiter Weg zum selben Sollwert: die Korrektur-KO des Antriebs
           # (7/3/34, 1 = höher / 0 = niedriger). Nützlich, weil sie genau

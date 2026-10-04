@@ -789,6 +789,14 @@ knx:
   # dem Schreiben plausibel °C an (21.5), stimmt die Kodierung.
   # min/step: Der WC ist klein und wird schnell überheizt — 5…30 °C in
   # 0,5-Schritten deckt Komfort, ECO und Nachtbetrieb ab.
+  #
+  # Standard-Sollwert: 20 °C. Der eingestellte Wert steckt im Stellantrieb
+  # selbst (Parameter in ETS), NICHT in dieser YAML — HASS kennt für number
+  # kein "initial:" und schreibt beim Start auch nichts an den Bus, es liest
+  # den Sollwert nur über 7/3/37 zurück. Deshalb zeigt die Kachel im
+  # Dashboard 20 °C als Standard an, solange der Antrieb noch nichts
+  # gemeldet hat. Damit im Gerät wirklich 20 °C stehen, muss der Wert im
+  # ETS-Parameter des Stellantriebs hinterlegt sein.
   number:
     - name: "WC OG Sollwert"
       address: "7/3/39"
