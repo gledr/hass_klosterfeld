@@ -52,6 +52,80 @@ binary_sensor:
          and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
          and not is_state('input_select.beschattung_saison', 'Winter') }}
 
+  # Betriebsart der Heizung (KNX 7/0/0): on = Winter = Heizung aktiv,
+  # off = Sommer = Heizung abgeschaltet. Bewusst als binary_sensor, damit
+  # spätere Automationen nicht die 1/0-Logik der GA kennen müssen.
+  - name: "Heizung aktiv"
+    unique_id: heizung_aktiv
+    device_class: heat
+    # Unbekannte Betriebsart -> auch "Heizung" unbekannt, statt "aus"
+    # vorzutäuschen und die Wärmepumpe verkehrt herum anzusteuern.
+    availability: "{{ states('select.heizung_betriebsart') in ['Sommer', 'Winter'] }}"
+    state: "{{ is_state('select.heizung_betriebsart', 'Winter') }}"
+
+  # Status der Wärmepumpe: Heizbetrieb läuft oder nicht. Quelle ist der
+  # HVAC-Mode von climate.altherma_leaving_water_temperature ("heat").
+  # WICHTIG für die spätere Automatisierung: Das ist nur der Status, noch
+  # keine Umschalt-Freigabe. "Heizt nicht" heißt auch "gerade kein Bedarf"
+  # (Nachtabsenkung, milder Tag) — eine Sommer/Winter-Automation darf darauf
+  # allein nicht schalten, sonst schaltet sie im Winter die Heizung ab, weil
+  # die Wärmepumpe gerade Pause hat. Für die Umschaltung Außentemperatur +
+  # Forecast mit Hysterese nehmen, die Wärmepumpe nur als Kontrollsignal.
+  - name: "Wärmepumpe Heizen"
+    unique_id: waermepumpe_heizen
+    device_class: heat
+    # Integration nicht erreichbar -> "unbekannt" statt "heizt nicht",
+    # sonst sieht eine Automation das als Sommerbetrieb.
+    availability: "{{ states('climate.altherma_leaving_water_temperature') not in ['unknown', 'unavailable'] }}"
+    state: "{{ states('climate.altherma_leaving_water_temperature') == 'heat' }}"
+
+  # Heizsaison = "es ist kalt genug, um zu heizen" (on = Winterbetrieb).
+  # Das ist die Quelle für die automatische Sommer/Winter-Umschaltung —
+  # bewusst NICHT binary_sensor.waermepumpe_heizen: "heizt gerade nicht" heißt
+  # auch "gerade kein Bedarf", das würde die Heizung im Winter abschalten.
+  #
+  # Logik über das Forecast-Fenster der nächsten 2 Stunden:
+  #   - Auch das wärmste Fenster noch < Schwelle -> Heizsaison AN
+  #     (eine Kälteperiode kommt, jetzt ist es ohnehin kalt genug)
+  #   - Auch das kälteste Fenster noch > Schwelle -> Heizsaison AUS
+  #     (wärmere Periode steht an, abschalten lohnt)
+  #   - Fenster kreuzt die Schwelle -> letzten Zustand halten (Totband)
+  # delay_on/delay_off zusätzlich als Zeit-Hysterese: 2 h unter der Schwelle
+  # für Winter, 12 h über der Schwelle für Sommer. Ein einzelner Ausschlag
+  # umschaltet also nichts — und ein warmer Tag reicht nicht, um mitten im
+  # Winter den Sommer zu erklären.
+  - name: "Heizsaison"
+    unique_id: heizsaison
+    device_class: heat
+    delay_on:
+      hours: 2
+    delay_off:
+      hours: 12
+    availability: >-
+      {{ states('sensor.outdoor_temperature_avg') not in ['unknown', 'unavailable']
+         and state_attr('weather.forecast_home', 'forecast') is not none }}
+    state: >
+      {% set schwelle = states('input_number.heizsaison_temp_schwelle') | float(12) %}
+      {% set jetzt = states('sensor.outdoor_temperature_avg') | float(schwelle) %}
+      {% set fc = state_attr('weather.forecast_home', 'forecast') %}
+      {# Stunden-Fenster: die nächsten 2 Stunden. Achtung: kein {% for %} mit
+         set- darin — Jinja-Scoping wirft die Zuweisung danach weg. #}
+      {% set fenster = (fc[:2] | selectattr('temperature', 'defined')
+                        | rejectattr('temperature', 'none')
+                        | map(attribute='temperature') | map('float') | list)
+                       if fc is not none else [] %}
+      {% set werte = [jetzt] + fenster %}
+      {% set w_warm = werte | max %}
+      {% set w_kalt = werte | min %}
+      {% if w_warm < schwelle %}
+        true
+      {% elif w_kalt > schwelle %}
+        false
+      {% else %}
+        {# Totband: keinen Grund zum Umschalten, letzten Stand halten #}
+        {{ is_state('binary_sensor.heizsaison', 'on') }}
+      {% endif %}
+
 sensor:
 
   - name: "Outdoor Temperature Avg"

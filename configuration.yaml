@@ -756,6 +756,28 @@ knx:
     - name: "Twilight"
       address: "8/4/0"
 
+  # ========================
+  # HEIZUNG – BETRIEBSART SOMMER/WINTER
+  # ========================
+  # 7/0/0 ist ein 1-Bit-Schalter: 1 = Sommer (Heizung abgeschaltet),
+  # 0 = Winter (Heizung aktiv). Bewusst als select und nicht als switch,
+  # damit die Zuordnung "1 = Sommer" nicht invertiert im YAML steht.
+  # Es gibt keine Status-GA, d. h. HA kennt nur den zuletzt gesendeten
+  # Wert (Restore-State) – wird am Taster umgestellt, sieht HASS das erst
+  # beim nächsten Schreiben. Wenn die Altherma später eine Betriebsart
+  # meldet, kommt eine state_address hier rein.
+  # binary_sensor.heizung_aktiv (template.yaml) ist die Schnittstelle für
+  # die spätere Automatisierung über die Wärmepumpen-Integration.
+  select:
+    - name: "Heizung Betriebsart"
+      address: "7/0/0"
+      payload_length: 1
+      options:
+        - option: Winter
+          payload: 0
+        - option: Sommer
+          payload: 1
+
   button:
     - name: "Gallerie Deckenlicht Mess-Reset"
       address: "1/3/7"
@@ -941,6 +963,12 @@ input_boolean:
   beschattung_manual_schlafzimmer:
     name: Manuell erkannt – Schlafzimmer
     icon: mdi:gesture-tap
+  # Sperre der automatischen Sommer/Winter-Umschaltung: ON = die Automation
+  # fasst GA 7/0/0 nicht an, die Betriebsart wird nur noch über das
+  # Klima-Dashboard gesetzt. Aus = Heizsaison entscheidet.
+  heizung_betriebsart_manuell:
+    name: Heizung – Betriebsart manuell
+    icon: mdi:hand-back-right-outline
 
 
 # ========================
@@ -1108,6 +1136,18 @@ input_number:
     initial: 30
     unit_of_measurement: "min"
     icon: mdi:weather-night
+  # Heizsaison: Ø-Außentemperatur (sensor.outdoor_temperature_avg blendet
+  # Ist-Wert und Tagesprognose) unter dieser Schwelle = Heizsaison, also
+  # Winterbetrieb. Siehe binary_sensor.heizsaison (template.yaml) für die
+  # Hysterese und automations.yaml für die Umschaltung.
+  heizsaison_temp_schwelle:
+    name: Heizsaison – Ø-Außentemperatur ab
+    min: 5
+    max: 20
+    step: 0.5
+    initial: 12
+    unit_of_measurement: "°C"
+    icon: mdi:thermometer-snowflake
 
 utility_meter:
   energie_bezug_tag:

@@ -576,6 +576,27 @@ messfahrt_alle:
 
 
 #########################################################
+# HEIZUNG – BETRIEBSART SOMMER/WINTER
+# EIN Service-Call für Dashboard-Tile und Apple Watch: wechselt
+# zwischen den beiden Betriebsarten. Die Zuordnung Winter = 0 /
+# Sommer = 1 steht nur an einer Stelle, nämlich im select in
+# configuration.yaml.
+#########################################################
+heizung_betriebsart_umschalten:
+  alias: Heizung – Betriebsart umschalten (Sommer/Winter)
+  icon: mdi:heat-wave
+  mode: single
+  sequence:
+    - service: select.select_option
+      target:
+        entity_id: select.heizung_betriebsart
+      data:
+        # einzeilig, damit select.select_option keine Leerzeichen
+        # mitbekommt (Optionen werden nicht getrimmt)
+        option: "{{ 'Sommer' if is_state('select.heizung_betriebsart', 'Winter') else 'Winter' }}"
+
+
+#########################################################
 # GARAGE – TOGGLE (Apple Watch / Companion App)
 # Öffnet wenn geschlossen, schließt wenn offen
 #########################################################

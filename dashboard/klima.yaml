@@ -128,12 +128,135 @@ views:
       # der UI-Integration und stehen nicht im YAML, deshalb discovery über die
       # Domains statt geratener entity_ids. Sobald die IDs bekannt sind, ist
       # eine thermostat-Karte hier die bessere Wahl.
+      #
+      # Betriebsart Sommer/Winter kommt aus dem KNX-Select in
+      # configuration.yaml (GA 7/0/0, 1 = Sommer / 0 = Winter). Ohne Status-GA
+      # kennt HASS nur den zuletzt gesendeten Wert — der Wert bleibt über
+      # Neustarts erhalten, ändert sich aber nicht, wenn am Taster umgestellt
+      # wird. Nachführung über die Wärmepumpen-Integration ist der nächste
+      # Schritt, binary_sensor.heizung_aktiv ist dafür schon da.
       - type: grid
         column_span: 2
         cards:
           - type: heading
             heading: Heizung
             icon: mdi:heat-pump
+
+          - type: custom:mushroom-template-card
+            primary: Betriebsart Heizung
+            secondary: >-
+              {% set mode = states('select.heizung_betriebsart') %}
+              {% if mode == 'Winter' %}Winterbetrieb – Heizung aktiv
+              {% elif mode == 'Sommer' %}Sommerbetrieb – Heizung abgeschaltet
+              {% else %}Betriebsart unbekannt{% endif %}
+              · Ø-Außen {{ states('sensor.outdoor_temperature_avg') }} °C
+            icon: mdi:heat-pump
+            # WICHTIG: icon_color muss einzeilig bleiben. Mushroom vergleicht
+            # Farben mit COLORS.includes(color) — ein Leerzeichen (z. B. aus
+            # einem gefalteten Template) lässt die Farbe still ins Leere laufen.
+            icon_color: "{% if is_state('select.heizung_betriebsart','Winter') %}deep-orange{% elif is_state('select.heizung_betriebsart','Sommer') %}light-blue{% else %}grey{% endif %}"
+            tap_action:
+              action: call-service
+              service: script.heizung_betriebsart_umschalten
+
+          # WICHTIG: mushroom kennt keinen generischen "chip"-Typ. Nur
+          # "template"-Chips rendern Jinja in icon/icon_color/content —
+          # genau deshalb hier alle drei als template.
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:snowflake
+                content: Winter
+                icon_color: "{% if is_state('select.heizung_betriebsart','Winter') %}blue{% else %}grey{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: select.select_option
+                  data:
+                    entity_id: select.heizung_betriebsart
+                    option: Winter
+              - type: template
+                icon: mdi:fire
+                # binary_sensor.heizung_aktiv (template.yaml) ist "unavailable",
+                # solange die Betriebsart unbekannt ist — deshalb eigener Zweig
+                content: >-
+                  {% if is_state('binary_sensor.heizung_aktiv', 'on') %}Heizung an
+                  {% elif is_state('binary_sensor.heizung_aktiv', 'off') %}Heizung aus
+                  {% else %}unbekannt{% endif %}
+                icon_color: "{% if is_state('binary_sensor.heizung_aktiv','on') %}deep-orange{% else %}grey{% endif %}"
+              - type: template
+                icon: mdi:white-balance-sunny
+                content: Sommer
+                icon_color: "{% if is_state('select.heizung_betriebsart','Sommer') %}amber{% else %}grey{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: select.select_option
+                  data:
+                    entity_id: select.heizung_betriebsart
+                    option: Sommer
+
+          # Status-Chips: Heizsaison, Wärmepumpe, Handbetrieb. Der
+          # Handbetrieb-Chip schaltet die Sperre der Automatik — nur dann
+          # darf die Automation die GA 7/0/0 überhaupt anfassen.
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: "{% if is_state('binary_sensor.heizsaison','on') %}mdi:snowflake{% else %}mdi:weather-sunny{% endif %}"
+                content: >-
+                  {% if is_state('binary_sensor.heizsaison', 'on') %}Heizsaison
+                  {% elif is_state('binary_sensor.heizsaison', 'off') %}Sommerzeit
+                  {% else %}Heizsaison ?{% endif %}
+                icon_color: "{% if is_state('binary_sensor.heizsaison','on') %}blue{% elif is_state('binary_sensor.heizsaison','off') %}amber{% else %}grey{% endif %}"
+              - type: template
+                icon: "{% if is_state('binary_sensor.waermepumpe_heizen','on') %}mdi:fire{% else %}mdi:heat-pump-outline{% endif %}"
+                content: >-
+                  {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}WP heizt
+                  {% elif is_state('binary_sensor.waermepumpe_heizen', 'off') %}WP Pause
+                  {% else %}WP ?{% endif %}
+                icon_color: "{% if is_state('binary_sensor.waermepumpe_heizen','on') %}deep-orange{% else %}grey{% endif %}"
+              - type: template
+                icon: "{% if is_state('input_boolean.heizung_betriebsart_manuell','on') %}mdi:hand-back-right{% else %}mdi:robot-outline{% endif %}"
+                content: >-
+                  {% if is_state('input_boolean.heizung_betriebsart_manuell', 'on') %}Handbetrieb
+                  {% else %}Automatik{% endif %}
+                icon_color: "{% if is_state('input_boolean.heizung_betriebsart_manuell','on') %}amber{% else %}green{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: input_boolean.toggle
+                  data:
+                    entity_id: input_boolean.heizung_betriebsart_manuell
+
+          # Plausibilität: Heizsaison sagt Sommer, aber die WP fordert
+          # Wärme an. Entsteht z. B., wenn am Taster umgestellt wurde und
+          # GA 7/0/0 kein Status zurückmeldet.
+          - type: conditional
+            conditions:
+              - condition: state
+                entity_id: binary_sensor.waermepumpe_heizen
+                state: "on"
+              - condition: state
+                entity_id: select.heizung_betriebsart
+                state: Sommer
+            card:
+              type: custom:mushroom-template-card
+              primary: Heizt trotz Sommerbetrieb
+              secondary: >-
+                Die Wärmepumpe fordert Heizen an, GA 7/0/0 steht aber auf
+                Sommer. Kurz prüfen, ob am Taster umgestellt wurde.
+              icon: mdi:alert-outline
+              icon_color: red
+              multiline_secondary: true
+
+          # Einstellungen zur Automatik
+          - type: entities
+            title: Heizung – Einstellungen
+            show_header_toggle: false
+            entities:
+              - entity: input_number.heizsaison_temp_schwelle
+                name: Heizsaison ab (Ø-Außen)
+              - entity: input_boolean.heizung_betriebsart_manuell
+                name: Betriebsart manuell
 
           - type: custom:auto-entities
             card:

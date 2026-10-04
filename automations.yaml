@@ -2089,3 +2089,83 @@
               {% set parts = parts + ['Garagen-Seitentür'] %}
             {% endif %}
             🚗 {{ parts | join(' und ') }} ist um 21 Uhr noch offen!
+
+
+  # ----------------------------------------------------------
+  # HEIZUNG – BETRIEBSART SOMMER/WINTER (AUTOMATIK)
+  # Setzt GA 7/0/0 (KNX-Select in configuration.yaml) passend zur
+  # Heizsaison: Heizsaison an -> Winter, aus -> Sommer. Die Sommer/Winter-
+  # Zuordnung selbst lebt im Select, hier kommt nur die Option an.
+  #
+  # Quelle der Wahrheit ist binary_sensor.heizsaison (Außentemperatur mit
+  # Forecast-Fenster und Zeit-Hysterese), NICHT binary_sensor.waermepumpe_heizen:
+  # "die WP heizt gerade nicht" heißt auch "gerade kein Bedarf" und würde
+  # die Heizung mitten im Winter abschalten.
+  #
+  # Sperre: input_boolean.heizung_betriebsart_manuell. Solange die ON ist,
+  # rührt diese Automation die GA nicht an — dann wird über das
+  # Klima-Dashboard geschaltet. Das ist der Weg für "ich will heute
+  # Sommerbetrieb, aber die Heizsaison ist noch nicht vorbei".
+  # ----------------------------------------------------------
+  - id: heizung_betriebsart_automatik
+    alias: "Heizung – Betriebsart Sommer/Winter automatisch"
+    description: >
+      Setzt GA 7/0/0 anhand der Heizsaison (Außentemperatur mit Forecast-
+      Fenster und Hysterese). Der Tagesabgleich um 06:00 fängt Abweichungen
+      ab, z. B. wenn am Taster umgestellt wurde. Ohne Wirkung, solange
+      input_boolean.heizung_betriebsart_manuell ON ist.
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.heizsaison
+        id: heizsaison
+      # Tagesabgleich: einmal pro Tag in beide Richtungen, damit ein
+      # verpasster Trigger (HASS war aus, Sensor nicht verfügbar) nicht
+      # wochenlang stehen bleibt.
+      - platform: time
+        at: "06:00:00"
+        id: tagesabgleich
+      # Beim Start von HASS einmal angleichen — der Sommer-Winter-Schalter
+      # am Taster kann ja auch ohne HASS bewegt worden sein.
+      - platform: homeassistant
+        event: start
+        id: start
+    condition:
+      # Manuell gesperrt: nur noch der Mensch schaltet.
+      - condition: state
+        entity_id: input_boolean.heizung_betriebsart_manuell
+        state: "off"
+    action:
+      # Beim Start brauchen die Template-Entities einen Moment; direkt nach
+      # dem Boot ist binary_sensor.heizsaison noch 'unknown'. Die Prüfung,
+      # ob die Heizsaison überhaupt etwas sagen kann, gehört deshalb hier
+      # in die Action und nicht in die condition — die condition liefe
+      # schon vor dem Boot-Delay und würde den Start-Abgleich abwürgen.
+      - delay: "00:01:00"
+      - if:
+          - condition: template
+            value_template: "{{ states('binary_sensor.heizsaison') in ['on', 'off'] }}"
+        then:
+          - variables:
+              ziel: >-
+                {{ 'Winter' if is_state('binary_sensor.heizsaison', 'on') else 'Sommer' }}
+          # Nur schreiben, wenn es wirklich etwas zu schalten gibt — sonst
+          # erzeugt der Tagesabgleich alle 24 h ein KNX-Telegramm und eine
+          # Benachrichtigung für nichts.
+          - if:
+              - condition: template
+                value_template: "{{ states('select.heizung_betriebsart') != ziel }}"
+            then:
+              - service: select.select_option
+                target:
+                  entity_id: select.heizung_betriebsart
+                data:
+                  option: "{{ ziel }}"
+              - service: persistent_notification.create
+                data:
+                  title: "Heizung – Betriebsart gewechselt"
+                  message: >-
+                    {{ 'Heizsaison hat begonnen' if ziel == 'Winter'
+                       else 'Heizsaison ist beendet' }}: GA 7/0/0 steht jetzt auf
+                    {{ ziel }}{{ ' (1)' if ziel == 'Sommer' else ' (0)' }}.
+                    Außentemperatur {{ states('sensor.outdoor_temperature_avg') }} °C.
