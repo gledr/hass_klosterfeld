@@ -1380,6 +1380,10 @@
               dir: nord
               hitze_pos: 0
               waketime: true
+              # Morgens lüften: Ist die Wake-Zeit erreicht, aber noch nicht Tag
+              # (Herbst/Winter), fährt das Rollo auf einen Spalt statt zu
+              # bleiben. Ganz auf erst mit der Dämmerung (Tag-Modus).
+              morgen_spalt: 25
               fenster: binary_sensor.fenster_schlafzimmer_window
               lock: input_boolean.beschattung_lock_schlafzimmer
               manual: input_boolean.beschattung_manual_schlafzimmer
@@ -1451,7 +1455,24 @@
                   {{ not twilight_on and seit >= delay }}
                 # Offenes Fenster blockt nur nachts (lüften) — Hitzeschutz
                 # und Tag fahren trotzdem. Terrasse: kein fenster, läuft über aussperr.
-                fenster_blockt: "{{ fenster_offen and nacht }}"
+                # MORGEN-SPALT (nur Räume mit morgen_spalt, d.h. Schlafzimmer)
+                # Wake-Zeit erreicht, aber der Dämmerungssensor meldet noch
+                # keinen Tag → Rollo auf den Spalt, damit man lüften kann.
+                # Ohne das bliebe es im Winter bis nach 8 Uhr zu, weil die
+                # Nacht den Tag-Modus überstimmt. h < 12 grenzt auf den Morgen
+                # ein — abends ist die Wake-Zeit auch "erreicht", da soll
+                # natürlich die Nacht gelten. Wake-Zeiten wie tag_erlaubt
+                # (Werktag 7 / Wochenende 10). Ein einziger {{ }}-Ausdruck,
+                # damit es ein echter Boolean bleibt (siehe anwesend).
+                morgen: >-
+                  {% set workday = is_state('binary_sensor.workday_sensor', 'on') %}
+                  {% set h = now().hour %}
+                  {{ repeat.item.get('morgen_spalt') is not none
+                     and not twilight_on and h < 12
+                     and ((workday and h >= 7) or (not workday and h >= 10)) }}
+                # Offenes Fenster blockt nachts das Zufahren — der Morgen-Spalt
+                # fährt nur auf, den darf ein gekipptes Fenster nicht aufhalten.
+                fenster_blockt: "{{ fenster_offen and nacht and not morgen }}"
                 # Sonne auf der Fassade → Hitzeschutz
                 hitze: "{{ twilight_on and sun }}"
                 # Manuelle Sperre: Standard 1 h (Terrasse 2 h). Terrasse zusätzlich:
@@ -1465,7 +1486,7 @@
                   {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99
                                 and default not in ['Offen'] %}
                   {% set zuhause = not repeat.item.get('praesenz') or (anwesend | string | lower == 'true') %}
-                  {{ manual and not nacht and zuhause and (frisch or skip) }}
+                  {{ manual and (not nacht or morgen) and zuhause and (frisch or skip) }}
                 # PRÄSENZ-HOLD (Wohnzimmer + Terrasse)
                 # Von Hand aufgemachter Raffstore + jemand in der Wohnküche →
                 # der Tag-Modus fasst ihn nicht mehr an. Kein Timeout wie bei
@@ -1507,9 +1528,10 @@
                   {{ not lesbar or locked or wind or fenster_blockt or manual_block
                      or (repeat.item.get('privacy', false) and privacy_active)
                      or (repeat.item.get('aussperr', false) and (tuer_offen or timer_aktiv)) }}
-                # Zielmodus ermitteln (Reihenfolge: skip > nacht > hitze > hold > tag)
+                # Zielmodus ermitteln (Reihenfolge: skip > morgen > nacht > hitze > hold > tag)
                 mode: >-
                   {% if gesperrt %}skip
+                  {% elif morgen %}morgen
                   {% elif nacht %}nacht
                   {% elif hitze and not repeat.item.get('no_hitze', false) %}hitze
                   {% elif hold %}skip
@@ -1519,6 +1541,7 @@
                   {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% if mode == 'skip' %}-1
+                  {% elif mode == 'morgen' %}{{ repeat.item.morgen_spalt }}
                   {% elif mode == 'nacht' %}0
                   {% elif mode == 'hitze' %}
                     {% if rtype == 'raffstore' %}0
@@ -1555,6 +1578,9 @@
                 - condition: template
                   value_template: >-
                     {% if mode == 'skip' %}false
+                    {# Morgen-Spalt fährt nur AUF: steht das Rollo schon höher
+                       (von Hand geöffnet), nicht auf den Spalt runterziehen. #}
+                    {% elif mode == 'morgen' %}{{ cur_pos | int(-1) < target_pos | int }}
                     {% elif rtype == 'raffstore' %}
                       {{ (cur_pos | int(-1) - target_pos | int) | abs > 2
                          or (target_tilt | int(-1) >= 0 and cur_tilt | int(-1) != target_tilt | int) }}
