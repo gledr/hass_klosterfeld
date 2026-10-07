@@ -653,6 +653,10 @@
               - service: input_boolean.turn_off
                 target:
                   entity_id: input_boolean.badezimmer_privacy_active
+              # Von Hand aufgemacht (z.B. Lüften nach dem Duschen) → stehen lassen
+              - condition: state
+                entity_id: input_boolean.beschattung_manual_badezimmer
+                state: "off"
               - service: input_datetime.set_datetime
                 target:
                   entity_id: input_datetime.beschattung_letzter_auto_befehl
@@ -676,7 +680,8 @@
     description: >
       Erzwingt Lamellen zu (Tilt 0) solange Privacy Mode aktiv ist.
       Fängt ab, wenn andere Automations (Beschattung, Sunrise Slats)
-      die Lamellen öffnen während das Licht noch an ist.
+      die Lamellen öffnen während das Licht noch an ist. Eine erkannte
+      Handbedienung (beschattung_manual_badezimmer) bleibt stehen.
     mode: restart
     trigger:
       - platform: state
@@ -695,6 +700,11 @@
       - condition: state
         entity_id: input_boolean.badezimmer_privacy_active
         state: "on"
+      # Von Hand geöffnet (Manual-Erkennung hat in den 2 s geflaggt) → nicht
+      # zurückzwingen. Andere Automations fahren das Bad bei Privacy nicht an.
+      - condition: state
+        entity_id: input_boolean.beschattung_manual_badezimmer
+        state: "off"
       - service: input_datetime.set_datetime
         target:
           entity_id: input_datetime.beschattung_letzter_auto_befehl
@@ -736,6 +746,10 @@
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.badezimmer_privacy_active
+      # Von Hand aufgemacht → stehen lassen
+      - condition: state
+        entity_id: input_boolean.beschattung_manual_badezimmer
+        state: "off"
       - service: input_datetime.set_datetime
         target:
           entity_id: input_datetime.beschattung_letzter_auto_befehl
@@ -1347,6 +1361,9 @@
               dir: nord
               hitze_tilt: 0
               privacy: true
+              # Nach dem Duschen von Hand zum Lüften aufgemacht → die manuelle
+              # Sperre gilt hier auch nachts (1 h, dann regulär zu).
+              manual_nacht: true
               lock: input_boolean.beschattung_lock_badezimmer
               manual: input_boolean.beschattung_manual_badezimmer
             # Rollo: Position ändert sich (100 offen / 0 zu)
@@ -1478,6 +1495,7 @@
                 # Manuelle Sperre: Standard 1 h (Terrasse 2 h). Terrasse zusätzlich:
                 # solange komplett offen, keine Aktion (skip_fully_open).
                 # Nachts greift die Sperre nie — die Konvergenz schließt trotzdem.
+                # Ausnahme: Räume mit manual_nacht (Badezimmer, lüften).
                 manual_block: >-
                   {% set timeout = repeat.item.get('manual_timeout', 3600) %}
                   {% set frisch = (now() - states[repeat.item.manual].last_changed).total_seconds() < timeout %}
@@ -1486,7 +1504,8 @@
                   {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99
                                 and default not in ['Offen'] %}
                   {% set zuhause = not repeat.item.get('praesenz') or (anwesend | string | lower == 'true') %}
-                  {{ manual and (not nacht or morgen) and zuhause and (frisch or skip) }}
+                  {{ manual and (not nacht or morgen or repeat.item.get('manual_nacht', false))
+                     and zuhause and (frisch or skip) }}
                 # PRÄSENZ-HOLD (Wohnzimmer + Terrasse)
                 # Von Hand aufgemachter Raffstore + jemand in der Wohnküche →
                 # der Tag-Modus fasst ihn nicht mehr an. Kein Timeout wie bei
