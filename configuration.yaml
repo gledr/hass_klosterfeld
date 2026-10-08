@@ -1055,6 +1055,15 @@ timer:
     icon: mdi:door-sliding-open
     restore: true
 
+  # Auto-Aus Handtuchheizkörper: startet bei jedem Einschalten (Dusche oder
+  # manuell). Timer statt delay, weil ein delay einen HA-Neustart nicht
+  # überlebt — dann lief der Heizkörper die ganze Nacht.
+  handtuchheizkoerper:
+    name: Handtuchheizkörper Auto-Aus
+    duration: "01:00:00"
+    icon: mdi:radiator
+    restore: true
+
 
 # ========================
 # INPUT SELECTS
