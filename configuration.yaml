@@ -1031,6 +1031,59 @@ input_datetime:
     name: Beschattung letzter Auto-Befehl
     has_date: true
     has_time: true
+  # Pro Raum: letzter Auto-Befehl für genau diese Beschattung. Die
+  # Manuell-Erkennung prüft NUR den Stempel des eigenen Raums — mit dem
+  # globalen Stempel oben wurde jede Handbedienung im ganzen Haus
+  # ignoriert, sobald irgendwo in den letzten 3 Min automatisch gefahren
+  # wurde (Konvergenz, Bad-Privacy beim Lichtschalten).
+  beschattung_auto_garderobe:
+    name: Beschattung Auto-Befehl Garderobe
+    has_date: true
+    has_time: true
+  beschattung_auto_abstellraum:
+    name: Beschattung Auto-Befehl Abstellraum
+    has_date: true
+    has_time: true
+  beschattung_auto_wc_eg:
+    name: Beschattung Auto-Befehl WC EG
+    has_date: true
+    has_time: true
+  beschattung_auto_kueche:
+    name: Beschattung Auto-Befehl Küche
+    has_date: true
+    has_time: true
+  beschattung_auto_esszimmer:
+    name: Beschattung Auto-Befehl Esszimmer
+    has_date: true
+    has_time: true
+  beschattung_auto_wohnzimmer:
+    name: Beschattung Auto-Befehl Wohnzimmer
+    has_date: true
+    has_time: true
+  beschattung_auto_terrasse:
+    name: Beschattung Auto-Befehl Terrasse
+    has_date: true
+    has_time: true
+  beschattung_auto_wc_og:
+    name: Beschattung Auto-Befehl WC OG
+    has_date: true
+    has_time: true
+  beschattung_auto_badezimmer:
+    name: Beschattung Auto-Befehl Badezimmer
+    has_date: true
+    has_time: true
+  beschattung_auto_gaestezimmer:
+    name: Beschattung Auto-Befehl Gästezimmer
+    has_date: true
+    has_time: true
+  beschattung_auto_buero:
+    name: Beschattung Auto-Befehl Büro
+    has_date: true
+    has_time: true
+  beschattung_auto_schlafzimmer:
+    name: Beschattung Auto-Befehl Schlafzimmer
+    has_date: true
+    has_time: true
   # Zeitpunkt des letzten Dämmerungs-Endes (switch.twilight → off).
   # Basis für die Nacht-Verzögerung. Bewusst ein input_datetime und nicht
   # switch.twilight.last_changed: letzteres wird bei jedem HA-Neustart auf

@@ -622,7 +622,9 @@
                   entity_id: input_boolean.badezimmer_privacy_active
               - service: input_datetime.set_datetime
                 target:
-                  entity_id: input_datetime.beschattung_letzter_auto_befehl
+                  entity_id:
+                    - input_datetime.beschattung_letzter_auto_befehl
+                    - input_datetime.beschattung_auto_badezimmer
                 data:
                   datetime: "{{ now().isoformat() }}"
               - service: cover.set_cover_position
@@ -659,7 +661,9 @@
                 state: "off"
               - service: input_datetime.set_datetime
                 target:
-                  entity_id: input_datetime.beschattung_letzter_auto_befehl
+                  entity_id:
+                    - input_datetime.beschattung_letzter_auto_befehl
+                    - input_datetime.beschattung_auto_badezimmer
                 data:
                   datetime: "{{ now().isoformat() }}"
               - service: cover.set_cover_position
@@ -707,7 +711,9 @@
         state: "off"
       - service: input_datetime.set_datetime
         target:
-          entity_id: input_datetime.beschattung_letzter_auto_befehl
+          entity_id:
+            - input_datetime.beschattung_letzter_auto_befehl
+            - input_datetime.beschattung_auto_badezimmer
         data:
           datetime: "{{ now().isoformat() }}"
       - service: cover.set_cover_tilt_position
@@ -752,7 +758,9 @@
         state: "off"
       - service: input_datetime.set_datetime
         target:
-          entity_id: input_datetime.beschattung_letzter_auto_befehl
+          entity_id:
+            - input_datetime.beschattung_letzter_auto_befehl
+            - input_datetime.beschattung_auto_badezimmer
         data:
           datetime: "{{ now().isoformat() }}"
       - service: cover.set_cover_position
@@ -1315,7 +1323,20 @@
         then:
           - service: input_datetime.set_datetime
             target:
-              entity_id: input_datetime.beschattung_letzter_auto_befehl
+              entity_id:
+                - input_datetime.beschattung_letzter_auto_befehl
+                - input_datetime.beschattung_auto_garderobe
+                - input_datetime.beschattung_auto_abstellraum
+                - input_datetime.beschattung_auto_wc_eg
+                - input_datetime.beschattung_auto_kueche
+                - input_datetime.beschattung_auto_esszimmer
+                - input_datetime.beschattung_auto_wohnzimmer
+                - input_datetime.beschattung_auto_terrasse
+                - input_datetime.beschattung_auto_wc_og
+                - input_datetime.beschattung_auto_badezimmer
+                - input_datetime.beschattung_auto_gaestezimmer
+                - input_datetime.beschattung_auto_buero
+                - input_datetime.beschattung_auto_schlafzimmer
             data:
               datetime: "{{ now().isoformat() }}"
       - variables:
@@ -1429,6 +1450,10 @@
               # Gast-Modus: gleiche Logik wie Gästezimmer, da Schlafcouch
               waketime: true
               waketime_aktiv: input_boolean.beschattung_gast_aktiv_buero
+              # Von Hand gefahren (meist wegen Blendung) → bleibt bis zum
+              # nächsten Tag/Nacht-Wechsel stehen statt nur 1 h. Sonst fuhr
+              # die Konvergenz das Rollo mitten in die Blendung wieder auf.
+              manual_bis_wechsel: true
               lock: input_boolean.beschattung_lock_buero
               manual: input_boolean.beschattung_manual_buero
             # Schlafzimmer: erst nach Wake-Zeit öffnen (Werktag 7 / WE 10)
@@ -1537,9 +1562,12 @@
                 # solange komplett offen, keine Aktion (skip_fully_open).
                 # Nachts greift die Sperre nie — die Konvergenz schließt trotzdem.
                 # Ausnahme: Räume mit manual_nacht (Badezimmer, lüften).
+                # Räume mit manual_bis_wechsel (Büro): kein Timeout, die Sperre
+                # fällt erst beim Tag/Nacht-Wechsel.
                 manual_block: >-
                   {% set timeout = repeat.item.get('manual_timeout', 3600) %}
-                  {% set frisch = (now() - states[repeat.item.manual].last_changed).total_seconds() < timeout %}
+                  {% set frisch = repeat.item.get('manual_bis_wechsel', false)
+                                  or (now() - states[repeat.item.manual].last_changed).total_seconds() < timeout %}
                   {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99
@@ -1648,10 +1676,15 @@
                       {{ cur_pos | int(-1) != target_pos | int }}
                     {% endif %}
               then:
-                # Als Auto-Befehl markieren (für die Manuell-Erkennung)
+                # Als Auto-Befehl markieren (für die Manuell-Erkennung).
+                # Raum-Stempel: input_boolean.beschattung_manual_<raum> →
+                # input_datetime.beschattung_auto_<raum>. Der globale Stempel
+                # bleibt für die Terrassentür-Notbremse und das Dashboard.
                 - service: input_datetime.set_datetime
                   target:
-                    entity_id: input_datetime.beschattung_letzter_auto_befehl
+                    entity_id:
+                      - input_datetime.beschattung_letzter_auto_befehl
+                      - "{{ repeat.item.manual | replace('input_boolean.beschattung_manual_', 'input_datetime.beschattung_auto_') }}"
                   data:
                     datetime: "{{ now().isoformat() }}"
                 # Raffstore: erst den Behang auf die Zielposition (0 = unten für
@@ -1717,7 +1750,8 @@
   # ----------------------------------------------------------
   # MANUELLE BEDIENUNG ERKENNEN
   # Bewegt sich eine Beschattung, ohne dass die Konvergenz (oder eine der
-  # Privacy-/Messfahrt-Automationen) sie vor <3 Min beauftragt hat, gilt das
+  # Privacy-/Messfahrt-Automationen) GENAU DIESEN Raum vor <3 Min beauftragt
+  # hat (input_datetime.beschattung_auto_<raum>), gilt das
   # als manueller Eingriff. Der betroffene Raum wird für 1 Stunde von der
   # Automation verschont (Terrasse: 2 h; bei komplett offenem Raffstore
   # fährt sie gar nichts — siehe manual_block).
@@ -1761,31 +1795,46 @@
           - cover.office_shutter
           - cover.bedroom_shutter
         attribute: current_position
+    variables:
+      raum: >-
+        {{ {
+          'cover.wardrobe_blinds':   'garderobe',
+          'cover.shelf_blinds':      'abstellraum',
+          'cover.wc_eg_blinds':      'wc_eg',
+          'cover.kitchen_blinds':    'kueche',
+          'cover.dining_blinds':     'esszimmer',
+          'cover.livingroom_blinds': 'wohnzimmer',
+          'cover.terrace_blinds_2':  'terrasse',
+          'cover.wc_og_blinds':      'wc_og',
+          'cover.bathroom_blinds':   'badezimmer',
+          'cover.guest_shutter':     'gaestezimmer',
+          'cover.office_shutter':    'buero',
+          'cover.bedroom_shutter':   'schlafzimmer'
+        }[trigger.entity_id] }}
+      manual_entity: "input_boolean.beschattung_manual_{{ raum }}"
     condition:
+      # Nur der Auto-Stempel DIESES Raums zählt. Früher war es ein globaler
+      # Stempel: jede Fahrt irgendwo im Haus (auch Bad-Privacy beim
+      # Lichtschalten) hat 3 Min lang alle Handbedienungen verschluckt.
       - condition: template
         value_template: >
-          {% set last = state_attr('input_datetime.beschattung_letzter_auto_befehl', 'timestamp') %}
+          {% set last = state_attr('input_datetime.beschattung_auto_' ~ raum, 'timestamp') %}
           {% set seit = (now().timestamp() - last) if last is not none else 99999 %}
           {{ not is_state('input_boolean.beschattung_messfahrt_running', 'on') and seit > 180 }}
     action:
+      # Schon gesperrt → kurz aus und wieder an, damit last_changed neu
+      # gestempelt wird. Sonst verlängert eine zweite Handbedienung die
+      # Sperre nicht und die Stunde läuft ab der ersten weiter.
+      - if:
+          - condition: template
+            value_template: "{{ is_state(manual_entity, 'on') }}"
+        then:
+          - service: input_boolean.turn_off
+            target:
+              entity_id: "{{ manual_entity }}"
       - service: input_boolean.turn_on
         target:
-          entity_id: >-
-            {% set m = {
-              'cover.wardrobe_blinds':  'input_boolean.beschattung_manual_garderobe',
-              'cover.shelf_blinds':     'input_boolean.beschattung_manual_abstellraum',
-              'cover.wc_eg_blinds':     'input_boolean.beschattung_manual_wc_eg',
-              'cover.kitchen_blinds':   'input_boolean.beschattung_manual_kueche',
-              'cover.dining_blinds':    'input_boolean.beschattung_manual_esszimmer',
-              'cover.livingroom_blinds':'input_boolean.beschattung_manual_wohnzimmer',
-              'cover.terrace_blinds_2': 'input_boolean.beschattung_manual_terrasse',
-              'cover.wc_og_blinds':     'input_boolean.beschattung_manual_wc_og',
-              'cover.bathroom_blinds':  'input_boolean.beschattung_manual_badezimmer',
-              'cover.guest_shutter':    'input_boolean.beschattung_manual_gaestezimmer',
-              'cover.office_shutter':   'input_boolean.beschattung_manual_buero',
-              'cover.bedroom_shutter':  'input_boolean.beschattung_manual_schlafzimmer'
-            }[trigger.entity_id] %}
-            {{ m }}
+          entity_id: "{{ manual_entity }}"
 
   # ----------------------------------------------------------
   # DÄMMERUNGS-ENDE STEMPELN
@@ -1878,7 +1927,8 @@
       - variables:
           expired: >-
             {% set ns = namespace(l=[]) %}
-            {% for room in ['garderobe','abstellraum','wc_eg','kueche','esszimmer','wohnzimmer','terrasse','wc_og','badezimmer','gaestezimmer','buero','schlafzimmer'] %}
+            {# buero fehlt absichtlich: Sperre gilt dort bis zum Tag/Nacht-Wechsel (manual_bis_wechsel) #}
+            {% for room in ['garderobe','abstellraum','wc_eg','kueche','esszimmer','wohnzimmer','terrasse','wc_og','badezimmer','gaestezimmer','schlafzimmer'] %}
               {% set ent = 'input_boolean.beschattung_manual_' ~ room %}
               {% set timeout = 7200 if room == 'terrasse' else 3600 %}
               {% if is_state(ent, 'on') and (now() - states[ent].last_changed).total_seconds() >= timeout %}
@@ -2070,7 +2120,20 @@
       # Manuell-Erkennung die letzten Kalibrierfahrten nicht ankreidet.
       - service: input_datetime.set_datetime
         target:
-          entity_id: input_datetime.beschattung_letzter_auto_befehl
+          entity_id:
+            - input_datetime.beschattung_letzter_auto_befehl
+            - input_datetime.beschattung_auto_garderobe
+            - input_datetime.beschattung_auto_abstellraum
+            - input_datetime.beschattung_auto_wc_eg
+            - input_datetime.beschattung_auto_kueche
+            - input_datetime.beschattung_auto_esszimmer
+            - input_datetime.beschattung_auto_wohnzimmer
+            - input_datetime.beschattung_auto_terrasse
+            - input_datetime.beschattung_auto_wc_og
+            - input_datetime.beschattung_auto_badezimmer
+            - input_datetime.beschattung_auto_gaestezimmer
+            - input_datetime.beschattung_auto_buero
+            - input_datetime.beschattung_auto_schlafzimmer
         data:
           datetime: "{{ now().isoformat() }}"
       - service: input_boolean.turn_off
