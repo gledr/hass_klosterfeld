@@ -215,7 +215,7 @@ views:
                   Rollo {{ state_attr('cover.office_shutter', 'current_position') | int(0) }} %
                   {%- if is_state('input_boolean.beschattung_lock_buero', 'on') %} · gesperrt
                   {%- elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %} · Fenster offen
-                  {%- elif is_state('input_boolean.beschattung_manual_buero', 'on') %} · Hand
+                  {%- elif is_state('input_boolean.beschattung_manual_buero', 'on') %} · Hand bis Tag/Nacht-Wechsel
                   {%- endif %}
                 icon: mdi:roller-shade
                 icon_color: >
@@ -668,8 +668,8 @@ views:
             content: >
               🔒 **Sperre** — du hast pausiert, hält bis Mitternacht.
               ✋ **Hand** — automatisch erkannt, weil die Beschattung ohne
-              Auftrag gefahren ist; läuft nach 1 h ab (Terrasse 2 h) oder beim
-              nächsten Tag/Nacht-Wechsel. Beide grau = Automation arbeitet.
+              Auftrag gefahren ist; läuft nach 1 h ab (Terrasse 2 h, Büro erst
+              beim Tag/Nacht-Wechsel) oder beim nächsten Tag/Nacht-Wechsel. Beide grau = Automation arbeitet.
 
       ###########################################################################
       # AUSSENBEDINGUNGEN                                                       #
@@ -871,7 +871,8 @@ views:
             content: >
               Diese Knöpfe fahren die Beschattung direkt — die Automation
               erkennt das als Hand-Bedienung und lässt die betroffenen Räume
-              danach **1 Stunde** in Ruhe (Terrasse 2 h). Wenn das nicht
+              danach **1 Stunde** in Ruhe (Terrasse 2 h, Büro bis zum
+              Tag/Nacht-Wechsel). Wenn das nicht
               gewollt ist, danach oben „Alles freigeben" tippen.
 
       ###########################################################################

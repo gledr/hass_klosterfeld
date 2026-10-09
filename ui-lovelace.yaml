@@ -251,7 +251,8 @@ views:
           - type: markdown
             content: >
               Diese Knöpfe fahren direkt — die Beschattungs-Automation liest das
-              als Hand-Bedienung und lässt die Räume danach 1 h in Ruhe.
+              als Hand-Bedienung und lässt die Räume danach 1 h in Ruhe
+              (Terrasse 2 h, Büro bis zum Tag/Nacht-Wechsel).
 
       ###########################################################################
       # WETTER / AUSSEN                                                         #
