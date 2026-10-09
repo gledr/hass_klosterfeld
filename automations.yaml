@@ -1240,6 +1240,9 @@
           - binary_sensor.sonne_trifft_nord
           - binary_sensor.sonne_trifft_sued
           - binary_sensor.sonne_trifft_west
+      # Blendung Büro (auch im Winter, ohne Temperatur-Bedingung)
+      - platform: state
+        entity_id: binary_sensor.blendung_buero
       # Präsenz-Hold abgelaufen → Wohnzimmer/Terrasse wieder normal bewerten.
       # Der Hold hält einen von Hand geöffneten Raffstore offen, solange
       # jemand in der Wohnküche ist, plus praesenz_nachlauf (1800 s). Der
@@ -1446,6 +1449,9 @@
               type: rollo
               dir: sued
               blend: true
+              # Blendschutz auch ohne Hitze (Winter, kühle Tage) — nur
+              # Werktag + zuhause, sonst darf die Sonne rein (Wärme).
+              blend_sensor: binary_sensor.blendung_buero
               fenster: binary_sensor.shelly_blu_door_window_a173_window
               # Gast-Modus: gleiche Logik wie Gästezimmer, da Schlafcouch
               waketime: true
@@ -1558,6 +1564,13 @@
                 fenster_blockt: "{{ fenster_offen and nacht and not morgen }}"
                 # Sonne auf der Fassade → Hitzeschutz
                 hitze: "{{ twilight_on and sun }}"
+                # Blendschutz ohne Hitze (Büro): Sonne blendet, jemand
+                # arbeitet. Ein einziger {{ }}-Ausdruck (siehe anwesend).
+                blendung: >-
+                  {% set b = repeat.item.get('blend_sensor') %}
+                  {{ twilight_on and b is not none and is_state(b, 'on')
+                     and is_state('binary_sensor.workday_sensor', 'on')
+                     and is_state('device_tracker.iphone_von_sebastian', 'home') }}
                 # Manuelle Sperre: Standard 1 h (Terrasse 2 h). Terrasse zusätzlich:
                 # solange komplett offen, keine Aktion (skip_fully_open).
                 # Nachts greift die Sperre nie — die Konvergenz schließt trotzdem.
@@ -1616,26 +1629,31 @@
                   {{ not lesbar or locked or wind or fenster_blockt or manual_block
                      or (repeat.item.get('privacy', false) and privacy_active)
                      or (repeat.item.get('aussperr', false) and (tuer_offen or timer_aktiv)) }}
-                # Zielmodus ermitteln (Reihenfolge: skip > morgen > nacht > hitze > hold > tag)
+                # Zielmodus ermitteln (Reihenfolge: skip > morgen > nacht > hitze > blend > hold > tag)
                 mode: >-
                   {% if gesperrt %}skip
                   {% elif morgen %}morgen
                   {% elif nacht %}nacht
                   {% elif hitze and not repeat.item.get('no_hitze', false) %}hitze
+                  {% elif blendung | string | lower == 'true' %}blend
                   {% elif hold %}skip
                   {% elif tag_erlaubt %}tag
                   {% else %}skip{% endif %}
                 target_pos: >-
                   {% set room_key = repeat.item.name | lower | replace('ä', 'ae') | replace('ö', 'oe') | replace('ü', 'ue') | replace(' ', '_') %}
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
+                  {# Blendschutz-Position nach Sonnenhöhe: je tiefer die Sonne,
+                     desto weiter scheint sie in den Raum → weiter zu. #}
+                  {% set elev = state_attr('sun.sun', 'elevation') | float(0) %}
+                  {% set blend_pos = 25 if elev < 25 else (50 if elev < 45 else 75) %}
                   {% if mode == 'skip' %}-1
                   {% elif mode == 'morgen' %}{{ repeat.item.morgen_spalt }}
                   {% elif mode == 'nacht' %}0
+                  {% elif mode == 'blend' %}{{ blend_pos }}
                   {% elif mode == 'hitze' %}
                     {% if rtype == 'raffstore' %}0
                     {% elif repeat.item.get('blend', false) %}
-                      {% if is_state('binary_sensor.workday_sensor', 'on') and is_state('device_tracker.iphone_von_sebastian', 'home') %}
-                        {% if state_attr('sun.sun', 'elevation') | float(0) < 45 and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(0) %}50{% else %}75{% endif %}
+                      {% if is_state('binary_sensor.workday_sensor', 'on') and is_state('device_tracker.iphone_von_sebastian', 'home') %}{{ blend_pos }}
                       {% else %}10{% endif %}
                     {% else %}{{ repeat.item.get('hitze_pos', 10) }}{% endif %}
                   {% elif default == 'Offen' %}100

@@ -216,13 +216,14 @@ views:
                   {%- if is_state('input_boolean.beschattung_lock_buero', 'on') %} · gesperrt
                   {%- elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %} · Fenster offen
                   {%- elif is_state('input_boolean.beschattung_manual_buero', 'on') %} · Hand bis Tag/Nacht-Wechsel
+                  {%- elif is_state('binary_sensor.blendung_buero', 'on') %} · Blendung
                   {%- endif %}
                 icon: mdi:roller-shade
                 icon_color: >
                   {% if is_state('input_boolean.beschattung_lock_buero', 'on') %}red
                   {% elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %}purple
                   {% elif is_state('input_boolean.beschattung_manual_buero', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
+                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') or is_state('binary_sensor.blendung_buero', 'on') %}orange
                   {% else %}disabled{% endif %}
                 tap_action:
                   action: more-info

@@ -73,6 +73,24 @@ binary_sensor:
          and states('sensor.outdoor_temperature_avg') | float(0) > states('input_number.beschattung_hitze_temp') | float(22)
          and not winter }}
 
+  # Blendschutz Büro — unabhängig von Temperatur und Saison. Blendung ist
+  # ein Licht-, kein Wärmeproblem: gerade die tiefe Herbst-/Wintersonne
+  # scheint weit in den Raum, während "Sonne trifft Süd" in der Heizsaison
+  # nie angeht. Gleicher Azimut-Bereich und gleiche Lux-Schwelle wie Süd,
+  # aber schon ab 5° Elevation. delay_off 10 Min, damit eine Wolke das
+  # Rollo nicht gleich wieder auffährt.
+  - name: "Blendung Buero"
+    unique_id: blendung_buero
+    delay_on:
+      minutes: 5
+    delay_off:
+      minutes: 10
+    state: >
+      {{ state_attr('sun.sun', 'azimuth') | float(0) > 135
+         and state_attr('sun.sun', 'azimuth') | float(0) < 250
+         and state_attr('sun.sun', 'elevation') | float(0) > 5
+         and states('sensor.helligkeit_sud') | float(0) > states('input_number.beschattung_lux_sud') | float(15000) }}
+
   # Betriebsart der Heizung (KNX 7/0/0): on = Winter = Heizung aktiv,
   # off = Sommer = Heizung abgeschaltet. Bewusst als binary_sensor, damit
   # spätere Automationen nicht die 1/0-Logik der GA kennen müssen.
