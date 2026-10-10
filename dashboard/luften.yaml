@@ -146,3 +146,25 @@ views:
                 name: Taupunkt
               - entity: sensor.luftung_garage
                 name: Empfehlung
+
+      ###########################################################################
+      # KÜCHE — Temperatur/Feuchte kommen aus KNX (7/2/15, 7/2/31);            #
+      # Taupunkt + Empfehlung sind Template-Sensoren (template.yaml).           #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Küche
+            icon: mdi:stove
+
+          - type: entities
+            entities:
+              - entity: sensor.kitchen_temperature
+                name: Temperatur
+              - entity: sensor.kitchen_humidity
+                name: Luftfeuchte
+              - entity: sensor.taupunkt_kueche
+                name: Taupunkt
+              - entity: sensor.luftung_kueche
+                name: Empfehlung

@@ -351,6 +351,36 @@ sensor:
         Nicht lüften
       {% endif %}
 
+  # Küche kam später dazu. Die KNX-Sensoren 7/2/15 (Temperatur) und
+  # 7/2/31 (Luftfeuchte) gab es schon, Taupunkt und Empfehlung fehlten
+  # aber — ohne die beiden hier hätte die Karte im Lüften-Dashboard nur
+  # zwei von vier Zeilen gefüllt.
+  - name: "Taupunkt Küche"
+    unique_id: taupunkt_kueche
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.kitchen_temperature') | float %}
+      {% set RH = states('sensor.kitchen_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Lüftung Küche"
+    unique_id: ventilation_kueche_level
+    state: >
+      {% set RH = states('sensor.kitchen_humidity') | float(0) %}
+      {% set delta = (states('sensor.taupunkt_kueche') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
+
   # =========================================================
   # OFFENE ÖFFNUNGEN — einzige Quelle der Wahrheit
   # =========================================================
