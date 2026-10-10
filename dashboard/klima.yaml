@@ -294,17 +294,12 @@ views:
 
           - type: custom:mushroom-template-card
             primary: Küche
-            secondary: >
-              {{ states('sensor.kitchen_temperature') }} °C ·
-              {{ states('sensor.kitchen_humidity') }} % ·
-              Taupunkt {{ states('sensor.taupunkt_kuche') }} °C
-            # Icon = Lüftungsempfehlung wie im Keller-Dashboard (fan-speed/
-            # fan-off/check), nicht mehr das statische Raum-Icon. Einzeilig, weil
-            # mushroom führende Leerzeichen aus gefalteten Templates beim
-            # Icon-Vergleich (startsWith("mdi:")) nicht verzeiht.
+            secondary: "{{ states('sensor.kitchen_temperature') }} °C · {{ states('sensor.kitchen_humidity') }} %"
+            # Icon = Lüftungsempfehlung (fan-speed/fan-off/check) statt Raumsymbol.
+            # Einzeilig, weil mushroom führende Leerzeichen aus gefalteten
+            # Templates beim Icon-Vergleich (startsWith("mdi:")) nicht verzeiht.
             icon: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
             icon_color: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
-            multiline_secondary: true
           - type: custom:mushroom-template-card
             primary: WC EG
             secondary: "{{ states('sensor.wc_gf_temperature') }} °C"
@@ -338,13 +333,9 @@ views:
 
           - type: custom:mushroom-template-card
             primary: Schlafzimmer
-            secondary: >
-              {{ states('sensor.bedroom') }} °C ·
-              {{ states('sensor.bedroom_humidity') }} % ·
-              Taupunkt {{ states('sensor.taupunkt_schlafzimmer') }} °C
+            secondary: "{{ states('sensor.bedroom') }} °C · {{ states('sensor.bedroom_humidity') }} %"
             icon: "{% set s = states('sensor.luftung_schlafzimmer') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
             icon_color: "{% set s = states('sensor.luftung_schlafzimmer') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
-            multiline_secondary: true
           - type: custom:mushroom-template-card
             primary: Büro
             # TODO friendly-name kind2_temperature is the Büro temp per existing dashboard. Rename in HASS later.

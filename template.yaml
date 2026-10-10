@@ -381,6 +381,36 @@ sensor:
         Nicht lüften
       {% endif %}
 
+  # Badezimmer fürs Obergeschoss-Dashboard. Temperatur kommt vom KNX-Fühler
+  # (sensor.bathroom_temperature), die Feuchte vom BLE-Sensor
+  # sensor.bthome_sensor_5447_humidity — dieselben Entitäten, die im
+  # Obergeschoss-Dashboard als Chips hängen.
+  - name: "Taupunkt Badezimmer"
+    unique_id: taupunkt_badezimmer
+    unit_of_measurement: "°C"
+    state: >
+      {% set T = states('sensor.bathroom_temperature') | float %}
+      {% set RH = states('sensor.bthome_sensor_5447_humidity') | float %}
+      {% set a = 17.27 %}
+      {% set b = 237.7 %}
+      {% set alpha = ((a*T)/(b+T)) + (RH/100)|log %}
+      {{ ((b*alpha)/(a-alpha)) | round(2) }}
+
+  - name: "Lüftung Badezimmer"
+    unique_id: ventilation_badezimmer_level
+    state: >
+      {% set RH = states('sensor.bthome_sensor_5447_humidity') | float(0) %}
+      {% set delta = (states('sensor.taupunkt_badezimmer') | float) - (states('sensor.taupunkt_aussen') | float) %}
+      {% if RH < 55 %}
+        Luftfeuchtigkeit Okay
+      {% elif delta > 2 %}
+        Lüften stark
+      {% elif delta > 0 %}
+        Lüften wenig
+      {% else %}
+        Nicht lüften
+      {% endif %}
+
   # =========================================================
   # OFFENE ÖFFNUNGEN — einzige Quelle der Wahrheit
   # =========================================================

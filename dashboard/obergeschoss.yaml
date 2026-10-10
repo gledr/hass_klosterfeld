@@ -147,6 +147,17 @@ views:
               {% if is_state('input_boolean.badezimmer_privacy_active', 'on') %}purple{% else %}disabled{% endif %}
             tap_action:
               action: toggle
+          # Lüften wie im Keller-Dashboard: Taupunkt-Temperatur plus farbiges
+          # Ventilator-Logo (stark = fan-speed-3/rot, wenig = fan-speed-1/amber,
+          # nicht lüften = fan-off/grau, okay = check-circle/grün). Templates
+          # bewusst einzeilig — mushroom verzeiht führende Leerzeichen aus
+          # gefalteten YAML-Templates beim startsWith("mdi:")-Vergleich nicht.
+          - type: custom:mushroom-template-card
+            entity: sensor.luftung_badezimmer
+            primary: Lüften
+            secondary: "Taupunkt {{ states('sensor.taupunkt_badezimmer') }} °C · {{ states('sensor.luftung_badezimmer') }}"
+            icon: "{% set s = states('sensor.luftung_badezimmer') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
+            icon_color: "{% set s = states('sensor.luftung_badezimmer') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
