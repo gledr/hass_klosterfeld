@@ -336,7 +336,7 @@ views:
           - type: custom:mushroom-template-card
             primary: Büro
             # TODO friendly-name kind2_temperature is the Büro temp per existing dashboard. Rename in HASS later.
-            secondary: "{{ states('sensor.kind2_temperature') }} °C · {{ states('sensor.bthome_sensor_ace1_humidity') }} %"
+            secondary: "{{ states('sensor.kind2_temperature') }} °C"
             icon: mdi:desk
             icon_color: deep-orange
           - type: custom:mushroom-template-card
