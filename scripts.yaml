@@ -682,3 +682,93 @@ wc_og_sollwert_standard:
         entity_id: number.wc_og_sollwert
       data:
         value: 20
+
+
+#########################################################
+# HEIZUNG – ÜBRIGE OG-RÄUME – STANDARD + STATUS
+# Gleiches Muster wie beim WC (siehe oben): "Status" schickt ein
+# GroupValueRead auf das jeweilige "Present Setpoint"-KO, "Standard"
+# schreibt 20 °C auf das "Send current setpoint"-KO. GA-Zuordnung siehe
+# configuration.yaml (number/button). 20 °C muss zusätzlich im
+# ETS-Parameter des jeweiligen Stellantriebs hinterlegt sein.
+#########################################################
+
+gaestezimmer_sollwert_status_abfragen:
+  alias: Heizung – Gästezimmer Sollwert-Status abfragen
+  icon: mdi:refresh
+  mode: single
+  sequence:
+    - service: knx.read
+      data:
+        address: "7/3/52"
+
+gaestezimmer_sollwert_standard:
+  alias: Heizung – Gästezimmer Sollwert auf Standard (20 °C)
+  icon: mdi:restore
+  mode: single
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.gastezimmer_sollwert
+      data:
+        value: 20
+
+buro_sollwert_status_abfragen:
+  alias: Heizung – Büro Sollwert-Status abfragen
+  icon: mdi:refresh
+  mode: single
+  sequence:
+    - service: knx.read
+      data:
+        address: "7/3/67"
+
+buro_sollwert_standard:
+  alias: Heizung – Büro Sollwert auf Standard (20 °C)
+  icon: mdi:restore
+  mode: single
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.buro_sollwert
+      data:
+        value: 20
+
+schlafzimmer_sollwert_status_abfragen:
+  alias: Heizung – Schlafzimmer Sollwert-Status abfragen
+  icon: mdi:refresh
+  mode: single
+  sequence:
+    - service: knx.read
+      data:
+        address: "7/3/82"
+
+schlafzimmer_sollwert_standard:
+  alias: Heizung – Schlafzimmer Sollwert auf Standard (20 °C)
+  icon: mdi:restore
+  mode: single
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.schlafzimmer_sollwert
+      data:
+        value: 20
+
+badezimmer_sollwert_status_abfragen:
+  alias: Heizung – Badezimmer Sollwert-Status abfragen
+  icon: mdi:refresh
+  mode: single
+  sequence:
+    - service: knx.read
+      data:
+        address: "7/3/97"
+
+badezimmer_sollwert_standard:
+  alias: Heizung – Badezimmer Sollwert auf Standard (20 °C)
+  icon: mdi:restore
+  mode: single
+  sequence:
+    - service: number.set_value
+      target:
+        entity_id: number.badezimmer_sollwert
+      data:
+        value: 20

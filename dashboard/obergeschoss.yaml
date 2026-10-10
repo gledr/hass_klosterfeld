@@ -37,6 +37,65 @@ views:
             name: Rollo
             show_position_control: true
             show_buttons_control: true
+          # Heizungs-Sollwert des Schlafzimmer-Stellantriebs (schreiben 7/3/84,
+          # zurücklesen 7/3/82).
+          - type: entities
+            title: Heizung – Sollwert
+            show_header_toggle: false
+            entities:
+              - entity: number.schlafzimmer_sollwert
+                name: Sollwert
+                icon: mdi:radiator
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: number.schlafzimmer_sollwert
+                state:
+                  - unknown
+                  - unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: 20 °C (Standard)
+              secondary: >-
+                Der Antrieb hat noch keinen Sollwert gemeldet. 20 °C steht
+                im ETS-Parameter des Stellantriebs.
+              icon: mdi:information-outline
+              icon_color: grey
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:minus
+                content: Sollwert −
+                icon_color: blue
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.schlafzimmer_sollwert_minus
+              - type: template
+                icon: mdi:restore
+                content: Standard 20 °C
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: script.schlafzimmer_sollwert_standard
+              - type: template
+                icon: mdi:refresh
+                content: Status
+                icon_color: teal
+                tap_action:
+                  action: call-service
+                  service: script.schlafzimmer_sollwert_status_abfragen
+              - type: template
+                icon: mdi:plus
+                content: Sollwert +
+                icon_color: deep-orange
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.schlafzimmer_sollwert_plus
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
@@ -65,6 +124,65 @@ views:
             name: Rollo
             show_position_control: true
             show_buttons_control: true
+          # Heizungs-Sollwert des Büro-Stellantriebs (schreiben 7/3/69,
+          # zurücklesen 7/3/67) — gleiches Muster wie im WC.
+          - type: entities
+            title: Heizung – Sollwert
+            show_header_toggle: false
+            entities:
+              - entity: number.buro_sollwert
+                name: Sollwert
+                icon: mdi:radiator
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: number.buro_sollwert
+                state:
+                  - unknown
+                  - unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: 20 °C (Standard)
+              secondary: >-
+                Der Antrieb hat noch keinen Sollwert gemeldet. 20 °C steht
+                im ETS-Parameter des Stellantriebs.
+              icon: mdi:information-outline
+              icon_color: grey
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:minus
+                content: Sollwert −
+                icon_color: blue
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.buro_sollwert_minus
+              - type: template
+                icon: mdi:restore
+                content: Standard 20 °C
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: script.buro_sollwert_standard
+              - type: template
+                icon: mdi:refresh
+                content: Status
+                icon_color: teal
+                tap_action:
+                  action: call-service
+                  service: script.buro_sollwert_status_abfragen
+              - type: template
+                icon: mdi:plus
+                content: Sollwert +
+                icon_color: deep-orange
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.buro_sollwert_plus
           - type: custom:mushroom-chips-card
             chips:
               # TODO sensor.kind2_temperature ist laut altem Dashboard die Büro-Temp.
@@ -98,6 +216,65 @@ views:
             name: Rollo
             show_position_control: true
             show_buttons_control: true
+          # Heizungs-Sollwert des Gästezimmer-Stellantriebs (schreiben 7/3/54,
+          # zurücklesen 7/3/52).
+          - type: entities
+            title: Heizung – Sollwert
+            show_header_toggle: false
+            entities:
+              - entity: number.gastezimmer_sollwert
+                name: Sollwert
+                icon: mdi:radiator
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: number.gastezimmer_sollwert
+                state:
+                  - unknown
+                  - unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: 20 °C (Standard)
+              secondary: >-
+                Der Antrieb hat noch keinen Sollwert gemeldet. 20 °C steht
+                im ETS-Parameter des Stellantriebs.
+              icon: mdi:information-outline
+              icon_color: grey
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:minus
+                content: Sollwert −
+                icon_color: blue
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.gastezimmer_sollwert_minus
+              - type: template
+                icon: mdi:restore
+                content: Standard 20 °C
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: script.gastezimmer_sollwert_standard
+              - type: template
+                icon: mdi:refresh
+                content: Status
+                icon_color: teal
+                tap_action:
+                  action: call-service
+                  service: script.gastezimmer_sollwert_status_abfragen
+              - type: template
+                icon: mdi:plus
+                content: Sollwert +
+                icon_color: deep-orange
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.gastezimmer_sollwert_plus
           - type: custom:mushroom-chips-card
             chips:
               - type: entity
@@ -129,6 +306,65 @@ views:
             entity: cover.bathroom_blinds
             name: Raffstore (Lamellen)
             show_tilt_position_control: true
+          # Heizungs-Sollwert des Badezimmer-Stellantriebs (schreiben 7/3/99,
+          # zurücklesen 7/3/97).
+          - type: entities
+            title: Heizung – Sollwert
+            show_header_toggle: false
+            entities:
+              - entity: number.badezimmer_sollwert
+                name: Sollwert
+                icon: mdi:radiator
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: number.badezimmer_sollwert
+                state:
+                  - unknown
+                  - unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: 20 °C (Standard)
+              secondary: >-
+                Der Antrieb hat noch keinen Sollwert gemeldet. 20 °C steht
+                im ETS-Parameter des Stellantriebs.
+              icon: mdi:information-outline
+              icon_color: grey
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:minus
+                content: Sollwert −
+                icon_color: blue
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.badezimmer_sollwert_minus
+              - type: template
+                icon: mdi:restore
+                content: Standard 20 °C
+                icon_color: amber
+                tap_action:
+                  action: call-service
+                  service: script.badezimmer_sollwert_standard
+              - type: template
+                icon: mdi:refresh
+                content: Status
+                icon_color: teal
+                tap_action:
+                  action: call-service
+                  service: script.badezimmer_sollwert_status_abfragen
+              - type: template
+                icon: mdi:plus
+                content: Sollwert +
+                icon_color: deep-orange
+                tap_action:
+                  action: call-service
+                  service: button.press
+                  target:
+                    entity_id: button.badezimmer_sollwert_plus
           # Privacy tauchte bisher nur als Warnung auf der Übersicht auf —
           # ausschalten ließ es sich dort nicht. Solange aktiv, fasst die
           # Beschattungs-Konvergenz das Bad nicht an.

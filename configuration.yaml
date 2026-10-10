@@ -779,9 +779,10 @@ knx:
           payload: 1
 
   # ========================
-  # HEIZUNG – STELLANTRIEB WC OG
+  # HEIZUNG – STELLANTRIEBE OG
   # ========================
-  # Erster von (geplant) mehreren Stellantrieben; der WC ist der Pilotfall.
+  # Alle OG-Raeume (WC OG, Guest/Buero/Schlafzimmer/Badezimmer) nutzen dasselbe
+  # KO-Schema; der WC war der Pilotfall. GAs je Raum aus ets_ga2.csv.
   # 7/3/39 = Sollwert schreiben, 7/3/37 = aktueller Sollwert zurücklesen.
   # DPT 9.001 ist ein 2-Byte-Float in °C, deshalb type: temperature — HASS
   # rechnet °C selbst in das KNX-Telegramm um, es wird kein Rohwert
@@ -807,8 +808,46 @@ knx:
       step: 0.5
       mode: slider
       device_class: temperature
+    - name: "Gästezimmer Sollwert"
+      address: "7/3/54"
+      state_address: "7/3/52"
+      type: temperature
+      min: 5
+      max: 30
+      step: 0.5
+      mode: slider
+      device_class: temperature
+    - name: "Büro Sollwert"
+      address: "7/3/69"
+      state_address: "7/3/67"
+      type: temperature
+      min: 5
+      max: 30
+      step: 0.5
+      mode: slider
+      device_class: temperature
+    - name: "Schlafzimmer Sollwert"
+      address: "7/3/84"
+      state_address: "7/3/82"
+      type: temperature
+      min: 5
+      max: 30
+      step: 0.5
+      mode: slider
+      device_class: temperature
+    - name: "Badezimmer Sollwert"
+      address: "7/3/99"
+      state_address: "7/3/97"
+      type: temperature
+      min: 5
+      max: 30
+      step: 0.5
+      mode: slider
+      device_class: temperature
 
-  # 7/3/35 ("manueller Sollwert", 2 Byte) bleibt bewusst unbenutzt: Es ist
+  # Die 2-Byte-KOs "Manuel setpoint shift" (WC 7/3/35, Guest 7/3/50,
+  # Office 7/3/65, Schlafzimmer 7/3/80, Badezimmer 7/3/95) bleiben bewusst
+  # unbenutzt: Es ist
   # nicht geklärt, ob dieses KO den Sollwert dauerhaft pinnt, bis er von
   # Hand überschrieben wird. Solange das offen ist, wird dort nicht
   # geschrieben — nachzutragen ist eine Zeile, sobald die Rolle im ETS
@@ -854,6 +893,45 @@ knx:
       payload_length: 1
     - name: "WC OG Sollwert Minus"
       address: "7/3/34"
+      payload: 0
+      payload_length: 1
+
+    # Sollwert-Korrektur der übrigen OG-Stellantriebe: das 1-Bit-KO
+    # "Manual setpoint shift" (1 = eine Stufe höher, 0 = eine Stufe
+    # niedriger, DPT 1.007/DPM 1.004) — genau die Rolle, die 7/3/34 beim WC
+    # hat. Bewusst button und nicht switch: Tastbefehl ohne Zustand.
+    # GAs (ets_ga2.csv): Guest 7/3/49, Office 7/3/64, Schlafzimmer 7/3/79,
+    # Badezimmer 7/3/94.
+    - name: "Gästezimmer Sollwert Plus"
+      address: "7/3/49"
+      payload: 1
+      payload_length: 1
+    - name: "Gästezimmer Sollwert Minus"
+      address: "7/3/49"
+      payload: 0
+      payload_length: 1
+    - name: "Büro Sollwert Plus"
+      address: "7/3/64"
+      payload: 1
+      payload_length: 1
+    - name: "Büro Sollwert Minus"
+      address: "7/3/64"
+      payload: 0
+      payload_length: 1
+    - name: "Schlafzimmer Sollwert Plus"
+      address: "7/3/79"
+      payload: 1
+      payload_length: 1
+    - name: "Schlafzimmer Sollwert Minus"
+      address: "7/3/79"
+      payload: 0
+      payload_length: 1
+    - name: "Badezimmer Sollwert Plus"
+      address: "7/3/94"
+      payload: 1
+      payload_length: 1
+    - name: "Badezimmer Sollwert Minus"
+      address: "7/3/94"
       payload: 0
       payload_length: 1
 
