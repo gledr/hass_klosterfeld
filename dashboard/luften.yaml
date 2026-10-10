@@ -164,7 +164,7 @@ views:
                 name: Temperatur
               - entity: sensor.kitchen_humidity
                 name: Luftfeuchte
-              - entity: sensor.taupunkt_kueche
+              - entity: sensor.taupunkt_kuche
                 name: Taupunkt
-              - entity: sensor.luftung_kueche
+              - entity: sensor.luftung_kuche
                 name: Empfehlung

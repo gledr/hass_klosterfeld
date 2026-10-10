@@ -297,13 +297,13 @@ views:
             secondary: >
               {{ states('sensor.kitchen_temperature') }} °C ·
               {{ states('sensor.kitchen_humidity') }} % ·
-              Taupunkt {{ states('sensor.taupunkt_kueche') }} °C
+              Taupunkt {{ states('sensor.taupunkt_kuche') }} °C
             # Icon = Lüftungsempfehlung wie im Keller-Dashboard (fan-speed/
             # fan-off/check), nicht mehr das statische Raum-Icon. Einzeilig, weil
             # mushroom führende Leerzeichen aus gefalteten Templates beim
             # Icon-Vergleich (startsWith("mdi:")) nicht verzeiht.
-            icon: "{% set s = states('sensor.luftung_kueche') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
-            icon_color: "{% set s = states('sensor.luftung_kueche') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
+            icon: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
+            icon_color: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
             multiline_secondary: true
           - type: custom:mushroom-template-card
             primary: WC EG
