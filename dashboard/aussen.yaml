@@ -1,211 +1,195 @@
 ###############################################################################
-# AUSSEN — Garage, Terrasse, Wetterstation, Außenbeleuchtung                   #
-# Garage internals (vent / half / step) hidden behind expander.                #
+# AUSSEN — Tab im Dashboard "Räume" (raeume.yaml)                              #
+# Garage, Terrasse, Außenbeleuchtung, Wetterstation.                           #
+# Garage-Interna (vent / half / step) nur bei offenem Tor sichtbar.            #
 ###############################################################################
-title: Aussen
-views:
-  - title: Aussen
-    path: home
-    icon: mdi:tree
-    type: sections
-    max_columns: 3
-    sections:
+title: Außen
+path: aussen
+icon: mdi:tree
+type: sections
+max_columns: 3
+sections:
 
-      ###########################################################################
-      # GARAGE                                                                  #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Garage
-            icon: mdi:garage
+  ###########################################################################
+  # GARAGE                                                                  #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Garage
+        icon: mdi:garage
+        badges:
+          - type: entity
+            entity: sensor.garagentor_garage_temperature
+          - type: entity
+            entity: sensor.garagentor_garage_humidity
 
-          - type: custom:mushroom-cover-card
+      - type: custom:mushroom-cover-card
+        entity: cover.garage_door_garage_door
+        name: Garagentor
+        show_position_control: true
+        show_buttons_control: true
+
+      - type: custom:mushroom-template-card
+        entity: sensor.garage_door_garage_door_status
+        primary: Status
+        secondary: "{{ states('sensor.garage_door_garage_door_status') }} · {{ states('sensor.garage_door_garage_door_position') }} %"
+        icon: mdi:garage-variant
+        icon_color: "{% if is_state('cover.garage_door_garage_door','closed') %}green{% else %}amber{% endif %}"
+        grid_options:
+          columns: 6
+
+      - type: custom:mushroom-entity-card
+        entity: switch.garage_door_garage_door_light
+        name: Licht
+        icon: mdi:lightbulb
+        tap_action:
+          action: toggle
+        grid_options:
+          columns: 6
+
+      - type: conditional
+        conditions:
+          - condition: state
             entity: cover.garage_door_garage_door
-            name: Garagentor
-            show_position_control: true
-            show_buttons_control: true
+            state: "open"
+        card:
+          type: entities
+          title: Erweitert
+          entities:
+            - entity: switch.garage_door_garage_door_vent
+              name: Lüftungsposition
+            - entity: switch.garage_door_garage_door_half
+              name: Halb öffnen
+            - entity: switch.garage_door_garage_door_step
+              name: Schrittposition
+            - entity: sensor.garage_door_garage_door_detailed_status
+              name: Detail-Status
+            - entity: sensor.garage_door_garage_door_available
+              name: Verfügbar
 
-          - type: custom:mushroom-template-card
-            primary: Status
-            secondary: "{{ states('sensor.garage_door_garage_door_status') }} · {{ states('sensor.garage_door_garage_door_position') }} %"
-            icon: mdi:garage-variant
-            icon_color: >
-              {% if is_state('cover.garage_door_garage_door','closed') %}green{% else %}amber{% endif %}
+      - type: custom:decluttering-card
+        template: lueften
+        variables:
+          - luftung: sensor.luftung_garage
+          - taupunkt: sensor.taupunkt_garage
 
-          - type: custom:mushroom-entity-card
-            entity: switch.garage_door_garage_door_light
-            name: Licht
-            icon: mdi:lightbulb
+  ###########################################################################
+  # TERRASSE                                                                #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Terrasse
+        icon: mdi:umbrella-beach
+        badges:
+          - type: entity
+            entity: binary_sensor.bthome_sensor_fb9c_fenster
+            name: Tür
 
-          # Selten genutzt — eingeklappt
-          - type: conditional
-            conditions:
-              - condition: state
-                entity: cover.garage_door_garage_door
-                state: "open"
-            card:
-              type: entities
-              title: Erweitert (nur sichtbar wenn Tor offen)
-              entities:
-                - entity: switch.garage_door_garage_door_vent
-                  name: Lüftungsposition
-                - entity: switch.garage_door_garage_door_half
-                  name: Halb öffnen
-                - entity: switch.garage_door_garage_door_step
-                  name: Schrittposition
-                - entity: sensor.garage_door_garage_door_detailed_status
-                  name: Detail-Status
-                - entity: sensor.garage_door_garage_door_available
-                  name: Verfügbar
+      - type: custom:mushroom-cover-card
+        entity: cover.terrace_blinds_2
+        name: Raffstore
+        show_position_control: true
+        show_tilt_position_control: true
+        show_buttons_control: true
 
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.garagentor_garage_temperature
-                icon: mdi:thermometer
-              - type: entity
-                entity: sensor.garagentor_garage_humidity
-                icon: mdi:water-percent
+      # Licht geht nach spätestens 4 h von selbst aus (timer.auto_aus_terrace_light)
+      - type: custom:mushroom-light-card
+        entity: light.terrace_light
+        name: Terrassenlicht
 
-      ###########################################################################
-      # TERRASSE                                                                #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Terrasse
-            icon: mdi:umbrella-beach
+      - type: custom:mushroom-template-card
+        entity: input_boolean.beschattung_lock_terrasse
+        primary: Auto-Beschattung
+        secondary: >-
+          {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}gesperrt bis Mitternacht
+          {% elif is_state('timer.terrassentuer_aussperrschutz', 'active') %}Aussperr-Schutz aktiv
+          {% else %}aktiv (Sonne + Tag/Nacht){% endif %}
+        icon: mdi:auto-fix
+        icon_color: "{% if is_state('input_boolean.beschattung_lock_terrasse','on') %}red{% elif is_state('timer.terrassentuer_aussperrschutz', 'active') %}purple{% else %}green{% endif %}"
+        tap_action:
+          action: toggle
 
-          - type: custom:mushroom-cover-card
-            entity: cover.terrace_blinds_2
-            name: Raffstore
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
+  ###########################################################################
+  # AUSSENBELEUCHTUNG                                                       #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Beleuchtung
+        icon: mdi:outdoor-lamp
 
-          - type: custom:mushroom-template-card
-            primary: Auto-Beschattung
-            secondary: >
-              {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}
-                App-gesperrt — bis Mitternacht aus
-              {% else %}
-                Aktiv (folgt Sonne + Tag/Nacht)
-              {% endif %}
-            icon: mdi:auto-fix
-            icon_color: >
-              {% if is_state('input_boolean.beschattung_lock_terrasse','on') %}red
-              {% else %}green{% endif %}
-            tap_action:
-              action: toggle
-              entity: input_boolean.beschattung_lock_terrasse
+      - type: custom:mushroom-light-card
+        entity: light.main_door_light
+        name: Haustür
+      - type: custom:mushroom-light-card
+        entity: light.carport_light
+        name: Carport
 
-      ###########################################################################
-      # AUSSENBELEUCHTUNG                                                       #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Beleuchtung
-            icon: mdi:outdoor-lamp
+  ###########################################################################
+  # WETTERSTATION                                                           #
+  ###########################################################################
+  - type: grid
+    column_span: 3
+    cards:
+      - type: heading
+        heading: Wetterstation
+        icon: mdi:weather-cloudy-clock
 
-          - type: custom:mushroom-light-card
-            entity: light.main_door_light
-            name: Haustür
-          - type: custom:mushroom-light-card
-            entity: light.terrace_light
-            name: Terasse
-          - type: custom:mushroom-light-card
-            entity: light.carport_light
-            name: Carport
+      - type: custom:mushroom-chips-card
+        chips:
+          - type: entity
+            entity: sensor.outdoor_temperature
+            icon: mdi:thermometer
+            name: Temp Süd
+          - type: entity
+            entity: sensor.altherma_climatecontrol_outdoor_temperature
+            icon: mdi:thermometer
+            name: Temp Nord
+          - type: entity
+            entity: sensor.outdoor_humidity
+            icon: mdi:water-percent
+          - type: entity
+            entity: sensor.wind_speed
+            icon: mdi:weather-windy
+          - type: entity
+            entity: switch.twilight
+            icon: mdi:weather-sunset-up
+            name: Tag/Nacht
+          - type: entity
+            entity: binary_sensor.sonne_trifft_sued
+            icon: mdi:weather-sunny
+            name: Sonne Süd
+          - type: entity
+            entity: binary_sensor.sonne_trifft_west
+            icon: mdi:weather-sunset
+            name: Sonne West
+          - type: entity
+            entity: binary_sensor.sonne_trifft_nord
+            icon: mdi:weather-cloudy
+            name: Sonne Nord
 
-      ###########################################################################
-      # WETTERSTATION                                                           #
-      ###########################################################################
-      - type: grid
-        column_span: 3
-        cards:
-          - type: heading
-            heading: Wetterstation
-            icon: mdi:weather-cloudy-clock
-
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-chips-card
-                chips:
-                  - type: entity
-                    entity: sensor.outdoor_temperature
-                    icon: mdi:thermometer
-                    name: Temp Süd
-                  - type: entity
-                    entity: sensor.altherma_climatecontrol_outdoor_temperature
-                    icon: mdi:thermometer
-                    name: Temp Nord
-                  - type: entity
-                    entity: sensor.outdoor_humidity
-                    icon: mdi:water-percent
-                    name: rel. F.
-                  - type: entity
-                    entity: sensor.wind_speed
-                    icon: mdi:weather-windy
-                    name: Wind
-                  - type: entity
-                    entity: sun.sun
-                    icon: mdi:white-balance-sunny
-                    name: Sonne
-
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: switch.twilight
-                icon: mdi:weather-sunset-up
-                name: Twilight
-              - type: entity
-                entity: binary_sensor.sonne_trifft_sued
-                icon: mdi:weather-sunny
-                name: Sonne Süd
-              - type: entity
-                entity: binary_sensor.sonne_trifft_west
-                icon: mdi:weather-sunset
-                name: Sonne West
-              - type: entity
-                entity: binary_sensor.sonne_trifft_nord
-                icon: mdi:weather-cloudy
-                name: Sonne Nord
-
-          - type: horizontal-stack
-            cards:
-              - type: custom:mini-graph-card
-                name: Helligkeit Nord
-                entities:
-                  - entity: sensor.helligkeit_nord
-                hours_to_show: 12
-                points_per_hour: 4
-                line_color: amber
-              - type: custom:mini-graph-card
-                name: Helligkeit Süd
-                entities:
-                  - entity: sensor.helligkeit_sud
-                hours_to_show: 12
-                points_per_hour: 4
-                line_color: orange
-              - type: custom:mini-graph-card
-                name: Helligkeit West
-                entities:
-                  - entity: sensor.helligkeit_west
-                hours_to_show: 12
-                points_per_hour: 4
-                line_color: red
-
-          - type: entities
-            title: Sensor-Locks
-            entities:
-              - entity: binary_sensor.helligkeit_ost_lock
-                name: Lock Ost
-              - entity: binary_sensor.helligkeit_sud_lock
-                name: Lock Süd
-              - entity: binary_sensor.helligkeit_west_lock
-                name: Lock West
+      # Ein Diagramm für alle drei Fassaden statt drei gequetschten.
+      - type: custom:mini-graph-card
+        name: Helligkeit 12 h
+        entities:
+          - entity: sensor.helligkeit_sud
+            name: Süd
+            color: '#f59e0b'
+          - entity: sensor.helligkeit_west
+            name: West
+            color: '#ef4444'
+          - entity: sensor.helligkeit_nord
+            name: Nord
+            color: '#0ea5e9'
+        hours_to_show: 12
+        points_per_hour: 4
+        line_width: 2
+        show:
+          labels: true
+          extrema: true
+      # Sensor-Locks: Beschattung → Einstellungen → Diagnose

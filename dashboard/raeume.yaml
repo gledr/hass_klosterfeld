@@ -1,0 +1,16 @@
+###############################################################################
+# RÄUME — ein Dashboard, ein Tab pro Stockwerk                                 #
+#                                                                              #
+# Ersetzt die vier Einzel-Dashboards Erdgeschoss / Obergeschoss / Keller /     #
+# Aussen (vorher je ein eigener Sidebar-Eintrag). Die Tabs liegen weiter in    #
+# eigenen Dateien, damit Diffs pro Stockwerk lesbar bleiben.                   #
+#                                                                              #
+# URLs: /lovelace-raeume/eg · /og · /keller · /aussen                          #
+###############################################################################
+title: Räume
+decluttering_templates: !include templates.yaml
+views:
+  - !include erdgeschoss.yaml
+  - !include obergeschoss.yaml
+  - !include keller.yaml
+  - !include aussen.yaml

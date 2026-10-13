@@ -1,240 +1,231 @@
 ###############################################################################
-# ERDGESCHOSS — per-room compact view                                          #
-# Smoke detectors and windows live on the Sicherheit dashboard, not here.      #
+# ERDGESCHOSS — Tab im Dashboard "Räume" (raeume.yaml)                         #
+#                                                                              #
+# Pro Raum eine Section: Überschrift mit Temperatur/Feuchte/Präsenz als        #
+# Badges, darunter Licht, Beschattung, Lüften. Rauchmelder und Fenster stehen  #
+# auf Sicherheit, nicht hier.                                                  #
+# Schaltbare Lichter ohne Dimmer stehen halb breit nebeneinander.              #
+# Raffstore-Karten Lamellen-only (außer Wohnzimmer/Terrasse — dort ist der     #
+# Behang hochfahrbar, Präsenz-Hold).                                          #
 ###############################################################################
 title: Erdgeschoss
-views:
-  - title: Erdgeschoss
-    path: home
-    icon: mdi:home-floor-g
-    type: sections
-    max_columns: 3
-    sections:
+path: eg
+icon: mdi:home-floor-g
+type: sections
+max_columns: 3
+sections:
 
-      ###########################################################################
-      # WOHNZIMMER                                                              #
-      ###########################################################################
+  ###########################################################################
+  # WOHNZIMMER                                                              #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Wohnzimmer
+        icon: mdi:sofa
+        badges:
+          - type: entity
+            entity: binary_sensor.praesenzmelder_wohnzimmer
+            show_state: false
+            color: green
+
+      # _2 ist das Wandlicht — sein Leuchtmittel kann unter 50 % nicht,
+      # deshalb Festwert-Knöpfe statt eines Schiebers, dessen untere
+      # Hälfte nur flackern produziert.
+      - type: custom:mushroom-light-card
+        entity: light.livingroom_main_light_2
+        name: Wandlicht
+      - type: custom:mushroom-chips-card
+        alignment: center
+        chips:
+          - type: template
+            content: "50 %"
+            icon: mdi:brightness-5
+            tap_action:
+              action: call-service
+              service: light.turn_on
+              target:
+                entity_id: light.livingroom_main_light_2
+              data:
+                brightness_pct: 50
+          - type: template
+            content: "75 %"
+            icon: mdi:brightness-6
+            tap_action:
+              action: call-service
+              service: light.turn_on
+              target:
+                entity_id: light.livingroom_main_light_2
+              data:
+                brightness_pct: 75
+          - type: template
+            content: "100 %"
+            icon: mdi:brightness-7
+            tap_action:
+              action: call-service
+              service: light.turn_on
+              target:
+                entity_id: light.livingroom_main_light_2
+              data:
+                brightness_pct: 100
+      - type: custom:mushroom-light-card
+        entity: light.livingroom_reading_light
+        name: Leselicht
+        show_brightness_control: true
+      - type: custom:mushroom-cover-card
+        entity: cover.livingroom_blinds
+        name: Raffstore
+        show_position_control: true
+        show_tilt_position_control: true
+        show_buttons_control: true
+
+  ###########################################################################
+  # WOHNKÜCHE – LICHTSZENEN                                                 #
+  # Manueller Modus-Wechsel: setzt input_select.wohnkueche_lichtmodus und   #
+  # führt ihn sofort aus (Dispatcher-Script, egal ob Präsenz/dunkel).       #
+  # Der aktive Modus trägt den grünen Haken — eine eigene Modus-Anzeige     #
+  # braucht es deshalb nicht.                                               #
+  ###########################################################################
+  - type: grid
+    column_span: 2
+    cards:
+      - type: heading
+        heading: Wohnküche – Lichtszenen
+        icon: mdi:lightbulb-multiple
+
+      # Gästemodus: Präsenzmelder schaltet kein Licht, Raffstores erst 10:00
+      - type: custom:mushroom-template-card
+        entity: input_boolean.gast_modus_wohnkueche
+        primary: Gästemodus (Couch)
+        secondary: >-
+          {% if is_state('input_boolean.gast_modus_wohnkueche', 'on') %}An — Präsenzmelder schaltet kein Licht, Raffstores erst 10:00
+          {% else %}Aus{% endif %}
+        icon: mdi:sofa
+        icon_color: "{% if is_state('input_boolean.gast_modus_wohnkueche', 'on') %}purple{% else %}disabled{% endif %}"
+        tap_action:
+          action: toggle
+
       - type: grid
-        column_span: 1
+        columns: 3
+        square: false
         cards:
-          - type: heading
-            heading: Wohnzimmer
+          - type: custom:mushroom-template-card
+            primary: Frühstück
+            icon: mdi:coffee
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'fruehstueck') %}amber{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'fruehstueck') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: fruehstueck
+          - type: custom:mushroom-template-card
+            primary: Abend aktiv
+            icon: mdi:silverware-fork-knife
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_abend_aktiv') %}orange{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_abend_aktiv') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: werktag_abend_aktiv
+          - type: custom:mushroom-template-card
+            primary: Relax
             icon: mdi:sofa
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_relax') %}deep-orange{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_relax') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: werktag_relax
+          - type: custom:mushroom-template-card
+            primary: Tag (WE)
+            icon: mdi:white-balance-sunny
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_tag') %}green{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_tag') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: wochenende_tag
+          - type: custom:mushroom-template-card
+            primary: Nachmittag (WE)
+            icon: mdi:weather-partly-cloudy
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_nachmittag') %}teal{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_nachmittag') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: wochenende_nachmittag
+          - type: custom:mushroom-template-card
+            primary: Abend (WE)
+            icon: mdi:weather-sunset
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_abend') %}orange{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_abend') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: wochenende_abend
+          - type: custom:mushroom-template-card
+            primary: Spätabend
+            icon: mdi:weather-night
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'spaetabend') %}indigo{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'spaetabend') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: spaetabend
+          - type: custom:mushroom-template-card
+            primary: Nacht
+            icon: mdi:bed
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'nacht') %}deep-purple{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'nacht') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: nacht
+          - type: custom:mushroom-template-card
+            primary: Alles aus
+            icon: mdi:lightbulb-off
+            icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'alles_aus') %}grey{% else %}disabled{% endif %}"
+            badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'alles_aus') %}mdi:check{% endif %}"
+            badge_color: green
+            layout: vertical
+            tap_action:
+              action: call-service
+              service: script.wohnkueche_lichtszene_aktivieren
+              data:
+                scene: alles_aus
 
-          # light.livingroom_main_light war auf keinem Dashboard erreichbar,
-          # während light.livingroom_main_light_2 fälschlich "Hauptlicht" hieß.
-          # _2 ist das Wandlicht — sein Leuchtmittel kann unter 50 % nicht,
-          # deshalb Festwert-Knöpfe statt eines Schiebers, dessen untere
-          # Hälfte nur flackern produziert.
-          - type: custom:mushroom-light-card
-            entity: light.livingroom_main_light_2
-            name: Hauptlicht
-            show_brightness_control: true
-          - type: custom:mushroom-light-card
-            entity: light.livingroom_reading_light
-            name: Leselicht
-            show_brightness_control: true
-          - type: custom:mushroom-chips-card
-            alignment: start
-            chips:
-              - type: template
-                content: "50 %"
-                icon: mdi:brightness-5
-                tap_action:
-                  action: call-service
-                  service: light.turn_on
-                  target:
-                    entity_id: light.livingroom_main_light_2
-                  data:
-                    brightness_pct: 50
-              - type: template
-                content: "75 %"
-                icon: mdi:brightness-6
-                tap_action:
-                  action: call-service
-                  service: light.turn_on
-                  target:
-                    entity_id: light.livingroom_main_light_2
-                  data:
-                    brightness_pct: 75
-              - type: template
-                content: "100 %"
-                icon: mdi:brightness-7
-                tap_action:
-                  action: call-service
-                  service: light.turn_on
-                  target:
-                    entity_id: light.livingroom_main_light_2
-                  data:
-                    brightness_pct: 100
-          - type: custom:mushroom-cover-card
-            entity: cover.livingroom_blinds
-            name: Raffstore
-            show_position_control: true
-            show_tilt_position_control: true
-            show_buttons_control: true
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: binary_sensor.praesenzmelder_wohnzimmer
-                icon: mdi:motion-sensor
-                content_info: name
-                name: Präsenz
-              - type: entity
-                entity: binary_sensor.prasenzmelder_wohnzimmer_hvac
-                icon: mdi:hvac
-                content_info: name
-                name: HVAC
-
-      ###########################################################################
-      # WOHNKÜCHE – LICHTSZENEN                                                  #
-      # Manueller Modus-Wechsel: setzt input_select.wohnkueche_lichtmodus und     #
-      # führt ihn sofort aus (Dispatcher-Script, egal ob Präsenz/dunkel).         #
-      ###########################################################################
-      - type: grid
-        column_span: 3
+      # Die Schwelle entscheidet, ab welcher Außenhelligkeit die Wohnküchen-
+      # Szenen überhaupt Licht machen. Selten verstellt → eingeklappt.
+      - type: custom:expander-card
+        title: Auslöse-Schwelle
+        expanded: false
         cards:
-          - type: heading
-            heading: Wohnküche – Lichtszenen
-            icon: mdi:lightbulb-multiple
-
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: template
-                icon: mdi:lightbulb-group
-                content: >
-                  {% set names = {
-                    'fruehstueck': 'Frühstück',
-                    'werktag_abend_aktiv': 'Abend aktiv',
-                    'werktag_relax': 'Relax',
-                    'spaetabend': 'Spätabend',
-                    'nacht': 'Nacht',
-                    'wochenende_tag': 'Tag (WE)',
-                    'wochenende_nachmittag': 'Nachmittag (WE)',
-                    'wochenende_abend': 'Abend (WE)',
-                    'alles_aus': 'Alles aus'
-                  } %}
-                  {% set m = states('input_select.wohnkueche_lichtmodus') %}
-                  Modus: {{ names.get(m, m) }}
-
-          - type: grid
-            columns: 3
-            square: false
-            cards:
-              - type: custom:mushroom-template-card
-                primary: Frühstück
-                icon: mdi:coffee
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'fruehstueck') %}amber{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'fruehstueck') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: fruehstueck
-              - type: custom:mushroom-template-card
-                primary: Abend aktiv
-                icon: mdi:silverware-fork-knife
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_abend_aktiv') %}orange{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_abend_aktiv') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: werktag_abend_aktiv
-              - type: custom:mushroom-template-card
-                primary: Relax
-                icon: mdi:sofa
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_relax') %}deep-orange{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'werktag_relax') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: werktag_relax
-              - type: custom:mushroom-template-card
-                primary: Tag (WE)
-                icon: mdi:white-balance-sunny
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_tag') %}green{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_tag') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: wochenende_tag
-              - type: custom:mushroom-template-card
-                primary: Nachmittag (WE)
-                icon: mdi:weather-partly-cloudy
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_nachmittag') %}teal{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_nachmittag') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: wochenende_nachmittag
-              - type: custom:mushroom-template-card
-                primary: Abend (WE)
-                icon: mdi:weather-sunset
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_abend') %}orange{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'wochenende_abend') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: wochenende_abend
-              - type: custom:mushroom-template-card
-                primary: Spätabend
-                icon: mdi:weather-night
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'spaetabend') %}indigo{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'spaetabend') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: spaetabend
-              - type: custom:mushroom-template-card
-                primary: Nacht
-                icon: mdi:bed
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'nacht') %}deep-purple{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'nacht') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: nacht
-              - type: custom:mushroom-template-card
-                primary: Alles aus
-                icon: mdi:lightbulb-off
-                icon_color: "{% if is_state('input_select.wohnkueche_lichtmodus', 'alles_aus') %}grey{% else %}disabled{% endif %}"
-                badge_icon: "{% if is_state('input_select.wohnkueche_lichtmodus', 'alles_aus') %}mdi:check{% endif %}"
-                badge_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.wohnkueche_lichtszene_aktivieren
-                  data:
-                    scene: alles_aus
-
-          # Gehört hierher, nicht unter die Wohnzimmer-Überschrift: die Schwelle
-          # entscheidet, ab welcher Außenhelligkeit die Wohnküchen-Szenen
-          # überhaupt Licht machen.
           - type: entities
-            title: Auslöse-Schwelle
             entities:
               - entity: input_number.wohnkueche_licht_outdoor_lux
                 name: Lux-Schwelle (Süd)
@@ -243,154 +234,138 @@ views:
               - entity: input_select.wohnkueche_lichtmodus
                 name: Modus (Rohwert)
 
-      ###########################################################################
-      # KÜCHE                                                                   #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Küche
-            icon: mdi:silverware-fork-knife
+  ###########################################################################
+  # KÜCHE                                                                   #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Küche
+        icon: mdi:silverware-fork-knife
+        badges:
+          - type: entity
+            entity: sensor.kitchen_temperature
+          - type: entity
+            entity: sensor.kitchen_humidity
 
-          - type: custom:mushroom-light-card
-            entity: light.licht_kueche_fenster
-            name: Stiege
-            show_brightness_control: true
-          - type: custom:mushroom-light-card
-            entity: light.licht_kueche_fenster_2
-            name: Fenster
-            show_brightness_control: true
-          - type: custom:mushroom-light-card
-            entity: light.licht_spuele_kueche
-            name: Spüle
-          - type: custom:mushroom-light-card
-            entity: light.licht_vitrine_kueche
-            name: Vitrine
-          - type: custom:mushroom-cover-card
-            entity: cover.kitchen_blinds
-            name: Raffstore (Lamellen)
-            show_tilt_position_control: true
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.kitchen_temperature
-                icon: mdi:thermometer
-              - type: entity
-                entity: sensor.kitchen_humidity
-                icon: mdi:water-percent
+      - type: custom:mushroom-light-card
+        entity: light.licht_kueche_fenster
+        name: Stiege
+        show_brightness_control: true
+      - type: custom:mushroom-light-card
+        entity: light.licht_kueche_fenster_2
+        name: Fenster
+        show_brightness_control: true
+      - type: custom:mushroom-light-card
+        entity: light.licht_spuele_kueche
+        name: Spüle
+        grid_options:
+          columns: 6
+      - type: custom:mushroom-light-card
+        entity: light.licht_vitrine_kueche
+        name: Vitrine
+        grid_options:
+          columns: 6
+      - type: custom:mushroom-cover-card
+        entity: cover.kitchen_blinds
+        name: Raffstore (Lamellen)
+        show_tilt_position_control: true
+      - type: custom:decluttering-card
+        template: lueften
+        variables:
+          - luftung: sensor.luftung_kuche
+          - taupunkt: sensor.taupunkt_kuche
 
-          # Lüften wie im Keller-Dashboard: Taupunkt-Temperatur plus farbiges
-          # Ventilator-Logo (stark = fan-speed-3/rot, wenig = fan-speed-1/amber,
-          # nicht lüften = fan-off/grau, okay = check-circle/grün). Templates
-          # bewusst einzeilig — mushroom verzeiht führende Leerzeichen aus
-          # gefalteten YAML-Templates beim startsWith("mdi:")-Vergleich nicht.
-          - type: custom:mushroom-template-card
-            entity: sensor.luftung_kuche
-            primary: Lüften
-            secondary: "Taupunkt {{ states('sensor.taupunkt_kuche') }} °C · {{ states('sensor.luftung_kuche') }}"
-            icon: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
-            icon_color: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
+  ###########################################################################
+  # ESSZIMMER                                                               #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Esszimmer
+        icon: mdi:table-chair
 
-      ###########################################################################
-      # ESSZIMMER                                                               #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Esszimmer
-            icon: mdi:table-chair
+      - type: custom:mushroom-light-card
+        entity: light.esszimmer_licht
+        name: Esstisch
+        show_brightness_control: true
+      - type: custom:mushroom-cover-card
+        entity: cover.dining_blinds
+        name: Raffstore (Lamellen)
+        show_tilt_position_control: true
 
-          - type: custom:mushroom-light-card
-            entity: light.esszimmer_licht
-            name: Esstisch
-            show_brightness_control: true
-          - type: custom:mushroom-cover-card
-            entity: cover.dining_blinds
-            name: Raffstore (Lamellen)
-            show_tilt_position_control: true
+  ###########################################################################
+  # GARDEROBE / EINGANG                                                     #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Garderobe
+        icon: mdi:wardrobe
+        badges:
+          - type: entity
+            entity: sensor.wardrobe_temperature
+          - type: entity
+            entity: binary_sensor.bewegungsmelder_garderobe
+            show_state: false
+            color: green
 
-      ###########################################################################
-      # ABSTELLRAUM                                                             #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Abstellraum
-            icon: mdi:shelf
+      - type: custom:mushroom-light-card
+        entity: light.wardrobe_light
+        name: Garderobe
+        grid_options:
+          columns: 6
+      - type: custom:mushroom-light-card
+        entity: light.entrance_light
+        name: Eingang
+        grid_options:
+          columns: 6
+      - type: custom:mushroom-cover-card
+        entity: cover.wardrobe_blinds
+        name: Raffstore (Lamellen)
+        show_tilt_position_control: true
 
-          - type: custom:mushroom-light-card
-            entity: light.shelf_eg_light
-            name: Licht
-          - type: custom:mushroom-cover-card
-            entity: cover.shelf_blinds
-            name: Raffstore (Lamellen)
-            show_tilt_position_control: true
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.utility_temperature
-                icon: mdi:thermometer
+  ###########################################################################
+  # WC EG                                                                   #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: WC
+        icon: mdi:toilet
+        badges:
+          - type: entity
+            entity: sensor.wc_gf_temperature
 
-      ###########################################################################
-      # WC EG                                                                   #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: WC
-            icon: mdi:toilet
+      - type: custom:mushroom-light-card
+        entity: light.wc_eg_light
+        name: Licht
+      - type: custom:mushroom-cover-card
+        entity: cover.wc_eg_blinds
+        name: Raffstore (Lamellen)
+        show_tilt_position_control: true
 
-          - type: custom:mushroom-light-card
-            entity: light.wc_eg_light
-            name: Licht
-          - type: custom:mushroom-cover-card
-            entity: cover.wc_eg_blinds
-            name: Raffstore (Lamellen)
-            show_tilt_position_control: true
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.wc_gf_temperature
-                icon: mdi:thermometer
+  ###########################################################################
+  # ABSTELLRAUM                                                             #
+  ###########################################################################
+  - type: grid
+    column_span: 1
+    cards:
+      - type: heading
+        heading: Abstellraum
+        icon: mdi:shelf
+        badges:
+          - type: entity
+            entity: sensor.utility_temperature
 
-      ###########################################################################
-      # GARDEROBE / EINGANG                                                     #
-      ###########################################################################
-      - type: grid
-        column_span: 1
-        cards:
-          - type: heading
-            heading: Garderobe
-            icon: mdi:wardrobe
-
-          - type: custom:mushroom-light-card
-            entity: light.wardrobe_light
-            name: Garderobe
-          - type: custom:mushroom-light-card
-            entity: light.entrance_light
-            name: Eingang
-          - type: custom:mushroom-cover-card
-            entity: cover.wardrobe_blinds
-            name: Raffstore (Lamellen)
-            show_tilt_position_control: true
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.wardrobe_temperature
-                icon: mdi:thermometer
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: binary_sensor.bewegungsmelder_garderobe
-                icon: mdi:motion-sensor
-                content_info: name
-                name: Präsenz
-              - type: entity
-                entity: binary_sensor.bewegungsmelder_garderobe_hvac
-                icon: mdi:hvac
-                content_info: name
-                name: HVAC
+      - type: custom:mushroom-light-card
+        entity: light.shelf_eg_light
+        name: Licht
+      - type: custom:mushroom-cover-card
+        entity: cover.shelf_blinds
+        name: Raffstore (Lamellen)
+        show_tilt_position_control: true

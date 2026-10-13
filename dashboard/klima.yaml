@@ -1,15 +1,40 @@
 ###############################################################################
-# KLIMA — Indoor / outdoor at a glance                                         #
-# Outdoor trend up top, per-room mushroom tiles below, multi-room comparison   #
-# chart for spotting hotspots.                                                 #
+# KLIMA                                                                        #
+#                                                                              #
+# Drei Tabs:                                                                   #
+#   Übersicht — Außen, Auffälligkeiten, eine Kachel pro Raum (Temp · Feuchte,  #
+#               Icon = Lüften-Logo, wo es eine Empfehlung gibt), Trends        #
+#   Heizung   — Betriebsart Sommer/Winter, Wärmepumpe, alle Raum-Sollwerte     #
+#   Lüften    — Empfehlung + Taupunkt pro Raum (vorher eigenes Dashboard)      #
+#                                                                              #
+# Kacheln = decluttering-Templates aus templates.yaml.                         #
 ###############################################################################
 title: Klima
+decluttering_templates: !include templates.yaml
 views:
+  #############################################################################
+  # TAB 1 — ÜBERSICHT                                                         #
+  #############################################################################
   - title: Übersicht
     path: home
     icon: mdi:home-thermometer
     type: sections
     max_columns: 4
+
+    badges:
+      - type: entity
+        entity: sensor.outdoor_temperature
+        name: Außen
+      - type: entity
+        entity: sensor.outdoor_humidity
+        name: Feuchte
+      - type: entity
+        entity: sensor.taupunkt_aussen
+        name: Taupunkt
+      - type: entity
+        entity: select.heizung_betriebsart
+        name: Heizung
+
     sections:
 
       ###########################################################################
@@ -26,27 +51,8 @@ views:
             entity: weather.forecast_home
             show_forecast: true
 
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.outdoor_temperature
-                icon: mdi:thermometer
-                name: Temp
-              - type: entity
-                entity: sensor.outdoor_humidity
-                icon: mdi:water-percent
-                name: rel. F.
-              - type: entity
-                entity: sensor.taupunkt_aussen
-                icon: mdi:water-thermometer
-                name: Taupunkt
-              - type: entity
-                entity: sensor.wind_speed
-                icon: mdi:weather-windy
-                name: Wind
-
       ###########################################################################
-      # ALERTS — zu kalt / zu warm / zu feucht                                  #
+      # AUFFÄLLIG — rendert nichts, solange alles im Rahmen ist                 #
       ###########################################################################
       - type: grid
         column_span: 2
@@ -120,27 +126,261 @@ views:
               reverse: true
             show_empty: false
 
+          # Plausibilität: Heizsaison sagt Sommer, aber die WP fordert Wärme an.
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.waermepumpe_heizen
+                state: "on"
+              - condition: state
+                entity: select.heizung_betriebsart
+                state: Sommer
+            card:
+              type: custom:mushroom-template-card
+              primary: Heizt trotz Sommerbetrieb
+              secondary: >-
+                Die Wärmepumpe fordert Heizen an, GA 7/0/0 steht aber auf
+                Sommer. Kurz prüfen, ob am Taster umgestellt wurde.
+              icon: mdi:alert-outline
+              icon_color: red
+              multiline_secondary: true
+              tap_action:
+                action: navigate
+                navigation_path: /lovelace-klima/heizung
+
       ###########################################################################
-      # HEIZUNG (Daikin Altherma)                                               #
+      # ERDGESCHOSS                                                             #
       ###########################################################################
-      # Bisher gab es zur Heizung ausschließlich Verbrauchszahlen auf dem
-      # Energie-Dashboard — keine Bedienung. Die Altherma-Entities stammen aus
-      # der UI-Integration und stehen nicht im YAML, deshalb discovery über die
-      # Domains statt geratener entity_ids. Sobald die IDs bekannt sind, ist
-      # eine thermostat-Karte hier die bessere Wahl.
-      #
-      # Betriebsart Sommer/Winter kommt aus dem KNX-Select in
-      # configuration.yaml (GA 7/0/0, 1 = Sommer / 0 = Winter). Ohne Status-GA
-      # kennt HASS nur den zuletzt gesendeten Wert — der Wert bleibt über
-      # Neustarts erhalten, ändert sich aber nicht, wenn am Taster umgestellt
-      # wird. Nachführung über die Wärmepumpen-Integration ist der nächste
-      # Schritt, binary_sensor.heizung_aktiv ist dafür schon da.
       - type: grid
-        column_span: 2
+        column_span: 1
         cards:
           - type: heading
-            heading: Heizung
+            heading: Erdgeschoss
+            icon: mdi:home-floor-g
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace-raeume/eg
+
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Küche
+              - temp: sensor.kitchen_temperature
+              - feuchte: sensor.kitchen_humidity
+              - luftung: sensor.luftung_kuche
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: WC EG
+              - temp: sensor.wc_gf_temperature
+              - icon: mdi:toilet
+              - farbe: blue
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Garderobe
+              - temp: sensor.wardrobe_temperature
+              - icon: mdi:wardrobe
+              - farbe: brown
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Abstellraum
+              - temp: sensor.utility_temperature
+              - icon: mdi:shelf
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Stiege EG ↔ OG
+              - temp: sensor.stairs_eg_og_temperature_eg
+              - icon: mdi:stairs-up
+
+      ###########################################################################
+      # OBERGESCHOSS                                                            #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Obergeschoss
+            icon: mdi:home-roof
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace-raeume/og
+
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Schlafzimmer
+              - temp: sensor.bedroom
+              - feuchte: sensor.bedroom_humidity
+              - luftung: sensor.luftung_schlafzimmer
+          # TODO sensor.kind2_temperature = Büro laut altem Dashboard → office_temperature
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Büro
+              - temp: sensor.kind2_temperature
+              - feuchte: sensor.bthome_sensor_ace1_humidity
+              - icon: mdi:desk
+              - farbe: deep-orange
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Gästezimmer
+              - temp: sensor.guest_room_temperature
+              - icon: mdi:bed-empty
+              - farbe: pink
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Badezimmer
+              - temp: sensor.bathroom_temperature
+              - feuchte: sensor.bthome_sensor_5447_humidity
+              - luftung: sensor.luftung_badezimmer
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: WC OG
+              - temp: sensor.wc_og_temperature
+              - feuchte: sensor.wc_og_humidity
+              - icon: mdi:toilet
+              - farbe: blue
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Galerie
+              - temp: sensor.gallery_og_temperature
+              - icon: mdi:bridge
+
+      ###########################################################################
+      # KELLER + GARAGE                                                         #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Keller & Garage
+            icon: mdi:home-floor-b
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace-raeume/keller
+
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Vorraum
+              - temp: sensor.basement_hallway_temperture
+              - feuchte: sensor.basement_hallway_humidity
+              - luftung: sensor.luftung_vorraum
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Technikraum
+              - temp: sensor.engineering_temperature
+              - feuchte: sensor.engineering_humidity
+              - luftung: sensor.luftung_technikraum
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Hobbyraum
+              - temp: sensor.hobby_temperature
+              - feuchte: sensor.hobby_humidity
+              - luftung: sensor.luftung_hobbyraum
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Lager
+              - temp: sensor.storage_temperature
+              - feuchte: sensor.storage_humidity
+              - luftung: sensor.luftung_lager
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Garage
+              - temp: sensor.garagentor_garage_temperature
+              - feuchte: sensor.garagentor_garage_humidity
+              - luftung: sensor.luftung_garage
+          - type: custom:decluttering-card
+            template: klima_raum
+            variables:
+              - name: Stiege KG ↔ EG
+              - temp: sensor.stairs_kg_eg_temperature_eg
+              - icon: mdi:stairs-up
+
+      ###########################################################################
+      # TRENDS                                                                  #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Trends 24 h
+            icon: mdi:chart-line
+
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Temperatur
+              show_states: false
+            graph_span: 24h
+            series:
+              - entity: sensor.outdoor_temperature
+                name: Außen
+                stroke_width: 3
+              - entity: sensor.kitchen_temperature
+                name: Küche
+              - entity: sensor.bedroom
+                name: Schlafzimmer
+              - entity: sensor.bathroom_temperature
+                name: Bad
+              - entity: sensor.kind2_temperature
+                name: Büro
+
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Luftfeuchte
+              show_states: false
+            graph_span: 24h
+            series:
+              - entity: sensor.outdoor_humidity
+                name: Außen
+                stroke_width: 3
+              - entity: sensor.kitchen_humidity
+                name: Küche
+              - entity: sensor.bedroom_humidity
+                name: Schlafzimmer
+              - entity: sensor.bthome_sensor_5447_humidity
+                name: Bad
+
+  #############################################################################
+  # TAB 2 — HEIZUNG                                                           #
+  #############################################################################
+  # Betriebsart Sommer/Winter kommt aus dem KNX-Select in configuration.yaml
+  # (GA 7/0/0, 1 = Sommer / 0 = Winter). Ohne Status-GA kennt HASS nur den
+  # zuletzt gesendeten Wert — der bleibt über Neustarts erhalten, ändert sich
+  # aber nicht, wenn am Taster umgestellt wird.
+  - title: Heizung
+    path: heizung
+    icon: mdi:heat-pump
+    type: sections
+    max_columns: 3
+    sections:
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Wärmepumpe
             icon: mdi:heat-pump
+            badges:
+              - type: entity
+                entity: sensor.altherma_climatecontrol_outdoor_temperature
+                name: Außen (Nord)
+              - type: entity
+                entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heute
 
           - type: custom:mushroom-template-card
             primary: Betriebsart Heizung
@@ -151,17 +391,12 @@ views:
               {% else %}Betriebsart unbekannt{% endif %}
               · Ø-Außen {{ states('sensor.outdoor_temperature_avg') }} °C
             icon: mdi:heat-pump
-            # WICHTIG: icon_color muss einzeilig bleiben. Mushroom vergleicht
-            # Farben mit COLORS.includes(color) — ein Leerzeichen (z. B. aus
-            # einem gefalteten Template) lässt die Farbe still ins Leere laufen.
             icon_color: "{% if is_state('select.heizung_betriebsart','Winter') %}deep-orange{% elif is_state('select.heizung_betriebsart','Sommer') %}light-blue{% else %}grey{% endif %}"
             tap_action:
               action: call-service
               service: script.heizung_betriebsart_umschalten
 
-          # WICHTIG: mushroom kennt keinen generischen "chip"-Typ. Nur
-          # "template"-Chips rendern Jinja in icon/icon_color/content —
-          # genau deshalb hier alle drei als template.
+          # Nur "template"-Chips rendern Jinja in icon/icon_color/content.
           - type: custom:mushroom-chips-card
             alignment: center
             chips:
@@ -176,15 +411,6 @@ views:
                     entity_id: select.heizung_betriebsart
                     option: Winter
               - type: template
-                icon: mdi:fire
-                # binary_sensor.heizung_aktiv (template.yaml) ist "unavailable",
-                # solange die Betriebsart unbekannt ist — deshalb eigener Zweig
-                content: >-
-                  {% if is_state('binary_sensor.heizung_aktiv', 'on') %}Heizung an
-                  {% elif is_state('binary_sensor.heizung_aktiv', 'off') %}Heizung aus
-                  {% else %}unbekannt{% endif %}
-                icon_color: "{% if is_state('binary_sensor.heizung_aktiv','on') %}deep-orange{% else %}grey{% endif %}"
-              - type: template
                 icon: mdi:white-balance-sunny
                 content: Sommer
                 icon_color: "{% if is_state('select.heizung_betriebsart','Sommer') %}amber{% else %}grey{% endif %}"
@@ -194,10 +420,20 @@ views:
                   data:
                     entity_id: select.heizung_betriebsart
                     option: Sommer
+              # Handbetrieb-Chip schaltet die Sperre der Automatik — nur ohne
+              # Handbetrieb darf die Automation GA 7/0/0 anfassen.
+              - type: template
+                icon: "{% if is_state('input_boolean.heizung_betriebsart_manuell','on') %}mdi:hand-back-right{% else %}mdi:robot-outline{% endif %}"
+                content: "{% if is_state('input_boolean.heizung_betriebsart_manuell', 'on') %}Handbetrieb{% else %}Automatik{% endif %}"
+                icon_color: "{% if is_state('input_boolean.heizung_betriebsart_manuell','on') %}amber{% else %}green{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: input_boolean.toggle
+                  data:
+                    entity_id: input_boolean.heizung_betriebsart_manuell
 
-          # Status-Chips: Heizsaison, Wärmepumpe, Handbetrieb. Der
-          # Handbetrieb-Chip schaltet die Sperre der Automatik — nur dann
-          # darf die Automation die GA 7/0/0 überhaupt anfassen.
+          # Status: Heizsaison, WP, Heizung aktiv. heizung_aktiv ist
+          # "unavailable", solange die Betriebsart unbekannt ist.
           - type: custom:mushroom-chips-card
             alignment: center
             chips:
@@ -216,27 +452,20 @@ views:
                   {% else %}WP ?{% endif %}
                 icon_color: "{% if is_state('binary_sensor.waermepumpe_heizen','on') %}deep-orange{% else %}grey{% endif %}"
               - type: template
-                icon: "{% if is_state('input_boolean.heizung_betriebsart_manuell','on') %}mdi:hand-back-right{% else %}mdi:robot-outline{% endif %}"
+                icon: mdi:fire
                 content: >-
-                  {% if is_state('input_boolean.heizung_betriebsart_manuell', 'on') %}Handbetrieb
-                  {% else %}Automatik{% endif %}
-                icon_color: "{% if is_state('input_boolean.heizung_betriebsart_manuell','on') %}amber{% else %}green{% endif %}"
-                tap_action:
-                  action: call-service
-                  service: input_boolean.toggle
-                  data:
-                    entity_id: input_boolean.heizung_betriebsart_manuell
+                  {% if is_state('binary_sensor.heizung_aktiv', 'on') %}Heizung an
+                  {% elif is_state('binary_sensor.heizung_aktiv', 'off') %}Heizung aus
+                  {% else %}unbekannt{% endif %}
+                icon_color: "{% if is_state('binary_sensor.heizung_aktiv','on') %}deep-orange{% else %}grey{% endif %}"
 
-          # Plausibilität: Heizsaison sagt Sommer, aber die WP fordert
-          # Wärme an. Entsteht z. B., wenn am Taster umgestellt wurde und
-          # GA 7/0/0 kein Status zurückmeldet.
           - type: conditional
             conditions:
               - condition: state
-                entity_id: binary_sensor.waermepumpe_heizen
+                entity: binary_sensor.waermepumpe_heizen
                 state: "on"
               - condition: state
-                entity_id: select.heizung_betriebsart
+                entity: select.heizung_betriebsart
                 state: Sommer
             card:
               type: custom:mushroom-template-card
@@ -248,9 +477,7 @@ views:
               icon_color: red
               multiline_secondary: true
 
-          # Einstellungen zur Automatik
           - type: entities
-            title: Heizung – Einstellungen
             show_header_toggle: false
             entities:
               - entity: input_number.heizsaison_temp_schwelle
@@ -258,6 +485,8 @@ views:
               - entity: input_boolean.heizung_betriebsart_manuell
                 name: Betriebsart manuell
 
+          # Altherma-Entities stammen aus der UI-Integration → Discovery
+          # über die Domains statt geratener entity_ids.
           - type: custom:auto-entities
             card:
               type: entities
@@ -271,176 +500,163 @@ views:
               method: friendly_name
             show_empty: false
 
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.altherma_climatecontrol_outdoor_temperature
-                icon: mdi:thermometer
-                name: Außen (Nord)
-              - type: entity
-                entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
-                icon: mdi:lightning-bolt
-                name: Heizen heute
-
       ###########################################################################
-      # ERDGESCHOSS                                                             #
+      # RAUM-SOLLWERTE OG — dieselben Bausteine wie in Räume → OG               #
       ###########################################################################
       - type: grid
         column_span: 2
         cards:
           - type: heading
-            heading: Erdgeschoss
-            icon: mdi:home-floor-g
+            heading: Raum-Sollwerte
+            icon: mdi:radiator
 
-          - type: custom:mushroom-template-card
-            primary: Küche
-            secondary: "{{ states('sensor.kitchen_temperature') }} °C · {{ states('sensor.kitchen_humidity') }} %"
-            # Icon = Lüftungsempfehlung (fan-speed/fan-off/check) statt Raumsymbol.
-            # Einzeilig, weil mushroom führende Leerzeichen aus gefalteten
-            # Templates beim Icon-Vergleich (startsWith("mdi:")) nicht verzeiht.
-            icon: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
-            icon_color: "{% set s = states('sensor.luftung_kuche') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
-          - type: custom:mushroom-template-card
-            primary: WC EG
-            secondary: "{{ states('sensor.wc_gf_temperature') }} °C"
-            icon: mdi:toilet
-            icon_color: blue
-          - type: custom:mushroom-template-card
-            primary: Garderobe
-            secondary: "{{ states('sensor.wardrobe_temperature') }} °C"
-            icon: mdi:wardrobe
-            icon_color: brown
-          - type: custom:mushroom-template-card
-            primary: Abstellraum
-            secondary: "{{ states('sensor.utility_temperature') }} °C"
-            icon: mdi:shelf
-            icon_color: grey
-          - type: custom:mushroom-template-card
-            primary: Stiege EG<-OG
-            secondary: "{{ states('sensor.stairs_eg_og_temperature_eg') }} °C"
-            icon: mdi:stairs-up
-            icon_color: grey
+          - type: custom:decluttering-card
+            template: sollwert
+            variables:
+              - raum: schlafzimmer
+              - name: Schlafzimmer
+            grid_options:
+              columns: 6
+          - type: custom:decluttering-card
+            template: sollwert
+            variables:
+              - raum: buro
+              - name: Büro
+            grid_options:
+              columns: 6
+          - type: custom:decluttering-card
+            template: sollwert
+            variables:
+              - raum: gastezimmer
+              - name: Gästezimmer
+            grid_options:
+              columns: 6
+          - type: custom:decluttering-card
+            template: sollwert
+            variables:
+              - raum: badezimmer
+              - name: Badezimmer
+            grid_options:
+              columns: 6
+          - type: custom:decluttering-card
+            template: sollwert
+            variables:
+              - raum: wc_og
+              - name: WC OG
+            grid_options:
+              columns: 6
 
-      ###########################################################################
-      # OBERGESCHOSS                                                            #
-      ###########################################################################
+  #############################################################################
+  # TAB 3 — LÜFTEN                                                            #
+  # Pro Raum: Empfehlung in der Titelzeile, Werte darunter. Icon = Empfehlung #
+  # (stark = rot, wenig = amber, nicht lüften = grau, okay = grün).           #
+  #############################################################################
+  - title: Lüften
+    path: lueften
+    icon: mdi:hvac
+    type: sections
+    max_columns: 2
+
+    badges:
+      - type: entity
+        entity: sensor.outdoor_temperature
+        name: Außen
+      - type: entity
+        entity: sensor.outdoor_humidity
+        name: Feuchte
+      - type: entity
+        entity: sensor.taupunkt_aussen
+        name: Taupunkt
+
+    sections:
+
       - type: grid
-        column_span: 2
+        column_span: 1
         cards:
           - type: heading
-            heading: Obergeschoss
-            icon: mdi:home-roof
+            heading: Wohnräume
+            icon: mdi:home
 
-          - type: custom:mushroom-template-card
-            primary: Schlafzimmer
-            secondary: "{{ states('sensor.bedroom') }} °C · {{ states('sensor.bedroom_humidity') }} %"
-            icon: "{% set s = states('sensor.luftung_schlafzimmer') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
-            icon_color: "{% set s = states('sensor.luftung_schlafzimmer') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
-          - type: custom:mushroom-template-card
-            primary: Büro
-            # TODO friendly-name kind2_temperature is the Büro temp per existing dashboard. Rename in HASS later.
-            secondary: "{{ states('sensor.kind2_temperature') }} °C"
-            icon: mdi:desk
-            icon_color: deep-orange
-          - type: custom:mushroom-template-card
-            primary: Gästezimmer
-            secondary: "{{ states('sensor.guest_room_temperature') }} °C"
-            icon: mdi:bed-empty
-            icon_color: pink
-          - type: custom:mushroom-template-card
-            primary: Badezimmer
-            secondary: "{{ states('sensor.bathroom_temperature') }} °C · {{ states('sensor.bthome_sensor_5447_humidity') }} %"
-            icon: mdi:bathtub
-            icon_color: cyan
-          - type: custom:mushroom-template-card
-            primary: WC OG
-            secondary: "{{ states('sensor.wc_og_temperature') }} °C · {{ states('sensor.wc_og_humidity') }} %"
-            icon: mdi:toilet
-            icon_color: blue
-          - type: custom:mushroom-template-card
-            primary: Galerie
-            secondary: "{{ states('sensor.gallery_og_temperature') }} °C"
-            icon: mdi:bridge
-            icon_color: grey
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Küche
+              - temp: sensor.kitchen_temperature
+              - feuchte: sensor.kitchen_humidity
+              - taupunkt: sensor.taupunkt_kuche
+              - luftung: sensor.luftung_kuche
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Schlafzimmer
+              - temp: sensor.bedroom
+              - feuchte: sensor.bedroom_humidity
+              - taupunkt: sensor.taupunkt_schlafzimmer
+              - luftung: sensor.luftung_schlafzimmer
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Badezimmer
+              - temp: sensor.bathroom_temperature
+              - feuchte: sensor.bthome_sensor_5447_humidity
+              - taupunkt: sensor.taupunkt_badezimmer
+              - luftung: sensor.luftung_badezimmer
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Garage
+              - temp: sensor.garagentor_garage_temperature
+              - feuchte: sensor.garagentor_garage_humidity
+              - taupunkt: sensor.taupunkt_garage
+              - luftung: sensor.luftung_garage
 
-      ###########################################################################
-      # KELLER                                                                  #
-      ###########################################################################
       - type: grid
-        column_span: 2
+        column_span: 1
         cards:
           - type: heading
             heading: Keller
             icon: mdi:home-floor-b
 
-          - type: custom:mushroom-template-card
-            primary: Flur
-            secondary: "{{ states('sensor.basement_hallway_temperture') }} °C · {{ states('sensor.basement_hallway_humidity') }} %"
-            icon: mdi:hallway-variant
-            icon_color: grey
-          - type: custom:mushroom-template-card
-            primary: Technikraum
-            secondary: "{{ states('sensor.engineering_temperature') }} °C · {{ states('sensor.engineering_humidity') }} %"
-            icon: mdi:cog
-            icon_color: grey
-          - type: custom:mushroom-template-card
-            primary: Hobbyraum
-            secondary: "{{ states('sensor.hobby_temperature') }} °C · {{ states('sensor.hobby_humidity') }} %"
-            icon: mdi:gamepad-variant
-            icon_color: green
-          - type: custom:mushroom-template-card
-            primary: Lager
-            secondary: "{{ states('sensor.storage_temperature') }} °C · {{ states('sensor.storage_humidity') }} %"
-            icon: mdi:package-variant
-            icon_color: brown
-          - type: custom:mushroom-template-card
-            primary: Stiege KG->EG
-            secondary: "{{ states('sensor.stairs_kg_eg_temperature_eg') }} °C"
-            icon: mdi:stairs-up
-            icon_color: grey
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Technikraum
+              - temp: sensor.engineering_temperature
+              - feuchte: sensor.engineering_humidity
+              - taupunkt: sensor.taupunkt_technikraum
+              - luftung: sensor.luftung_technikraum
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Hobbyraum
+              - temp: sensor.hobby_temperature
+              - feuchte: sensor.hobby_humidity
+              - taupunkt: sensor.taupunkt_hobby
+              - luftung: sensor.luftung_hobbyraum
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Lager
+              - temp: sensor.storage_temperature
+              - feuchte: sensor.storage_humidity
+              - taupunkt: sensor.taupunkt_lager
+              - luftung: sensor.luftung_lager
+          - type: custom:decluttering-card
+            template: lueften_raum
+            variables:
+              - name: Vorraum
+              - temp: sensor.basement_hallway_temperture
+              - feuchte: sensor.basement_hallway_humidity
+              - taupunkt: sensor.taupunkt_vorraum
+              - luftung: sensor.luftung_vorraum
 
-      ###########################################################################
-      # TRENDS                                                                  #
-      ###########################################################################
-      - type: grid
-        column_span: 4
-        cards:
-          - type: heading
-            heading: Trends 24 h
-            icon: mdi:chart-line
-
-          - type: custom:apexcharts-card
-            header:
-              show: true
-              title: Innen vs. Außen
-              show_states: true
-            graph_span: 24h
-            series:
-              - entity: sensor.outdoor_temperature
-                name: Außen
-                stroke_width: 3
-              - entity: sensor.kitchen_temperature
-                name: Küche
-              - entity: sensor.bedroom
-                name: Schlafzimmer
-              - entity: sensor.bathroom_temperature
-                name: Bad
-              - entity: sensor.kind2_temperature
-                name: Büro
-
-          - type: custom:apexcharts-card
-            header:
-              show: true
-              title: Luftfeuchte 24 h
-              show_states: true
-            graph_span: 24h
-            series:
-              - entity: sensor.outdoor_humidity
-                name: Außen
-                stroke_width: 3
-              - entity: sensor.kitchen_humidity
-                name: Küche
-              - entity: sensor.bedroom_humidity
-                name: Schlafzimmer
-              - entity: sensor.bthome_sensor_5447_humidity
-                name: Bad
+          - type: custom:expander-card
+            title: Wie wird die Empfehlung berechnet?
+            expanded: false
+            cards:
+              - type: markdown
+                content: >
+                  Vergleicht Innen-Taupunkt gegen Außen-Taupunkt
+                  ({{ states('sensor.taupunkt_aussen') }} °C) und schaut erst
+                  ab 55 % rel. Feuchte hin. „Nicht lüften" heißt: draußen ist
+                  feuchter als drinnen — Fenster zu lassen.

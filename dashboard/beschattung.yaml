@@ -1,24 +1,31 @@
 ###############################################################################
 # BESCHATTUNG                                                                  #
 #                                                                              #
-# Aufbau: eine Zeile pro Raum. Links Zustand (Behang + Lamelle + Grund, warum  #
-# die Automation ggf. nicht anfasst), rechts die zwei Override-Schalter         #
-# (Sperre = du, Hand = automatisch erkannt). Antippen der linken Karte öffnet   #
-# den Cover-Dialog mit den vollen Schiebern.                                   #
+# Zwei Tabs:                                                                   #
+#   Räume         — was gerade ist + was man drückt (Status, eine Zeile pro    #
+#                   Raum, Außenbedingungen, Schnell-Aktionen)                  #
+#   Einstellungen — Schwellen, Standard-/Gast-Modus, Diagnose, Erklärungen     #
+#                                                                              #
+# Raum-Zeile = decluttering-Template beschattung_raum (templates.yaml):        #
+#   [ Raum + Behang/Lamelle + Grund ]  [ 🔒 Sperre ] [ ✋ Hand ]                 #
+# Die Sonder-Gründe pro Raum (Tür, Fenster, Privacy, Gast) kommen als          #
+# Jinja-Ausdruck über die Variable `grund`.                                    #
 #                                                                              #
 # WICHTIG — Sections nehmen `column_span`, NICHT `columns`. Mit `columns` wird  #
-# der Schlüssel still ignoriert und jede Section rendert auf 1 von 4 Spalten    #
-# (das war der Grund, warum diese Seite als schmaler Streifen erschien).       #
+# der Schlüssel still ignoriert und jede Section rendert auf 1 von 4 Spalten.   #
 ###############################################################################
 title: Beschattung
+decluttering_templates: !include templates.yaml
 views:
-  - title: Übersicht
+  #############################################################################
+  # TAB 1 — RÄUME                                                             #
+  #############################################################################
+  - title: Räume
     path: home
     icon: mdi:blinds-horizontal
     type: sections
     max_columns: 4
 
-    # Die drei Zahlen, die man beim Draufschauen braucht — ohne Scrollen.
     badges:
       - type: entity
         entity: sensor.outdoor_temperature_avg
@@ -29,19 +36,20 @@ views:
       - type: entity
         entity: sensor.beschattung_blocker
         name: Blockiert
+        visibility:
+          - condition: numeric_state
+            entity: sensor.beschattung_blocker
+            above: 0
 
     sections:
 
       ###########################################################################
       # STATUS — Tag/Nacht + was gerade blockiert                               #
+      # Alles außer Tag/Nacht ist conditional: im Normalfall eine Zeile.        #
       ###########################################################################
       - type: grid
         column_span: 4
         cards:
-          - type: heading
-            heading: Status
-            icon: mdi:information-outline
-
           - type: custom:mushroom-template-card
             primary: >
               {% if is_state('switch.twilight', 'on') %}Tag{% else %}Nacht{% endif %}
@@ -57,14 +65,12 @@ views:
               {% else %}
                 Geschlossen seit {{ close.strftime('%H:%M') }}
               {% endif %}
-            icon: >
-              {% if is_state('switch.twilight', 'on') %}mdi:weather-sunny-up{% else %}mdi:weather-night{% endif %}
-            icon_color: >
-              {% if is_state('switch.twilight', 'on') %}amber{% else %}indigo{% endif %}
+            icon: "{% if is_state('switch.twilight', 'on') %}mdi:weather-sunny-up{% else %}mdi:weather-night{% endif %}"
+            icon_color: "{% if is_state('switch.twilight', 'on') %}amber{% else %}indigo{% endif %}"
             fill_container: true
+            grid_options:
+              columns: 6
 
-          # Nur sichtbar, wenn tatsächlich etwas blockiert. Vorher standen hier
-          # 24 Dauer-"off"-Kacheln, die zwei Drittel der Seite gefressen haben.
           - type: conditional
             conditions:
               - condition: numeric_state
@@ -78,6 +84,8 @@ views:
               icon: mdi:hand-back-right-off
               icon_color: amber
               multiline_secondary: true
+            grid_options:
+              columns: 6
 
           - type: conditional
             conditions:
@@ -90,6 +98,8 @@ views:
               secondary: Alle Beschattungs-Automationen blockiert
               icon: mdi:shield-alert
               icon_color: red
+            grid_options:
+              columns: 6
 
           - type: conditional
             conditions:
@@ -102,575 +112,188 @@ views:
               secondary: Automation greift bis zum Ende nicht ein
               icon: mdi:cog-refresh
               icon_color: orange
+            grid_options:
+              columns: 6
+
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: input_boolean.gast_modus_wohnkueche
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              entity: input_boolean.gast_modus_wohnkueche
+              primary: Gästemodus Wohnküche
+              secondary: Raffstores erst um 10:00 · Präsenzmelder schaltet kein Licht
+              icon: mdi:sofa
+              icon_color: purple
+              tap_action:
+                action: toggle
+            grid_options:
+              columns: 6
 
       ###########################################################################
-      # RÄUME — eine Zeile pro Raum, nach Fassade gruppiert                     #
-      #                                                                         #
-      # Zeilen-Aufbau:                                                          #
-      #   [ Raum + Behang/Lamelle + Blockier-Grund ]  [ 🔒 Sperre ] [ ✋ Hand ]  #
-      # Tippen links  → Cover-Dialog (Position + Lamellen-Schieber)             #
-      # Tippen rechts → Override direkt umschalten                             #
+      # RÄUME — nach Fassade gruppiert                                          #
       ###########################################################################
       - type: grid
         column_span: 2
         cards:
           - type: heading
-            heading: Räume
-            icon: mdi:home-floor-1
-
-          # ---------------------------------------------------------------- SÜD
-          - type: heading
             heading: Süd
-            heading_style: subtitle
             icon: mdi:weather-sunny
 
-          # Wohnzimmer -----------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.livingroom_blinds
-                primary: Wohnzimmer
-                secondary: >
-                  {% set c = 'cover.livingroom_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_wohnzimmer', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_wohnzimmer', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_wohnzimmer', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_wohnzimmer', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_wohnzimmer
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_wohnzimmer
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Wohnzimmer
+              - cover: cover.livingroom_blinds
+              - lock: input_boolean.beschattung_lock_wohnzimmer
+              - manual: input_boolean.beschattung_manual_wohnzimmer
+              - sonne: "is_state('binary_sensor.sonne_trifft_sued', 'on')"
+              - grund: "'Gast bis 10:00' if is_state('input_boolean.gast_modus_wohnkueche', 'on') and now().hour < 10 else ''"
 
-          # Terrasse -------------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.terrace_blinds_2
-                primary: Terrasse
-                secondary: >
-                  {% set c = 'cover.terrace_blinds_2' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_terrasse', 'on') %} · gesperrt
-                  {%- elif is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') %} · Tür offen
-                  {%- elif is_state('timer.terrassentuer_aussperrschutz', 'active') %} · Aussperr-Schutz
-                  {%- elif is_state('input_boolean.beschattung_manual_terrasse', 'on') %} · Hand (2 h)
-                  {%- elif state_attr(c, 'current_position') | int(0) >= 100 %} · ganz offen, bleibt so
-                  {%- endif %}
-                icon: mdi:umbrella-beach
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_terrasse', 'on') %}red
-                  {% elif is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on')
-                       or is_state('timer.terrassentuer_aussperrschutz', 'active') %}purple
-                  {% elif is_state('input_boolean.beschattung_manual_terrasse', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_terrasse
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_terrasse
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Terrasse
+              - cover: cover.terrace_blinds_2
+              - lock: input_boolean.beschattung_lock_terrasse
+              - manual: input_boolean.beschattung_manual_terrasse
+              - icon: mdi:umbrella-beach
+              - sonne: "is_state('binary_sensor.sonne_trifft_sued', 'on')"
+              - grund: "'Tür offen' if is_state('binary_sensor.bthome_sensor_fb9c_fenster', 'on') else ('Aussperr-Schutz' if is_state('timer.terrassentuer_aussperrschutz', 'active') else ('Gast bis 10:00' if is_state('input_boolean.gast_modus_wohnkueche', 'on') and now().hour < 10 else ''))"
+              - hand: Hand (2 h)
+              - info: "'ganz offen, bleibt so' if state_attr('cover.terrace_blinds_2', 'current_position') | int(0) >= 100 else ''"
 
-          # Büro ----------------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.office_shutter
-                primary: Büro
-                secondary: >
-                  Rollo {{ state_attr('cover.office_shutter', 'current_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_buero', 'on') %} · gesperrt
-                  {%- elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %} · Fenster offen
-                  {%- elif is_state('input_boolean.beschattung_manual_buero', 'on') %} · Hand bis Tag/Nacht-Wechsel
-                  {%- elif is_state('binary_sensor.blendung_buero', 'on') %} · Blendung
-                  {%- endif %}
-                icon: mdi:roller-shade
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_buero', 'on') %}red
-                  {% elif is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') %}purple
-                  {% elif is_state('input_boolean.beschattung_manual_buero', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') or is_state('binary_sensor.blendung_buero', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_buero
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_buero
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Büro
+              - cover: cover.office_shutter
+              - lock: input_boolean.beschattung_lock_buero
+              - manual: input_boolean.beschattung_manual_buero
+              - typ: rollo
+              - icon: mdi:roller-shade
+              - sonne: "is_state('binary_sensor.sonne_trifft_sued', 'on') or is_state('binary_sensor.blendung_buero', 'on')"
+              - grund: "'Fenster offen' if is_state('binary_sensor.shelly_blu_door_window_a173_window', 'on') else ''"
+              - hand: Hand bis Tag/Nacht-Wechsel
+              - info: "'Blendung' if is_state('binary_sensor.blendung_buero', 'on') else ''"
 
-          # Gästezimmer ---------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.guest_shutter
-                primary: Gästezimmer
-                secondary: >
-                  Rollo {{ state_attr('cover.guest_shutter', 'current_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_gaestezimmer', 'on') %} · gesperrt
-                  {%- elif is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') %} · Fenster offen
-                  {%- elif is_state('input_boolean.beschattung_manual_gaestezimmer', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:roller-shade
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_gaestezimmer', 'on') %}red
-                  {% elif is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') %}purple
-                  {% elif is_state('input_boolean.beschattung_manual_gaestezimmer', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_gaestezimmer
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_gaestezimmer
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Gästezimmer
+              - cover: cover.guest_shutter
+              - lock: input_boolean.beschattung_lock_gaestezimmer
+              - manual: input_boolean.beschattung_manual_gaestezimmer
+              - typ: rollo
+              - icon: mdi:roller-shade
+              - sonne: "is_state('binary_sensor.sonne_trifft_sued', 'on')"
+              - grund: "'Fenster offen' if is_state('binary_sensor.shelly_blu_door_window_bb57_window', 'on') else ''"
 
-          # --------------------------------------------------------------- WEST
           - type: heading
             heading: West
-            heading_style: subtitle
             icon: mdi:weather-sunset
 
-          # Küche ---------------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.kitchen_blinds
-                primary: Küche
-                secondary: >
-                  {% set c = 'cover.kitchen_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_kueche', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_kueche', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_kueche', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_kueche', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_west', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_kueche
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_kueche
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Küche
+              - cover: cover.kitchen_blinds
+              - lock: input_boolean.beschattung_lock_kueche
+              - manual: input_boolean.beschattung_manual_kueche
+              - sonne: "is_state('binary_sensor.sonne_trifft_west', 'on')"
+              - grund: "'Gast bis 10:00' if is_state('input_boolean.gast_modus_wohnkueche', 'on') and now().hour < 10 else ''"
 
-          # Esszimmer -----------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.dining_blinds
-                primary: Esszimmer
-                secondary: >
-                  {% set c = 'cover.dining_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_esszimmer', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_esszimmer', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_esszimmer', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_esszimmer', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_west', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_esszimmer
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_esszimmer
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Esszimmer
+              - cover: cover.dining_blinds
+              - lock: input_boolean.beschattung_lock_esszimmer
+              - manual: input_boolean.beschattung_manual_esszimmer
+              - sonne: "is_state('binary_sensor.sonne_trifft_west', 'on')"
+              - grund: "'Gast bis 10:00' if is_state('input_boolean.gast_modus_wohnkueche', 'on') and now().hour < 10 else ''"
 
-          # WC OG ---------------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.wc_og_blinds
-                primary: WC OG
-                secondary: >
-                  {% set c = 'cover.wc_og_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_wc_og', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_wc_og', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_wc_og', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_wc_og', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_west', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_wc_og
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_wc_og
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: WC OG
+              - cover: cover.wc_og_blinds
+              - lock: input_boolean.beschattung_lock_wc_og
+              - manual: input_boolean.beschattung_manual_wc_og
+              - sonne: "is_state('binary_sensor.sonne_trifft_west', 'on')"
 
-          # WC EG ---------------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.wc_eg_blinds
-                primary: WC EG
-                secondary: >
-                  {% set c = 'cover.wc_eg_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_wc_eg', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_wc_eg', 'on') %} · Hand
-                  {%- else %} · kein Hitzeschutz (Carport)
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_wc_eg', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_wc_eg', 'on') %}amber
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_wc_eg
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_wc_eg
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: WC EG
+              - cover: cover.wc_eg_blinds
+              - lock: input_boolean.beschattung_lock_wc_eg
+              - manual: input_boolean.beschattung_manual_wc_eg
+              - info: "'kein Hitzeschutz (Carport)'"
 
-          # --------------------------------------------------------------- NORD
           - type: heading
             heading: Nord
-            heading_style: subtitle
             icon: mdi:weather-hazy
 
-          # Schlafzimmer --------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.bedroom_shutter
-                primary: Schlafzimmer
-                secondary: >
-                  Rollo {{ state_attr('cover.bedroom_shutter', 'current_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_schlafzimmer', 'on') %} · gesperrt
-                  {%- elif is_state('binary_sensor.fenster_schlafzimmer_window', 'on') %} · Fenster offen
-                  {%- elif is_state('input_boolean.beschattung_manual_schlafzimmer', 'on') %} · Hand
-                  {%- else %} · öffnet ab {% if now().weekday() < 5 %}07:00{% else %}10:00{% endif %}
-                  {%- endif %}
-                icon: mdi:roller-shade
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_schlafzimmer', 'on') %}red
-                  {% elif is_state('binary_sensor.fenster_schlafzimmer_window', 'on') %}purple
-                  {% elif is_state('input_boolean.beschattung_manual_schlafzimmer', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_schlafzimmer
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_schlafzimmer
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Schlafzimmer
+              - cover: cover.bedroom_shutter
+              - lock: input_boolean.beschattung_lock_schlafzimmer
+              - manual: input_boolean.beschattung_manual_schlafzimmer
+              - typ: rollo
+              - icon: mdi:roller-shade
+              - sonne: "is_state('binary_sensor.sonne_trifft_nord', 'on')"
+              - grund: "'Fenster offen' if is_state('binary_sensor.fenster_schlafzimmer_window', 'on') else ''"
+              - info: "'öffnet ab ' ~ ('07:00' if is_state('binary_sensor.workday_sensor', 'on') else '10:00')"
 
-          # Badezimmer ----------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.bathroom_blinds
-                primary: Badezimmer
-                secondary: >
-                  {% set c = 'cover.bathroom_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_badezimmer', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.badezimmer_privacy_active', 'on') %} · Privacy aktiv
-                  {%- elif is_state('input_boolean.beschattung_manual_badezimmer', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_badezimmer', 'on') %}red
-                  {% elif is_state('input_boolean.badezimmer_privacy_active', 'on') %}purple
-                  {% elif is_state('input_boolean.beschattung_manual_badezimmer', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_badezimmer
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_badezimmer
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Badezimmer
+              - cover: cover.bathroom_blinds
+              - lock: input_boolean.beschattung_lock_badezimmer
+              - manual: input_boolean.beschattung_manual_badezimmer
+              - sonne: "is_state('binary_sensor.sonne_trifft_nord', 'on')"
+              - grund: "'Privacy aktiv' if is_state('input_boolean.badezimmer_privacy_active', 'on') else ''"
+              - info: "'Lüften (Handtuchheizkörper)' if is_state('switch.handtuchheizkoerper', 'on') and is_state('switch.twilight', 'off') else ''"
 
-          # Garderobe -----------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.wardrobe_blinds
-                primary: Garderobe
-                secondary: >
-                  {% set c = 'cover.wardrobe_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_garderobe', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_garderobe', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_garderobe', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_garderobe', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_garderobe
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_garderobe
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Garderobe
+              - cover: cover.wardrobe_blinds
+              - lock: input_boolean.beschattung_lock_garderobe
+              - manual: input_boolean.beschattung_manual_garderobe
+              - sonne: "is_state('binary_sensor.sonne_trifft_nord', 'on')"
 
-          # Abstellraum ---------------------------------------------------
-          - type: horizontal-stack
-            cards:
-              - type: custom:mushroom-template-card
-                entity: cover.shelf_blinds
-                primary: Abstellraum
-                secondary: >
-                  {% set c = 'cover.shelf_blinds' %}
-                  Behang {{ state_attr(c, 'current_position') | int(0) }} % ·
-                  Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
-                  {%- if is_state('input_boolean.beschattung_lock_abstellraum', 'on') %} · gesperrt
-                  {%- elif is_state('input_boolean.beschattung_manual_abstellraum', 'on') %} · Hand
-                  {%- endif %}
-                icon: mdi:blinds-horizontal
-                icon_color: >
-                  {% if is_state('input_boolean.beschattung_lock_abstellraum', 'on') %}red
-                  {% elif is_state('input_boolean.beschattung_manual_abstellraum', 'on') %}amber
-                  {% elif is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange
-                  {% else %}disabled{% endif %}
-                tap_action:
-                  action: more-info
-              - type: custom:mushroom-chips-card
-                alignment: end
-                chips:
-                  - type: template
-                    entity: input_boolean.beschattung_lock_abstellraum
-                    icon: >
-                      {% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}
-                    icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
-                  - type: template
-                    entity: input_boolean.beschattung_manual_abstellraum
-                    icon: mdi:gesture-tap
-                    icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
-                    tap_action:
-                      action: toggle
+          - type: custom:decluttering-card
+            template: beschattung_raum
+            variables:
+              - name: Abstellraum
+              - cover: cover.shelf_blinds
+              - lock: input_boolean.beschattung_lock_abstellraum
+              - manual: input_boolean.beschattung_manual_abstellraum
+              - sonne: "is_state('binary_sensor.sonne_trifft_nord', 'on')"
 
-          # Sammel-Aktionen für die Override-Spalten ----------------------
-          - type: grid
-            columns: 2
-            square: false
+          - type: custom:expander-card
+            title: Was bedeuten 🔒 und ✋?
+            expanded: false
             cards:
-              - type: custom:mushroom-template-card
-                primary: Alle sperren
-                secondary: Urlaub / Ausschlafen
-                icon: mdi:lock
-                icon_color: red
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: input_boolean.turn_on
-                  target:
-                    entity_id:
-                      - input_boolean.beschattung_lock_schlafzimmer
-                      - input_boolean.beschattung_lock_gaestezimmer
-                      - input_boolean.beschattung_lock_buero
-                      - input_boolean.beschattung_lock_wohnzimmer
-                      - input_boolean.beschattung_lock_terrasse
-                      - input_boolean.beschattung_lock_kueche
-                      - input_boolean.beschattung_lock_esszimmer
-                      - input_boolean.beschattung_lock_wc_eg
-                      - input_boolean.beschattung_lock_wc_og
-                      - input_boolean.beschattung_lock_badezimmer
-                      - input_boolean.beschattung_lock_abstellraum
-                      - input_boolean.beschattung_lock_garderobe
-              - type: custom:mushroom-template-card
-                primary: Alles freigeben
-                secondary: Sperren + Hand
-                icon: mdi:lock-open-variant
-                icon_color: green
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: input_boolean.turn_off
-                  target:
-                    entity_id:
-                      - input_boolean.beschattung_lock_schlafzimmer
-                      - input_boolean.beschattung_lock_gaestezimmer
-                      - input_boolean.beschattung_lock_buero
-                      - input_boolean.beschattung_lock_wohnzimmer
-                      - input_boolean.beschattung_lock_terrasse
-                      - input_boolean.beschattung_lock_kueche
-                      - input_boolean.beschattung_lock_esszimmer
-                      - input_boolean.beschattung_lock_wc_eg
-                      - input_boolean.beschattung_lock_wc_og
-                      - input_boolean.beschattung_lock_badezimmer
-                      - input_boolean.beschattung_lock_abstellraum
-                      - input_boolean.beschattung_lock_garderobe
-                      - input_boolean.beschattung_manual_schlafzimmer
-                      - input_boolean.beschattung_manual_gaestezimmer
-                      - input_boolean.beschattung_manual_buero
-                      - input_boolean.beschattung_manual_wohnzimmer
-                      - input_boolean.beschattung_manual_terrasse
-                      - input_boolean.beschattung_manual_kueche
-                      - input_boolean.beschattung_manual_esszimmer
-                      - input_boolean.beschattung_manual_wc_eg
-                      - input_boolean.beschattung_manual_wc_og
-                      - input_boolean.beschattung_manual_badezimmer
-                      - input_boolean.beschattung_manual_abstellraum
-                      - input_boolean.beschattung_manual_garderobe
+              - type: markdown
+                content: >
+                  🔒 **Sperre** — du hast pausiert, hält bis Mitternacht.
+                  ✋ **Hand** — automatisch erkannt, weil die Beschattung ohne
+                  Auftrag gefahren ist; läuft nach 1 h ab (Terrasse 2 h, Büro
+                  erst beim Tag/Nacht-Wechsel) oder beim nächsten
+                  Tag/Nacht-Wechsel. Beide grau = Automation arbeitet.
 
-          - type: markdown
-            content: >
-              🔒 **Sperre** — du hast pausiert, hält bis Mitternacht.
-              ✋ **Hand** — automatisch erkannt, weil die Beschattung ohne
-              Auftrag gefahren ist; läuft nach 1 h ab (Terrasse 2 h, Büro erst
-              beim Tag/Nacht-Wechsel) oder beim nächsten Tag/Nacht-Wechsel. Beide grau = Automation arbeitet.
+                  Farbe der Raum-Kachel: **rot** gesperrt · **lila** äußerer
+                  Grund (Tür/Fenster offen, Privacy, Gast) · **amber** Hand ·
+                  **orange** Sonne auf der Fassade.
 
       ###########################################################################
       # AUSSENBEDINGUNGEN                                                       #
@@ -681,27 +304,12 @@ views:
           - type: heading
             heading: Außenbedingungen
             icon: mdi:weather-sunny
-
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: template
-                icon: mdi:compass-outline
-                content: "{{ state_attr('sun.sun', 'azimuth') | round(0) }}° Azimut"
-                icon_color: >
-                  {% set az = state_attr('sun.sun', 'azimuth') | float(0) %}
-                  {% if 135 <= az < 225 %}amber
-                  {% elif 225 <= az < 315 %}orange
-                  {% elif az >= 315 or az < 45 %}blue
-                  {% else %}grey{% endif %}
-              - type: template
-                icon: mdi:angle-acute
-                content: "{{ state_attr('sun.sun', 'elevation') | round(0) }}° Höhe"
+            badges:
               - type: entity
                 entity: sensor.outdoor_temperature
                 name: Jetzt
               - type: entity
                 entity: sun.sun
-                name: Sonne
 
           # Welche Fassade wird gerade getroffen — mit der Schwelle, an der es
           # gerade scheitert. Temperatur-Gate zuerst: es gilt für alle drei
@@ -725,8 +333,7 @@ views:
                   {% else %}{{ states('sensor.helligkeit_sud') | int(0) }} /
                   {{ states('input_number.beschattung_lux_sud') | int(0) }} lx{% endif %}
                 icon: mdi:weather-sunny
-                icon_color: >
-                  {% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange{% else %}disabled{% endif %}
+                icon_color: "{% if is_state('binary_sensor.sonne_trifft_sued', 'on') %}orange{% else %}disabled{% endif %}"
                 layout: vertical
               - type: custom:mushroom-template-card
                 primary: West
@@ -742,8 +349,7 @@ views:
                   {% else %}{{ states('sensor.helligkeit_west') | int(0) }} /
                   {{ states('input_number.beschattung_lux_west') | int(0) }} lx{% endif %}
                 icon: mdi:weather-sunset
-                icon_color: >
-                  {% if is_state('binary_sensor.sonne_trifft_west', 'on') %}orange{% else %}disabled{% endif %}
+                icon_color: "{% if is_state('binary_sensor.sonne_trifft_west', 'on') %}orange{% else %}disabled{% endif %}"
                 layout: vertical
               - type: custom:mushroom-template-card
                 primary: Nord
@@ -759,12 +365,9 @@ views:
                   {% else %}{{ states('sensor.helligkeit_nord') | int(0) }} /
                   {{ states('input_number.beschattung_lux_nord') | int(0) }} lx{% endif %}
                 icon: mdi:weather-hazy
-                icon_color: >
-                  {% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange{% else %}disabled{% endif %}
+                icon_color: "{% if is_state('binary_sensor.sonne_trifft_nord', 'on') %}orange{% else %}disabled{% endif %}"
                 layout: vertical
 
-          # Ein Diagramm mit allen drei Himmelsrichtungen statt drei
-          # gequetschten Einzel-Charts.
           - type: custom:mini-graph-card
             name: Helligkeit 12 h
             entities:
@@ -786,6 +389,9 @@ views:
 
       ###########################################################################
       # SCHNELL-AKTIONEN                                                        #
+      # Fahren direkt → die Automation liest das als Hand-Bedienung und lässt   #
+      # die Räume 1 h in Ruhe (Terrasse 2 h, Büro bis zum Tag/Nacht-Wechsel).   #
+      # Nicht gewollt → "Alles freigeben".                                      #
       ###########################################################################
       - type: grid
         column_span: 2
@@ -795,12 +401,12 @@ views:
             icon: mdi:gesture-tap-button
 
           - type: grid
-            columns: 2
+            columns: 3
             square: false
             cards:
               - type: custom:mushroom-template-card
                 primary: Mittagshitze
-                secondary: Lamellen zu (Süd + West)
+                secondary: Süd + West zu
                 icon: mdi:weather-sunny-alert
                 icon_color: red
                 layout: vertical
@@ -857,8 +463,68 @@ views:
                       - cover.shelf_blinds
 
               - type: custom:mushroom-template-card
+                primary: Alle sperren
+                secondary: Urlaub / Ausschlafen
+                icon: mdi:lock
+                icon_color: red
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service: input_boolean.turn_on
+                  target:
+                    entity_id:
+                      - input_boolean.beschattung_lock_schlafzimmer
+                      - input_boolean.beschattung_lock_gaestezimmer
+                      - input_boolean.beschattung_lock_buero
+                      - input_boolean.beschattung_lock_wohnzimmer
+                      - input_boolean.beschattung_lock_terrasse
+                      - input_boolean.beschattung_lock_kueche
+                      - input_boolean.beschattung_lock_esszimmer
+                      - input_boolean.beschattung_lock_wc_eg
+                      - input_boolean.beschattung_lock_wc_og
+                      - input_boolean.beschattung_lock_badezimmer
+                      - input_boolean.beschattung_lock_abstellraum
+                      - input_boolean.beschattung_lock_garderobe
+
+              - type: custom:mushroom-template-card
+                primary: Alles freigeben
+                secondary: Sperren + Hand
+                icon: mdi:lock-open-variant
+                icon_color: green
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service: input_boolean.turn_off
+                  target:
+                    entity_id:
+                      - input_boolean.beschattung_lock_schlafzimmer
+                      - input_boolean.beschattung_lock_gaestezimmer
+                      - input_boolean.beschattung_lock_buero
+                      - input_boolean.beschattung_lock_wohnzimmer
+                      - input_boolean.beschattung_lock_terrasse
+                      - input_boolean.beschattung_lock_kueche
+                      - input_boolean.beschattung_lock_esszimmer
+                      - input_boolean.beschattung_lock_wc_eg
+                      - input_boolean.beschattung_lock_wc_og
+                      - input_boolean.beschattung_lock_badezimmer
+                      - input_boolean.beschattung_lock_abstellraum
+                      - input_boolean.beschattung_lock_garderobe
+                      - input_boolean.beschattung_manual_schlafzimmer
+                      - input_boolean.beschattung_manual_gaestezimmer
+                      - input_boolean.beschattung_manual_buero
+                      - input_boolean.beschattung_manual_wohnzimmer
+                      - input_boolean.beschattung_manual_terrasse
+                      - input_boolean.beschattung_manual_kueche
+                      - input_boolean.beschattung_manual_esszimmer
+                      - input_boolean.beschattung_manual_wc_eg
+                      - input_boolean.beschattung_manual_wc_og
+                      - input_boolean.beschattung_manual_badezimmer
+                      - input_boolean.beschattung_manual_abstellraum
+                      - input_boolean.beschattung_manual_garderobe
+
+              - type: custom:mushroom-template-card
                 primary: Messfahrt
-                secondary: alle Raffstore kalibrieren
+                secondary: kalibrieren
                 icon: mdi:cog-refresh
                 icon_color: orange
                 layout: vertical
@@ -868,23 +534,25 @@ views:
                   confirmation:
                     text: Messfahrt für alle Raffstore starten? Sie fahren komplett auf und zu.
 
-          - type: markdown
-            content: >
-              Diese Knöpfe fahren die Beschattung direkt — die Automation
-              erkennt das als Hand-Bedienung und lässt die betroffenen Räume
-              danach **1 Stunde** in Ruhe (Terrasse 2 h, Büro bis zum
-              Tag/Nacht-Wechsel). Wenn das nicht
-              gewollt ist, danach oben „Alles freigeben" tippen.
+  #############################################################################
+  # TAB 2 — EINSTELLUNGEN                                                     #
+  #############################################################################
+  - title: Einstellungen
+    path: einstellungen
+    icon: mdi:tune
+    type: sections
+    max_columns: 3
+    sections:
 
       ###########################################################################
-      # EINSTELLUNGEN                                                           #
+      # HITZESCHUTZ                                                             #
       ###########################################################################
       - type: grid
-        column_span: 2
+        column_span: 1
         cards:
           - type: heading
-            heading: Einstellungen
-            icon: mdi:tune
+            heading: Hitzeschutz
+            icon: mdi:sun-thermometer
 
           - type: custom:mushroom-template-card
             primary: Hitzeschutz
@@ -895,17 +563,11 @@ views:
               {% elif is_state('binary_sensor.heizsaison', 'on') %}aus – Heizsaison, die Sonnenwärme soll rein
               {% elif is_state('binary_sensor.heizsaison', 'off') %}an – keine Heizsaison
               {% else %}unklar – Heizsaison nicht verfügbar{% endif %}
-            # icon und icon_color müssen einzeilig bleiben: mushroom prüft
-            # Icons mit icon.startsWith('mdi:') und Farben mit einem exakten
-            # Vergleich. Ein Leerzeichen aus einem gefalteten Template (vor
-            # allem am Anfang) lässt Icon bzw. Farbe still verschwinden.
             icon: "{% set wahl = states('input_select.beschattung_saison') %}{% if wahl == 'Sommer' or (wahl != 'Winter' and is_state('binary_sensor.heizsaison', 'off')) %}mdi:fire{% elif wahl == 'Winter' or is_state('binary_sensor.heizsaison', 'on') %}mdi:snowflake{% else %}mdi:help{% endif %}"
             icon_color: "{% set wahl = states('input_select.beschattung_saison') %}{% if wahl == 'Sommer' or (wahl != 'Winter' and is_state('binary_sensor.heizsaison', 'off')) %}orange{% elif wahl == 'Winter' or is_state('binary_sensor.heizsaison', 'on') %}blue{% else %}grey{% endif %}"
             multiline_secondary: true
-            layout: horizontal
 
           - type: entities
-            title: Hitzeschutz-Schwellen
             entities:
               - entity: input_select.beschattung_saison
                 name: Saison
@@ -919,59 +581,45 @@ views:
                 name: West
               - entity: input_number.beschattung_lux_nord
                 name: Nord
-
-          - type: entities
-            title: Nacht-Verzögerung
-            entities:
+              - type: section
+                label: Nacht
               - entity: input_number.beschattung_nacht_verzoegerung
                 name: Schließen nach Dämmerung
 
-          - type: markdown
-            content: >
-              **Hitzeschutz** braucht alle drei Bedingungen gleichzeitig:
-              Ø-Außentemperatur über der Temperatur-Schwelle, Helligkeit über
-              der Lux-Schwelle der Fassade und Sonnenstand über 10°.
-              Helligkeit allein löst nichts aus (sonst reicht diffuser Nebel).
+          - type: custom:expander-card
+            title: Wie funktioniert das?
+            expanded: false
+            cards:
+              - type: markdown
+                content: >
+                  **Hitzeschutz** braucht alle drei Bedingungen gleichzeitig:
+                  Ø-Außentemperatur über der Temperatur-Schwelle, Helligkeit über
+                  der Lux-Schwelle der Fassade und Sonnenstand über 10°.
+                  Helligkeit allein löst nichts aus (sonst reicht diffuser Nebel).
 
-              **Saison**: Standard ist *Automatisch (Heizsaison)* — der
-              Hitzeschutz folgt `binary_sensor.heizsaison`, also genau dem
-              Signal, nach dem auch die Heizung zwischen Sommer- und
-              Winterbetrieb schaltet (GA 7/0/0). Wenn es kalt genug ist zum
-              Heizen, soll die Sonne ungehindert durch: **Hitzeschutz aus**,
-              die Rollo bleiben im normalen Tag-Zustand, die Sonnenwärme kommt
-              rein. Tag/Nacht und Sichtschutz laufen unverändert weiter.
-              *Sommer* oder *Winter* überschreiben das für eine Ausnahme
-              dauerhaft.
+                  **Saison**: Standard ist *Automatisch (Heizsaison)* — der
+                  Hitzeschutz folgt `binary_sensor.heizsaison`, also genau dem
+                  Signal, nach dem auch die Heizung zwischen Sommer- und
+                  Winterbetrieb schaltet (GA 7/0/0). Wenn es kalt genug ist zum
+                  Heizen, soll die Sonne ungehindert durch: **Hitzeschutz aus**,
+                  die Rollo bleiben im normalen Tag-Zustand, die Sonnenwärme kommt
+                  rein. Tag/Nacht und Sichtschutz laufen unverändert weiter.
+                  *Sommer* oder *Winter* überschreiben das für eine Ausnahme
+                  dauerhaft.
 
-              **Temperatur-Schwelle**: Der Wert überlebt einen HA-Neustart
-              (anders als die Lux-Schwellen, die per `initial:` auf 15000
-              zurückfallen). Beim allerersten Start steht er auf 15 °C — das
-              ist die alte fest verdrahtete Schwelle, die bei 17 °C draußen
-              schon Hitzeschutz ausgelöst hat. Empfehlung: 22 °C.
+                  **Temperatur-Schwelle**: Der Wert überlebt einen HA-Neustart
+                  (anders als die Lux-Schwellen, die per `initial:` auf 15000
+                  zurückfallen). Empfehlung: 22 °C.
 
-              **Nacht-Verzögerung**: Wartezeit nach Dämmerungs-Ende, bis alles
-              zufährt. 0 = sofort mit der Flanke. Aufgefahren wird unabhängig
-              davon immer sofort bei Tagesbeginn.
-
-          - type: entities
-            title: Diagnose
-            entities:
-              - entity: switch.twilight
-                name: Tag/Nacht (KNX 8/4/0)
-              - entity: input_datetime.beschattung_daemmerung_ende
-                name: Letztes Dämmerungs-Ende
-              - entity: input_datetime.beschattung_letzter_auto_befehl
-                name: Letzter Auto-Befehl
-              - entity: input_boolean.beschattung_messfahrt_running
-                name: Messfahrt läuft
-              - entity: binary_sensor.windalarm_schwelle_1
-                name: Windalarm Schwelle 1
+                  **Nacht-Verzögerung**: Wartezeit nach Dämmerungs-Ende, bis alles
+                  zufährt. 0 = sofort mit der Flanke. Aufgefahren wird unabhängig
+                  davon immer sofort bei Tagesbeginn.
 
       ###########################################################################
-      # STANDARD-MODUS PRO RAUM                                                #
+      # STANDARD-MODUS + GAST-MODUS                                             #
       ###########################################################################
       - type: grid
-        column_span: 3
+        column_span: 1
         cards:
           - type: heading
             heading: Standard-Modus
@@ -984,40 +632,99 @@ views:
             entity: input_select.beschattung_default_terrasse
             name: Terrasse
 
-          - type: markdown
-            content: >
-              **Automatisch (Präsenz)**: Standard-Verhalten — Behang zu,
-              Lamellen halb. Die Automation fährt hier **nichts von selbst
-              hoch**. Machst du den Raffstore aber selbst auf, während jemand
-              in der Wohnküche ist, bleibt er offen — bis 30 Min nach dem
-              Verlassen des Raums. Hitzeschutz und Nacht haben weiter Vorrang
-              (Terrasse: Hitzeschutz nur bei geschlossener Terrassentür).
+          - type: custom:expander-card
+            title: Was heißt das?
+            expanded: false
+            cards:
+              - type: markdown
+                content: >
+                  **Automatisch (Präsenz)**: Standard-Verhalten — Behang zu,
+                  Lamellen halb. Die Automation fährt hier **nichts von selbst
+                  hoch**. Machst du den Raffstore aber selbst auf, während jemand
+                  in der Wohnküche ist, bleibt er offen — bis 30 Min nach dem
+                  Verlassen des Raums. Hitzeschutz und Nacht haben weiter Vorrang
+                  (Terrasse: Hitzeschutz nur bei geschlossener Terrassentür).
 
-              **Offen / Zu / Lamellen halb**: Überschreibt den Standard in
-              Tag-Modus. Hitzeschutz und Nacht greifen weiterhin.
+                  **Offen / Zu / Lamellen halb**: Überschreibt den Standard in
+                  Tag-Modus. Hitzeschutz und Nacht greifen weiterhin.
 
-      ###########################################################################
-      # GAST-MODUS                                                             #
-      ###########################################################################
-      - type: grid
-        column_span: 3
-        cards:
           - type: heading
             heading: Gast-Modus
             icon: mdi:bed-empty
 
           - type: custom:mushroom-entity-card
+            entity: input_boolean.gast_modus_wohnkueche
+            name: Wohnküche (Couch)
+            icon: mdi:sofa
+            tap_action:
+              action: toggle
+          - type: custom:mushroom-entity-card
             entity: input_boolean.beschattung_gast_aktiv_gaestezimmer
             name: Gästezimmer
             icon: mdi:bed-empty
-
+            tap_action:
+              action: toggle
+            grid_options:
+              columns: 6
           - type: custom:mushroom-entity-card
             entity: input_boolean.beschattung_gast_aktiv_buero
             name: Büro
-            icon: mdi:sofa
+            icon: mdi:sofa-single
+            tap_action:
+              action: toggle
+            grid_options:
+              columns: 6
 
-          - type: markdown
-            content: >
-              Aktiviert den Wake-Schutz: Die Beschattung fährt am Wochenende
-              nicht mit Sonnenaufgang hoch, sondern erst um **10:00**
-              (Werktag 7:00) — für ausgeschlafene Gäste auf der Schlafcouch.
+          - type: custom:expander-card
+            title: Was macht der Gast-Modus?
+            expanded: false
+            cards:
+              - type: markdown
+                content: >
+                  **Gästezimmer / Büro**: Die Beschattung fährt nicht mit
+                  Sonnenaufgang hoch, sondern erst um **10:00** am Wochenende
+                  (Werktag 7:00) — für ausgeschlafene Gäste auf der Schlafcouch.
+
+                  **Wohnküche**: Raffstores jeden Tag erst um **10:00**, auch
+                  kein Hitzeschutz davor. Der Präsenzmelder schaltet kein Licht,
+                  die Messfahrt fällt aus. Bleibt an, bis du ihn ausschaltest.
+
+      ###########################################################################
+      # DIAGNOSE                                                                #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Diagnose
+            icon: mdi:stethoscope
+
+          - type: entities
+            entities:
+              - entity: switch.twilight
+                name: Tag/Nacht (KNX 8/4/0)
+              - entity: input_datetime.beschattung_daemmerung_ende
+                name: Letztes Dämmerungs-Ende
+              - entity: input_datetime.beschattung_letzter_auto_befehl
+                name: Letzter Auto-Befehl
+              - entity: input_boolean.beschattung_messfahrt_running
+                name: Messfahrt läuft
+              - entity: binary_sensor.windalarm_schwelle_1
+                name: Windalarm Schwelle 1
+              - entity: input_boolean.badezimmer_privacy_active
+                name: Bad Privacy
+              - entity: timer.terrassentuer_aussperrschutz
+                name: Terrassentür Aussperr-Schutz
+
+          - type: custom:expander-card
+            title: Sensor-Locks Helligkeit
+            expanded: false
+            cards:
+              - type: entities
+                entities:
+                  - entity: binary_sensor.helligkeit_ost_lock
+                    name: Lock Ost
+                  - entity: binary_sensor.helligkeit_sud_lock
+                    name: Lock Süd
+                  - entity: binary_sensor.helligkeit_west_lock
+                    name: Lock West

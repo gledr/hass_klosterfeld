@@ -1,10 +1,12 @@
 ###############################################################################
 # ÜBERSICHT — Landing page                                                     #
-# Loaded as the main dashboard (lovelace.mode: yaml in configuration.yaml).    #
 #                                                                              #
-# Reihenfolge ist bewusst: Alarme → Aktionen → Status → Navigation. Am Handy    #
+# Reihenfolge ist bewusst: Alarme → Aktionen → Außen → Navigation. Am Handy     #
 # fällt alles auf eine Spalte zusammen; die Knöpfe, die man tatsächlich         #
 # drückt, sollen nicht hinter Wetter und Anwesenheit liegen.                    #
+#                                                                              #
+# Badges: Außen/Wind/Sebastian immer, der Rest nur, wenn er etwas zu sagen      #
+# hat (visibility) — "0 offen" ist keine Information.                          #
 ###############################################################################
 title: Klosterfeld
 views:
@@ -14,7 +16,6 @@ views:
     type: sections
     max_columns: 4
 
-    # Die Zahlen, für die man vorher scrollen musste.
     badges:
       - type: entity
         entity: sensor.outdoor_temperature
@@ -23,19 +24,39 @@ views:
         entity: sensor.wind_speed
         name: Wind
       - type: entity
+        entity: device_tracker.iphone_von_sebastian
+        name: Sebastian
+      - type: entity
+        entity: sensor.lichter_an
+        name: Lichter an
+        tap_action:
+          action: navigate
+          navigation_path: /lovelace-raeume/eg
+        visibility:
+          - condition: numeric_state
+            entity: sensor.lichter_an
+            above: 0
+      - type: entity
         entity: sensor.offene_oeffnungen
         name: Offen
+        visibility:
+          - condition: numeric_state
+            entity: sensor.offene_oeffnungen
+            above: 0
       - type: entity
         entity: sensor.beschattung_blocker
         name: Beschattung blockiert
-      - type: entity
-        entity: device_tracker.iphone_von_sebastian
-        name: Sebastian
+        visibility:
+          - condition: numeric_state
+            entity: sensor.beschattung_blocker
+            above: 0
 
     sections:
 
       ###########################################################################
-      # ALERT BAR — auto-entities filters render nothing when state is clean.   #
+      # ALERT BAR — alles conditional / auto-entities, rendert im Normalfall   #
+      # nichts. Die Überschrift ist ebenfalls nur sichtbar, wenn etwas ansteht #
+      # (sonst stand dort ein leeres "Achtung").                               #
       ###########################################################################
       - type: grid
         column_span: 4
@@ -44,6 +65,24 @@ views:
             heading: Achtung
             heading_style: title
             icon: mdi:alert
+            visibility:
+              - condition: or
+                conditions:
+                  - condition: numeric_state
+                    entity: sensor.offene_oeffnungen
+                    above: 0
+                  - condition: numeric_state
+                    entity: sensor.beschattung_blocker
+                    above: 0
+                  - condition: state
+                    entity: binary_sensor.windalarm_schwelle_1
+                    state: "on"
+                  - condition: state
+                    entity: input_boolean.badezimmer_privacy_active
+                    state: "on"
+                  - condition: state
+                    entity: input_boolean.gast_modus_wohnkueche
+                    state: "on"
 
           # Rauchmelder ausgelöst
           - type: custom:auto-entities
@@ -59,10 +98,8 @@ views:
                   state: "on"
             show_empty: false
 
-          # Offene Fenster / Türen — eine Karte, gefüttert aus der einen
-          # Quelle der Wahrheit (sensor.offene_oeffnungen, template.yaml).
-          # Vorher lief hier ein eigenes Glob-Filter, das die Shelly-Blu-
-          # Kontakte doppelt matchte und mühsam ausgeschlossen werden musste.
+          # Offene Fenster / Türen — aus der einen Quelle der Wahrheit
+          # (sensor.offene_oeffnungen, template.yaml).
           - type: conditional
             conditions:
               - condition: numeric_state
@@ -79,6 +116,8 @@ views:
               tap_action:
                 action: navigate
                 navigation_path: /lovelace-sicherheit/home
+            grid_options:
+              columns: 6
 
           # Windalarm aktiv
           - type: custom:auto-entities
@@ -94,7 +133,7 @@ views:
                   state: "on"
             show_empty: false
 
-          # Beschattungs-Sperren / Privacy
+          # Beschattungs-Sperren
           - type: conditional
             conditions:
               - condition: numeric_state
@@ -111,6 +150,8 @@ views:
               tap_action:
                 action: navigate
                 navigation_path: /lovelace-beschattung/home
+            grid_options:
+              columns: 6
 
           - type: conditional
             conditions:
@@ -119,16 +160,42 @@ views:
                 state: "on"
             card:
               type: custom:mushroom-template-card
+              entity: input_boolean.badezimmer_privacy_active
               primary: Badezimmer Privacy aktiv
-              secondary: Beschattung Bad bleibt stehen
+              secondary: Beschattung Bad bleibt stehen · antippen zum Lösen
               icon: mdi:eye-off
               icon_color: purple
               tap_action:
                 action: toggle
-              entity: input_boolean.badezimmer_privacy_active
+            grid_options:
+              columns: 6
+
+          # Gästemodus hat kein Auto-Reset → hier erinnern, damit er nicht
+          # tagelang den Präsenzmelder abschaltet.
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: input_boolean.gast_modus_wohnkueche
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              entity: input_boolean.gast_modus_wohnkueche
+              primary: Gästemodus Wohnküche an
+              secondary: Präsenzmelder schaltet kein Licht · Raffstores erst 10:00 · antippen zum Beenden
+              icon: mdi:sofa
+              icon_color: purple
+              multiline_secondary: true
+              tap_action:
+                action: toggle
+              hold_action:
+                action: none
+            grid_options:
+              columns: 6
 
       ###########################################################################
-      # SCHNELL-AKTIONEN — direkt unter den Alarmen, nicht am Seitenende        #
+      # SCHNELL-AKTIONEN                                                        #
+      # Fahren direkt → die Beschattung liest das als Hand-Bedienung und lässt  #
+      # die Räume danach 1 h in Ruhe (Terrasse 2 h, Büro bis Tag/Nacht).        #
       ###########################################################################
       - type: grid
         column_span: 2
@@ -141,7 +208,7 @@ views:
           # Konvergenz dauerhaft auf Position 0, "Behang hoch" hat deshalb
           # gegen die Automation gearbeitet.
           - type: grid
-            columns: 2
+            columns: 3
             square: false
             cards:
               - type: custom:mushroom-template-card
@@ -160,25 +227,6 @@ views:
                       - cover.bedroom_shutter
                       - cover.office_shutter
                       - cover.guest_shutter
-              - type: custom:mushroom-template-card
-                primary: Rollos runter
-                secondary: Schlafz. · Büro · Gast
-                icon: mdi:arrow-down-bold-box
-                icon_color: indigo
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: cover.set_cover_position
-                  data:
-                    position: 0
-                  target:
-                    entity_id:
-                      - cover.bedroom_shutter
-                      - cover.office_shutter
-                      - cover.guest_shutter
-                  confirmation:
-                    text: Alle drei Rollos komplett schließen?
-
               - type: custom:mushroom-template-card
                 primary: Lamellen auf
                 secondary: alle Raffstore
@@ -202,6 +250,33 @@ views:
                       - cover.dining_blinds
                       - cover.terrace_blinds_2
               - type: custom:mushroom-template-card
+                primary: Wohnküche aus
+                secondary: alle Lichter
+                icon: mdi:lightbulb-off
+                icon_color: grey
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service: script.wohnkueche_alles_aus
+              - type: custom:mushroom-template-card
+                primary: Rollos runter
+                secondary: Schlafz. · Büro · Gast
+                icon: mdi:arrow-down-bold-box
+                icon_color: indigo
+                layout: vertical
+                tap_action:
+                  action: call-service
+                  service: cover.set_cover_position
+                  data:
+                    position: 0
+                  target:
+                    entity_id:
+                      - cover.bedroom_shutter
+                      - cover.office_shutter
+                      - cover.guest_shutter
+                  confirmation:
+                    text: Alle drei Rollos komplett schließen?
+              - type: custom:mushroom-template-card
                 primary: Lamellen zu
                 secondary: alle Raffstore
                 icon: mdi:blinds-horizontal-closed
@@ -223,39 +298,18 @@ views:
                       - cover.kitchen_blinds
                       - cover.dining_blinds
                       - cover.terrace_blinds_2
-
-          - type: grid
-            columns: 2
-            square: false
-            cards:
               - type: custom:mushroom-template-card
-                primary: Wohnküche aus
-                icon: mdi:lightbulb-off
-                icon_color: grey
+                entity: input_boolean.gast_modus_wohnkueche
+                primary: Gästemodus
+                secondary: "{% if is_state('input_boolean.gast_modus_wohnkueche', 'on') %}an{% else %}aus{% endif %}"
+                icon: mdi:sofa
+                icon_color: "{% if is_state('input_boolean.gast_modus_wohnkueche', 'on') %}purple{% else %}disabled{% endif %}"
                 layout: vertical
                 tap_action:
-                  action: call-service
-                  service: script.wohnkueche_alles_aus
-              - type: custom:mushroom-template-card
-                primary: Messfahrt
-                secondary: Alle Raffstore
-                icon: mdi:cog-refresh
-                icon_color: orange
-                layout: vertical
-                tap_action:
-                  action: call-service
-                  service: script.messfahrt_alle
-                  confirmation:
-                    text: Messfahrt starten? Alle Raffstore fahren komplett auf und zu.
-
-          - type: markdown
-            content: >
-              Diese Knöpfe fahren direkt — die Beschattungs-Automation liest das
-              als Hand-Bedienung und lässt die Räume danach 1 h in Ruhe
-              (Terrasse 2 h, Büro bis zum Tag/Nacht-Wechsel).
+                  action: toggle
 
       ###########################################################################
-      # WETTER / AUSSEN                                                         #
+      # AUSSEN                                                                  #
       ###########################################################################
       - type: grid
         column_span: 2
@@ -264,26 +318,13 @@ views:
             heading: Außen
             icon: mdi:weather-partly-cloudy
 
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: weather
-                entity: weather.forecast_home
-                show_conditions: true
-                show_temperature: true
-              - type: entity
-                entity: sensor.outdoor_temperature
-                icon: mdi:thermometer
-                name: Außen
-              - type: entity
-                entity: sensor.wind_speed
-                icon: mdi:weather-windy
-                name: Wind
-              - type: entity
-                entity: sun.sun
-                icon: mdi:white-balance-sunny
+          - type: weather-forecast
+            entity: weather.forecast_home
+            show_current: true
+            show_forecast: false
 
           - type: custom:mini-graph-card
-            name: Außentemperatur 24h
+            name: Außentemperatur 24 h
             entities:
               - entity: sensor.outdoor_temperature
                 name: Temp
@@ -294,35 +335,9 @@ views:
               labels: true
               extrema: true
 
-          - type: custom:mushroom-template-card
-            entity: device_tracker.iphone_von_sebastian
-            primary: Sebastian
-            secondary: >
-              {% if is_state('device_tracker.iphone_von_sebastian', 'home') %}
-                Zuhause
-              {% elif is_state('device_tracker.iphone_von_sebastian', 'not_home') %}
-                Unterwegs
-              {% else %}
-                {{ states('device_tracker.iphone_von_sebastian') }}
-              {% endif %}
-            icon: >
-              {% if is_state('device_tracker.iphone_von_sebastian', 'home') %}
-                mdi:home-account
-              {% else %}
-                mdi:account-arrow-right
-              {% endif %}
-            icon_color: >
-              {% if is_state('device_tracker.iphone_von_sebastian', 'home') %}
-                green
-              {% else %}
-                grey
-              {% endif %}
-            tap_action:
-              action: more-info
-
       ###########################################################################
-      # NAVIGATION ZU UNTER-DASHBOARDS                                          #
-      # Dupliziert die Sidebar bewusst — am Handy ist die Sidebar eingeklappt.  #
+      # NAVIGATION — dupliziert die Sidebar bewusst (am Handy eingeklappt).     #
+      # Stockwerke springen direkt in den passenden Tab von "Räume".            #
       ###########################################################################
       - type: grid
         column_span: 4
@@ -345,15 +360,7 @@ views:
                        or is_state('binary_sensor.sonne_trifft_nord', 'on') %}Sonne auf Fassade
                   {% else %}Automatik läuft{% endif %}
                 icon: mdi:blinds-horizontal
-                icon_color: |
-                  {% if states('sensor.beschattung_blocker') | int(0) > 0 %}
-                    amber
-                  {% elif is_state('binary_sensor.sonne_trifft_sued', 'on')
-                     or is_state('binary_sensor.sonne_trifft_west', 'on') %}
-                    orange
-                  {% else %}
-                    grey
-                  {% endif %}
+                icon_color: "{% if states('sensor.beschattung_blocker') | int(0) > 0 %}amber{% elif is_state('binary_sensor.sonne_trifft_sued', 'on') or is_state('binary_sensor.sonne_trifft_west', 'on') %}orange{% else %}grey{% endif %}"
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace-beschattung/home
@@ -361,24 +368,20 @@ views:
               - type: custom:mushroom-template-card
                 primary: Sicherheit
                 secondary: >
-                  {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
+                  {% set smoke = states.binary_sensor | selectattr('attributes.device_class', 'eq', 'smoke') | selectattr('state', 'eq', 'on') | list | count %}
                   {% set offen = states('sensor.offene_oeffnungen') | int(0) %}
                   {% if smoke > 0 %}🚨 {{ smoke }} Rauchalarm
                   {% elif offen > 0 %}🪟 {{ offen }} offen
                   {% else %}Alles ruhig{% endif %}
                 icon: mdi:shield-home
-                icon_color: |
-                  {% set smoke = expand(states.binary_sensor) | selectattr('attributes.device_class','eq','smoke') | selectattr('state','eq','on') | list | count %}
-                  {% if smoke > 0 %}red
-                  {% elif states('sensor.offene_oeffnungen') | int(0) > 0 %}amber
-                  {% else %}green{% endif %}
+                icon_color: "{% set smoke = states.binary_sensor | selectattr('attributes.device_class', 'eq', 'smoke') | selectattr('state', 'eq', 'on') | list | count %}{% if smoke > 0 %}red{% elif states('sensor.offene_oeffnungen') | int(0) > 0 %}amber{% else %}green{% endif %}"
                 tap_action:
                   action: navigate
                   navigation_path: /lovelace-sicherheit/home
 
               - type: custom:mushroom-template-card
                 primary: Klima
-                secondary: "Außen {{ states('sensor.outdoor_temperature') }} °C"
+                secondary: "Heizung · Lüften"
                 icon: mdi:home-thermometer
                 icon_color: blue
                 tap_action:
@@ -394,24 +397,20 @@ views:
                   action: navigate
                   navigation_path: /lovelace-energie/home
 
-          - type: grid
-            columns: 5
-            square: false
-            cards:
               - type: custom:mushroom-template-card
                 primary: Erdgeschoss
                 icon: mdi:home-floor-g
                 icon_color: teal
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace-erdgeschoss/home
+                  navigation_path: /lovelace-raeume/eg
               - type: custom:mushroom-template-card
                 primary: Obergeschoss
                 icon: mdi:home-roof
                 icon_color: teal
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace-obergeschoss/home
+                  navigation_path: /lovelace-raeume/og
               - type: custom:mushroom-template-card
                 primary: Keller
                 secondary: Licht · Lüften
@@ -419,22 +418,12 @@ views:
                 icon_color: teal
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace-keller/home
+                  navigation_path: /lovelace-raeume/keller
               - type: custom:mushroom-template-card
-                primary: Aussen
+                primary: Außen
                 secondary: Garage · Terrasse
                 icon: mdi:tree
                 icon_color: green
                 tap_action:
                   action: navigate
-                  navigation_path: /lovelace-aussen/home
-              # Lüften deckt zusätzlich Schlafzimmer + Garage ab, deshalb neben
-              # dem Keller-Dashboard weiter eigenständig erreichbar.
-              - type: custom:mushroom-template-card
-                primary: Lüften
-                secondary: alle Räume
-                icon: mdi:hvac
-                icon_color: cyan
-                tap_action:
-                  action: navigate
-                  navigation_path: /lovelace-luften/home
+                  navigation_path: /lovelace-raeume/aussen

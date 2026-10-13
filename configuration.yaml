@@ -32,22 +32,35 @@ lovelace:
   resources:
     - url: /hacsfiles/lovelace-mushroom/mushroom.js
       type: module
-    - url: /hacsfiles/button-card/button-card.js
-      type: module
     - url: /hacsfiles/mini-graph-card/mini-graph-card-bundle.js
       type: module
     - url: /hacsfiles/apexcharts-card/apexcharts-card.js
       type: module
     - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
       type: module
-    - url: /hacsfiles/lovelace-layout-card/layout-card.js
+    # Karten-Vorlagen (dashboard/templates.yaml) — custom-cards/decluttering-card
+    - url: /hacsfiles/decluttering-card/decluttering-card.js
       type: module
+    # Einklappbare Bereiche für Erklärungen/Diagnose — MelleD/lovelace-expander-card
+    - url: /hacsfiles/lovelace-expander-card/expander-card.js
+      type: module
+  # Sidebar: 6 statt 10 Einträge. Erdgeschoss/Obergeschoss/Keller/Aussen sind
+  # jetzt Tabs von "Räume", Lüften ist ein Tab von "Klima".
+  # button-card und layout-card wurden von keinem Dashboard benutzt und sind
+  # aus den Ressourcen raus (in HACS können sie bleiben).
   dashboards:
     lovelace:
       mode: yaml
       filename: ui-lovelace.yaml
       title: Übersicht
       icon: mdi:home
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-raeume:
+      mode: yaml
+      filename: dashboard/raeume.yaml
+      title: Räume
+      icon: mdi:floor-plan
       show_in_sidebar: true
       require_admin: false
     lovelace-beschattung:
@@ -69,41 +82,6 @@ lovelace:
       filename: dashboard/sicherheit.yaml
       title: Sicherheit
       icon: mdi:shield-home
-      show_in_sidebar: true
-      require_admin: false
-    lovelace-luften:
-      mode: yaml
-      filename: dashboard/luften.yaml
-      title: Lüften
-      icon: mdi:hvac
-      show_in_sidebar: true
-      require_admin: false
-    lovelace-erdgeschoss:
-      mode: yaml
-      filename: dashboard/erdgeschoss.yaml
-      title: Erdgeschoss
-      icon: mdi:home-floor-g
-      show_in_sidebar: true
-      require_admin: false
-    lovelace-obergeschoss:
-      mode: yaml
-      filename: dashboard/obergeschoss.yaml
-      title: Obergeschoss
-      icon: mdi:home-roof
-      show_in_sidebar: true
-      require_admin: false
-    lovelace-keller:
-      mode: yaml
-      filename: dashboard/keller.yaml
-      title: Keller
-      icon: mdi:home-floor-b
-      show_in_sidebar: true
-      require_admin: false
-    lovelace-aussen:
-      mode: yaml
-      filename: dashboard/aussen.yaml
-      title: Aussen
-      icon: mdi:tree
       show_in_sidebar: true
       require_admin: false
     lovelace-energie:

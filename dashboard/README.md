@@ -1,105 +1,70 @@
-# Dashboards — migration to yaml mode
+# Dashboards
 
-Eight git-tracked yaml dashboards, replacing the 10 storage-mode JSON files.
+YAML-Dashboards, git-getrackt. Registriert in `configuration.yaml` unter `lovelace: dashboards:`.
 
-## Files in this folder
+## Struktur (Sidebar)
 
-| File | Dashboard | Sidebar title |
+| Sidebar | Datei | Tabs |
 |---|---|---|
-| `../ui-lovelace.yaml` | Main / landing (registered as `lovelace` key) | Übersicht |
-| `beschattung.yaml` | Operational shading | Beschattung |
-| `klima.yaml` | Climate overview + trends | Klima |
-| `sicherheit.yaml` | Smoke + windows + doors merged | Sicherheit |
-| `luften.yaml` | Cellar ventilation recommendations | Lüften |
-| `erdgeschoss.yaml` | Ground floor per-room | Erdgeschoss |
-| `obergeschoss.yaml` | Upper floor per-room | Obergeschoss |
-| `aussen.yaml` | Garage / Terrasse / Wetterstation | Aussen |
+| Übersicht | `../ui-lovelace.yaml` | — (Alarme, Schnell-Aktionen, Außen, Navigation) |
+| Räume | `raeume.yaml` | EG (`erdgeschoss.yaml`) · OG (`obergeschoss.yaml`) · Keller (`keller.yaml`) · Außen (`aussen.yaml`) |
+| Beschattung | `beschattung.yaml` | Räume · Einstellungen |
+| Klima | `klima.yaml` | Übersicht · Heizung · Lüften |
+| Sicherheit | `sicherheit.yaml` | — |
+| Energie | `energie.yaml` | Übersicht · Details |
 
-The 11 `lovelace.*` JSON files in this folder are the old snapshot. Delete once the yaml migration is verified live (see step 4 below).
+Die Stockwerks-Dateien sind **einzelne Views** (kein `title:`/`views:`-Kopf), `raeume.yaml`
+bindet sie per `!include` ein. URLs: `/lovelace-raeume/eg`, `/og`, `/keller`, `/aussen`.
 
-## HACS frontend cards required
+Früher waren das 10 Sidebar-Einträge (Erdgeschoss, Obergeschoss, Keller, Aussen, Lüften
+einzeln). Alte Lesezeichen / Handy-Shortcuts auf `/lovelace-erdgeschoss` usw. zeigen ins Leere.
 
-These must be installed via HACS → Frontend before HASS loads `configuration.yaml` with `lovelace: mode: yaml`:
+## Bausteine: `templates.yaml`
 
-| Card | HACS repo |
-|---|---|
-| Mushroom | `piitaya/lovelace-mushroom` |
-| button-card | `custom-cards/button-card` |
-| mini-graph-card | `kalkih/mini-graph-card` |
-| apexcharts-card | `RomRider/apexcharts-card` |
-| auto-entities | `thomasloven/lovelace-auto-entities` |
-| layout-card | `thomasloven/lovelace-layout-card` |
+Wiederkehrende Karten sind decluttering-Templates, eingebunden per
+`decluttering_templates: !include templates.yaml`:
 
-Resource URLs in `configuration.yaml` use the `/hacsfiles/...` paths. If HACS on your install uses `/local/community/...` instead, adjust the URLs in `configuration.yaml`.
-
-## Deployment
-
-1. **Verify HACS cards installed** (you already did this). Restart HASS once after install so the JS resources register.
-2. **Push these files** to the HASS server. The yaml include path resolves relative to `/config/`, so the repo root should map to `/config/`:
-   ```
-   /config/configuration.yaml      (updated)
-   /config/ui-lovelace.yaml        (new)
-   /config/dashboard/*.yaml        (new — 7 files)
-   ```
-3. **Check config**: Developer Tools → YAML → Check Configuration. Should pass.
-4. **Restart HASS**. Open each dashboard from the sidebar:
-   - Übersicht
-   - Beschattung
-   - Klima
-   - Sicherheit
-   - Lüften
-   - Erdgeschoss
-   - Obergeschoss
-   - Aussen
-5. **If everything renders**, delete the old storage files in `/config/.storage/`:
-   ```
-   lovelace
-   lovelace.dashboard_aussen
-   lovelace.dashboard_beschattung
-   lovelace.dashboard_
-   lovelace.dashboard_erdgeschoss
-   lovelace.dashboard_fenster
-   lovelace.dashboard_klima
-   lovelace.dashboard_luften
-   lovelace.dashboard_obergeschoss
-   lovelace.dashboard_rauchmelder
-   lovelace.beschattung_ui
-   lovelace_dashboards
-   lovelace_resources
-   ```
-   Then in this repo, delete the JSON snapshots in `dashboard/lovelace.*` and `dashboard/lovelace_dashboards`.
-
-## Rollback
-
-If a dashboard fails to load:
-- Comment out the entire `lovelace:` block in `configuration.yaml` and restart. HASS falls back to `.storage/` storage mode (old dashboards return).
-- Or: fix the offending yaml file and reload via Settings → System → YAML configuration reloading → "Lovelace".
-
-**Don't delete the `.storage/` files until step 4 passes.**
-
-## TODOs flagged inside the dashboards
-
-These are entity assignments I guessed and you should verify in the HASS UI:
-
-| Dashboard | Entity | Question |
+| Template | Wofür | Benutzt in |
 |---|---|---|
-| `sicherheit.yaml` | `binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke` | Which OG room? |
-| `sicherheit.yaml` | `binary_sensor.shellyplussmoke_2cbcbbf68278_smoke` | Which OG room? |
-| `sicherheit.yaml` | `binary_sensor.shellyplussmoke_2cbcbbf68028_smoke` | Which OG room? |
-| `sicherheit.yaml` | `binary_sensor.shellyplussmoke_2cbcbbf59758_smoke` | Which OG room? |
-| `sicherheit.yaml` | `binary_sensor.shellyplussmoke_2cbcbbf70698_smoke` | Which Keller room? |
-| `klima.yaml` / `obergeschoss.yaml` | `sensor.kind2_temperature` | Confirm = Büro temp; rename to `sensor.office_temperature` |
-| `beschattung.yaml` / `aussen.yaml` | `sensor.helligkeit_sud` vs `sensor.helligkeit_sued` | Old `beschattung_ui` used the *_sued spelling; `template.yaml` uses *_sud. Check which actually exists in Developer Tools and fix the other references. |
-| `aussen.yaml` | Außenbeleuchtung | Only `light.main_door_light` listed — add any other Außenleuchten you have. |
-| `aussen.yaml` | Terrassentür | Placeholder commented out, fill in after Shelly install. |
+| `beschattung_raum` | Raum-Zeile mit Stand, Blockier-Grund, 🔒/✋ | Beschattung |
+| `sollwert` | Heizungs-Sollwert eines OG-Stellantriebs (Slider + −/+ / 20 °C / Status) | Räume → OG, Klima → Heizung |
+| `lueften` | Lüften-Kachel (Taupunkt + Empfehlung) | Räume |
+| `lueften_raum` | Lüften-Detail (Werte + Empfehlung) | Klima → Lüften, Räume → Keller |
+| `klima_raum` | Temp · Feuchte, Icon = Lüften-Logo | Klima → Übersicht |
 
-## What changed semantically (vs. old dashboards)
+Variablen werden **textuell** ersetzt (`[[name]]`), bevor HA das Jinja rendert.
 
-- **One operational Beschattung dashboard** with the sensors + flags the automations actually use (sonne_trifft_X, override toggle, threshold sliders, wind alarm) — replaces the two overlapping ones.
-- **Sicherheit** unifies Fenster + Rauchmelder + Garage + Wind into one dashboard with auto-filtered alert lists at the top.
-- **Per-floor dashboards** no longer duplicate smoke detectors / windows (those live on Sicherheit).
-- **Übersicht** is a true landing page (alerts + quick actions + navigation), not the auto-generated areas mess.
-- **Aussen** demotes garage internals (vent/half/step) into an expander that only shows when the door is open.
-- **`cover.livingroom_blinks` typo fixed** to `cover.livingroom_blinds`.
-- **Empty "Neuer Abschnitt" section** in old Obergeschoss removed.
-- **Lüften** kept as-is (it was the only dashboard that was already well-designed) — just modernized layout.
+## Konventionen
+
+- Sections nehmen `column_span`, nicht `columns` (sonst still 1/4 breit).
+- Halbe Breite innerhalb einer Section: `grid_options: columns: 6`.
+- Temperatur/Feuchte/Präsenz eines Raums stehen als `badges:` in der `heading`-Karte,
+  nicht als eigene Chips-Zeile.
+- Erklärtexte, Diagnose und selten verstellte Schwellen stecken in `custom:expander-card`
+  (eingeklappt).
+- Badges/Alarme mit `visibility:` — "0 offen" wird nicht angezeigt.
+- mushroom `icon`/`icon_color` einzeilig halten (`startsWith("mdi:")`, exakter Farbvergleich).
+- Zählen nur über `sensor.offene_oeffnungen`, `sensor.beschattung_blocker`, `sensor.lichter_an`
+  (template.yaml), nie per eigenem Regex im Dashboard.
+
+## HACS-Frontend-Karten
+
+| Karte | HACS-Repo | Ressource |
+|---|---|---|
+| Mushroom | `piitaya/lovelace-mushroom` | `/hacsfiles/lovelace-mushroom/mushroom.js` |
+| mini-graph-card | `kalkih/mini-graph-card` | `/hacsfiles/mini-graph-card/mini-graph-card-bundle.js` |
+| apexcharts-card | `RomRider/apexcharts-card` | `/hacsfiles/apexcharts-card/apexcharts-card.js` |
+| auto-entities | `thomasloven/lovelace-auto-entities` | `/hacsfiles/lovelace-auto-entities/auto-entities.js` |
+| decluttering-card | `custom-cards/decluttering-card` | `/hacsfiles/decluttering-card/decluttering-card.js` |
+| expander-card | `MelleD/lovelace-expander-card` | `/hacsfiles/lovelace-expander-card/expander-card.js` |
+
+`resource_mode: yaml` → die Ressourcen stehen in `configuration.yaml`, nicht in der UI.
+Pfade bei Bedarf in HACS → Karte → "Ressource" gegenprüfen.
+
+## Offene TODOs
+
+| Wo | Entity | Frage |
+|---|---|---|
+| `sicherheit.yaml` | `binary_sensor.shellyplussmoke_*` | Raum-Zuordnung der Shelly-Melder per MAC bestätigen |
+| Klima / OG | `sensor.kind2_temperature` | = Büro-Temp? Rename auf `sensor.office_temperature` |
+| `aussen.yaml` | Außenbeleuchtung | Weitere Außenleuchten ergänzen |

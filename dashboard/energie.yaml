@@ -1,38 +1,174 @@
 ###############################################################################
-# ENERGIE — Übersichts-Dashboard für MDT-Energiemesser (ohne PV)                #
+# ENERGIE — MDT-Energiemesser (ohne PV)                                        #
+#                                                                              #
+# Zwei Tabs:                                                                   #
+#   Übersicht — was man wissen will: Leistung jetzt, Verbrauch heute/Woche/    #
+#               Monat, Wärmepumpe                                              #
+#   Details   — pro Phase (Spannung, P, S, cos φ, Strom), Phasen-Vergleich,    #
+#               Lichtleistung OG                                               #
+# Vorher hatte jede Phase eine eigene Strom-Kurve UND es gab dieselben Kurven   #
+# noch einmal im Phasen-Vergleich — jetzt nur noch der Vergleich.              #
 ###############################################################################
 title: Energie
 views:
+  #############################################################################
+  # TAB 1 — ÜBERSICHT                                                         #
+  #############################################################################
   - title: Übersicht
     path: home
     icon: mdi:lightning-bolt
     type: sections
     max_columns: 3
+
+    badges:
+      - type: entity
+        entity: sensor.leistung_bezug_gesamt
+        name: Jetzt
+      - type: entity
+        entity: sensor.energie_bezug_tag
+        name: Heute
+      - type: entity
+        entity: binary_sensor.netzspannungsfehler
+        name: Netzfehler
+        visibility:
+          - condition: state
+            entity: binary_sensor.netzspannungsfehler
+            state: "on"
+
     sections:
 
       ###########################################################################
-      # NETZ-STATUS                                                             #
+      # LEISTUNG LIVE                                                           #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Leistung
+            icon: mdi:home-lightning-bolt
+            badges:
+              - type: entity
+                entity: sensor.scheinleistung_bezug_gesamt
+                name: Schein
+
+          - type: custom:mini-graph-card
+            name: Bezug 24 h
+            entities:
+              - entity: sensor.leistung_bezug_gesamt
+                name: Bezug
+                color: '#d97706'
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: true
+
+      ###########################################################################
+      # VERBRAUCH                                                               #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Verbrauch
+            icon: mdi:counter
+
+          - type: glance
+            columns: 3
+            entities:
+              - entity: sensor.energie_bezug_tag
+                name: Heute
+              - entity: sensor.energie_bezug_woche
+                name: Woche
+              - entity: sensor.energie_bezug_monat
+                name: Monat
+
+          - type: entities
+            entities:
+              - entity: sensor.arbeit_bezug_gesamt
+                name: Zählerstand
+                icon: mdi:transmission-tower-import
+
+          - type: custom:expander-card
+            title: Zählerstand je Phase
+            expanded: false
+            cards:
+              - type: entities
+                entities:
+                  - entity: sensor.arbeit_bezug_l1
+                    name: Bezug L1
+                  - entity: sensor.arbeit_bezug_l2
+                    name: Bezug L2
+                  - entity: sensor.arbeit_bezug_l3
+                    name: Bezug L3
+              - type: custom:mini-graph-card
+                name: Zählerstand 7 Tage
+                entities:
+                  - entity: sensor.arbeit_bezug_gesamt
+                    name: Bezug
+                    color: '#d97706'
+                hours_to_show: 168
+                points_per_hour: 1
+                line_width: 2
+                show:
+                  labels: true
+                  extrema: true
+
+      ###########################################################################
+      # WÄRMEPUMPE (LWP)                                                        #
       ###########################################################################
       - type: grid
         column_span: 3
         cards:
-          - type: entities
-            title: Netz-Status
-            entities:
-              - entity: binary_sensor.netzspannungsfehler
-                name: Netzspannungsfehler
-                icon: mdi:flash-alert
+          - type: heading
+            heading: Wärmepumpe — Heizen
+            icon: mdi:heat-pump
 
-      ###########################################################################
-      # PHASE L1                                                                #
-      ###########################################################################
+          - type: glance
+            columns: 3
+            entities:
+              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heute
+              - entity: sensor.altherma_climatecontrol_heating_weekly_electrical_consumption
+                name: Woche
+              - entity: sensor.altherma_climatecontrol_heating_yearly_electrical_consumption
+                name: Jahr
+            grid_options:
+              columns: 6
+
+          - type: custom:mini-graph-card
+            name: Tagesverbrauch 7 Tage
+            entities:
+              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heizen
+                color: '#d97706'
+            hours_to_show: 168
+            points_per_hour: 1
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+            grid_options:
+              columns: 6
+
+  #############################################################################
+  # TAB 2 — DETAILS                                                           #
+  #############################################################################
+  - title: Details
+    path: details
+    icon: mdi:sine-wave
+    type: sections
+    max_columns: 3
+    sections:
+
       - type: grid
         column_span: 1
         cards:
           - type: heading
             heading: Phase L1
             icon: mdi:numeric-1-circle
-
           - type: entities
             entities:
               - entity: sensor.netz_spannung_l1
@@ -50,32 +186,13 @@ views:
               - entity: sensor.strom_bezug_l1
                 name: Strom Bezug
                 icon: mdi:current-ac
-            state_color: false
 
-          - type: custom:mini-graph-card
-            name: Strom L1 — Bezug (12h)
-            entities:
-              - entity: sensor.strom_bezug_l1
-                name: Bezug
-                color: '#d97706'
-            hours_to_show: 12
-            points_per_hour: 4
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
-              fill: false
-
-      ###########################################################################
-      # PHASE L2                                                                #
-      ###########################################################################
       - type: grid
         column_span: 1
         cards:
           - type: heading
             heading: Phase L2
             icon: mdi:numeric-2-circle
-
           - type: entities
             entities:
               - entity: sensor.netz_spannung_l2
@@ -93,32 +210,13 @@ views:
               - entity: sensor.strom_bezug_l2
                 name: Strom Bezug
                 icon: mdi:current-ac
-            state_color: false
 
-          - type: custom:mini-graph-card
-            name: Strom L2 — Bezug (12h)
-            entities:
-              - entity: sensor.strom_bezug_l2
-                name: Bezug
-                color: '#d97706'
-            hours_to_show: 12
-            points_per_hour: 4
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
-              fill: false
-
-      ###########################################################################
-      # PHASE L3                                                                #
-      ###########################################################################
       - type: grid
         column_span: 1
         cards:
           - type: heading
             heading: Phase L3
             icon: mdi:numeric-3-circle
-
           - type: entities
             entities:
               - entity: sensor.netz_spannung_l3
@@ -136,140 +234,6 @@ views:
               - entity: sensor.strom_bezug_l3
                 name: Strom Bezug
                 icon: mdi:current-ac
-            state_color: false
-
-          - type: custom:mini-graph-card
-            name: Strom L3 — Bezug (12h)
-            entities:
-              - entity: sensor.strom_bezug_l3
-                name: Bezug
-                color: '#d97706'
-            hours_to_show: 12
-            points_per_hour: 4
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
-              fill: false
-
-      ###########################################################################
-      # GESAMT-LIVE                                                             #
-      ###########################################################################
-      - type: grid
-        column_span: 3
-        cards:
-          - type: heading
-            heading: Gesamt — Live
-            icon: mdi:home-lightning-bolt
-
-          - type: custom:mushroom-chips-card
-            chips:
-              - type: entity
-                entity: sensor.leistung_bezug_gesamt
-                name: Wirkleistung P
-                icon: mdi:transmission-tower-import
-                icon_color: amber
-              - type: entity
-                entity: sensor.scheinleistung_bezug_gesamt
-                name: Scheinleistung S
-                icon: mdi:flash-outline
-                icon_color: orange
-
-          - type: custom:mini-graph-card
-            name: Leistung Gesamt — Bezug (24h)
-            entities:
-              - entity: sensor.leistung_bezug_gesamt
-                name: Bezug
-                color: '#d97706'
-            hours_to_show: 24
-            points_per_hour: 4
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
-              fill: true
-
-      ###########################################################################
-      # ENERGIE-BILANZ (kWh)                                                    #
-      ###########################################################################
-      - type: grid
-        column_span: 3
-        cards:
-          - type: heading
-            heading: Energie-Bilanz (kWh)
-            icon: mdi:counter
-
-          - type: entities
-            title: Bezug — Zählerstände
-            entities:
-              - entity: sensor.arbeit_bezug_gesamt
-                name: Bezug Gesamt
-                icon: mdi:transmission-tower-import
-              - type: divider
-              - entity: sensor.arbeit_bezug_l1
-                name: Bezug L1
-              - entity: sensor.arbeit_bezug_l2
-                name: Bezug L2
-              - entity: sensor.arbeit_bezug_l3
-                name: Bezug L3
-
-          - type: glance
-            title: Bezug — Verbrauch (utility_meter)
-            columns: 3
-            entities:
-              - entity: sensor.energie_bezug_tag
-                name: Heute
-              - entity: sensor.energie_bezug_woche
-                name: Woche
-              - entity: sensor.energie_bezug_monat
-                name: Monat
-
-          - type: custom:mini-graph-card
-            name: Bezug — Zählerstand (7 Tage)
-            entities:
-              - entity: sensor.arbeit_bezug_gesamt
-                name: Bezug
-                color: '#d97706'
-            hours_to_show: 168
-            points_per_hour: 1
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
-
-      ###########################################################################
-      # WÄRMEPUMPE (LWP)                                                        #
-      ###########################################################################
-      - type: grid
-        column_span: 3
-        cards:
-          - type: heading
-            heading: Wärmepumpe (LWP) — Heizung Stromverbrauch
-            icon: mdi:heat-pump
-
-          - type: glance
-            title: Elektrischer Verbrauch Heizen
-            columns: 3
-            entities:
-              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
-                name: Heute
-              - entity: sensor.altherma_climatecontrol_heating_weekly_electrical_consumption
-                name: Woche
-              - entity: sensor.altherma_climatecontrol_heating_yearly_electrical_consumption
-                name: Jahr
-
-          - type: custom:mini-graph-card
-            name: LWP Heizung — Tagesverbrauch (7 Tage)
-            entities:
-              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
-                name: Heizen
-                color: '#d97706'
-            hours_to_show: 168
-            points_per_hour: 1
-            line_width: 2
-            show:
-              labels: true
-              extrema: true
 
       ###########################################################################
       # PHASEN-VERGLEICH                                                        #
@@ -280,9 +244,13 @@ views:
           - type: heading
             heading: Phasen-Vergleich
             icon: mdi:chart-multiline
+            badges:
+              - type: entity
+                entity: binary_sensor.netzspannungsfehler
+                name: Netzfehler
 
           - type: custom:mini-graph-card
-            name: Strom Bezug — alle Phasen (24h)
+            name: Strom 24 h
             entities:
               - entity: sensor.strom_bezug_l1
                 name: L1
@@ -297,9 +265,11 @@ views:
               labels: true
               extrema: true
               state: false
+            grid_options:
+              columns: 4
 
           - type: custom:mini-graph-card
-            name: Leistung Bezug — alle Phasen (24h)
+            name: Leistung 24 h
             entities:
               - entity: sensor.leistung_bezug_l1
                 name: L1
@@ -314,9 +284,11 @@ views:
               labels: true
               extrema: true
               state: false
+            grid_options:
+              columns: 4
 
           - type: custom:mini-graph-card
-            name: Spannung — alle Phasen (12h)
+            name: Spannung 12 h
             entities:
               - entity: sensor.netz_spannung_l1
                 name: L1
@@ -331,20 +303,21 @@ views:
               labels: true
               extrema: true
               state: false
+            grid_options:
+              columns: 4
 
       ###########################################################################
-      # LICHT OBERGESCHOSS                                                       #
+      # LICHT OBERGESCHOSS                                                      #
       ###########################################################################
       - type: grid
         column_span: 3
         cards:
           - type: heading
-            heading: Licht Obergeschoss — Deckenlichter
+            heading: Lichtleistung OG — Deckenlichter
             icon: mdi:ceiling-light
 
           - type: glance
-            title: Aktuelle Leistung
-            columns: 3
+            columns: 6
             entities:
               - entity: sensor.leistung_schlafzimmer_deckenlicht
                 name: Schlafzimmer
@@ -360,7 +333,7 @@ views:
                 name: Galerie
 
           - type: custom:mini-graph-card
-            name: Lichtleistung Deckenlichter (24h)
+            name: Deckenlichter 24 h
             entities:
               - entity: sensor.leistung_schlafzimmer_deckenlicht
                 name: Schlafzimmer

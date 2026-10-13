@@ -506,6 +506,22 @@ sensor:
         {% endfor %}
         {{ ns.t | join(', ') }}
 
+  # =========================================================
+  # LICHTER AN — für das Badge auf der Übersicht
+  # =========================================================
+  # Iteriert über die light-Domain, damit ein neues Licht nicht nachgetragen
+  # werden muss. Namen = friendly_name (bei KNX-Lichtern der YAML-name).
+  - name: "Lichter an"
+    unique_id: lichter_an
+    state_class: measurement
+    icon: mdi:lightbulb-group
+    state: >
+      {{ states.light | selectattr('state', 'eq', 'on') | list | count }}
+    attributes:
+      namen: >
+        {{ states.light | selectattr('state', 'eq', 'on')
+           | map(attribute='name') | sort | join(', ') }}
+
   # Scheinleistung S = U × I pro Phase (Strom-Sensor liefert mA → /1000)
   - name: "Scheinleistung Bezug L1"
     unique_id: scheinleistung_bezug_l1

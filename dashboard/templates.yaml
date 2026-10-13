@@ -1,0 +1,213 @@
+###############################################################################
+# DECLUTTERING-TEMPLATES — gemeinsame Karten-Bausteine für alle Dashboards     #
+#                                                                              #
+# Eingebunden per `decluttering_templates: !include templates.yaml` im Kopf    #
+# jedes Dashboards (ui-lovelace.yaml: dashboard/templates.yaml).               #
+# Benutzt via:                                                                 #
+#   - type: custom:decluttering-card                                           #
+#     template: <name>                                                         #
+#     variables:                                                               #
+#       - raum: wc_og                                                          #
+#                                                                              #
+# Braucht HACS → Frontend: custom-cards/decluttering-card.                     #
+# Variablen werden TEXTUELL ersetzt ([[name]]), bevor HA das Jinja rendert —   #
+# deshalb stehen sie in den Templates in einfachen Anführungszeichen.          #
+#                                                                              #
+# icon/icon_color bleiben einzeilig: mushroom prüft Icons mit                  #
+# startsWith("mdi:") und Farben per exaktem Vergleich, ein führendes           #
+# Leerzeichen aus einem gefalteten Template lässt beides still verschwinden.   #
+###############################################################################
+
+# -----------------------------------------------------------------------------
+# BESCHATTUNG — eine Zeile pro Raum
+#   [ Raum + Stand + Grund, warum die Automation nicht anfasst ]  [🔒] [✋]
+# Tippen links → Cover-Dialog, Tippen rechts → Override umschalten.
+#
+# Variablen:
+#   name, cover, lock, manual   Pflicht
+#   typ      raffstore | rollo  (Rollo zeigt nur die Position)
+#   icon     Raum-Icon
+#   sonne    Jinja-Ausdruck → true, wenn die Fassade Sonne hat (orange)
+#   grund    Jinja-Ausdruck → Text, wenn etwas Externes blockiert (lila),
+#            z. B. Fenster offen / Tür offen / Privacy / Gast. '' = nichts.
+#   hand     Text für die Hand-Sperre (Dauer ist je Raum verschieden)
+#   info     Jinja-Ausdruck → Text, wenn sonst nichts ansteht
+# Reihenfolge wie in der Konvergenz: Sperre > Grund > Hand > Info.
+# -----------------------------------------------------------------------------
+beschattung_raum:
+  default:
+    - typ: raffstore
+    - icon: mdi:blinds-horizontal
+    - sonne: "false"
+    - grund: "''"
+    - hand: Hand
+    - info: "''"
+  card:
+    type: horizontal-stack
+    cards:
+      - type: custom:mushroom-template-card
+        entity: "[[cover]]"
+        primary: "[[name]]"
+        secondary: >-
+          {% set c = '[[cover]]' %}
+          {% set grund = [[grund]] %}
+          {% set info = [[info]] %}
+          {% if '[[typ]]' == 'rollo' %}Rollo {{ state_attr(c, 'current_position') | int(0) }} %
+          {%- else %}Behang {{ state_attr(c, 'current_position') | int(0) }} % · Lamelle {{ state_attr(c, 'current_tilt_position') | int(0) }} %
+          {%- endif %}
+          {%- if is_state('[[lock]]', 'on') %} · gesperrt
+          {%- elif grund %} · {{ grund }}
+          {%- elif is_state('[[manual]]', 'on') %} · [[hand]]
+          {%- elif info %} · {{ info }}
+          {%- endif %}
+        icon: "[[icon]]"
+        icon_color: "{% set grund = [[grund]] %}{% if is_state('[[lock]]', 'on') %}red{% elif grund %}purple{% elif is_state('[[manual]]', 'on') %}amber{% elif [[sonne]] %}orange{% else %}disabled{% endif %}"
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-chips-card
+        alignment: end
+        chips:
+          - type: template
+            entity: "[[lock]]"
+            icon: "{% if is_state(entity, 'on') %}mdi:lock{% else %}mdi:lock-open-variant{% endif %}"
+            icon_color: "{% if is_state(entity, 'on') %}red{% else %}disabled{% endif %}"
+            tap_action:
+              action: toggle
+          - type: template
+            entity: "[[manual]]"
+            icon: mdi:gesture-tap
+            icon_color: "{% if is_state(entity, 'on') %}amber{% else %}disabled{% endif %}"
+            tap_action:
+              action: toggle
+
+# -----------------------------------------------------------------------------
+# HEIZUNG-SOLLWERT eines KNX-Stellantriebs (OG)
+# Alle Räume folgen demselben Namensschema:
+#   number.<raum>_sollwert, button.<raum>_sollwert_minus/_plus,
+#   script.<raum>_sollwert_standard, script.<raum>_sollwert_status_abfragen
+#
+# Slider direkt in der Karte (nicht hinter einem Dialog). Die −/+ Chips
+# gehen auf die Korrektur-KO des Antriebs — relativ wie ein Wandthermostat,
+# funktioniert auch, wenn HASS den Absolutwert nicht kennt. "Status" zwingt
+# den Antrieb, seinen echten Sollwert zu melden (kein Display am Gerät).
+# Der Standard-Hinweis erscheint nur, solange der Antrieb nichts gemeldet hat.
+#
+# Variablen: raum (z. B. wc_og, buro, gastezimmer, schlafzimmer, badezimmer)
+#            name (Zeilen-Titel, Standard "Heizung")
+# -----------------------------------------------------------------------------
+sollwert:
+  default:
+    - name: Heizung
+  card:
+    type: vertical-stack
+    cards:
+      - type: entities
+        show_header_toggle: false
+        entities:
+          - entity: number.[[raum]]_sollwert
+            name: "[[name]]"
+            icon: mdi:radiator
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: number.[[raum]]_sollwert
+            state:
+              - unknown
+              - unavailable
+        card:
+          type: custom:mushroom-template-card
+          primary: 20 °C (Standard)
+          secondary: >-
+            Der Antrieb hat noch keinen Sollwert gemeldet. 20 °C steht
+            im ETS-Parameter des Stellantriebs.
+          icon: mdi:information-outline
+          icon_color: grey
+      - type: custom:mushroom-chips-card
+        alignment: center
+        chips:
+          - type: template
+            icon: mdi:minus
+            icon_color: blue
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.[[raum]]_sollwert_minus
+          - type: template
+            icon: mdi:restore
+            content: 20 °C
+            icon_color: amber
+            tap_action:
+              action: call-service
+              service: script.[[raum]]_sollwert_standard
+          - type: template
+            icon: mdi:refresh
+            content: Status
+            icon_color: teal
+            tap_action:
+              action: call-service
+              service: script.[[raum]]_sollwert_status_abfragen
+          - type: template
+            icon: mdi:plus
+            icon_color: deep-orange
+            tap_action:
+              action: call-service
+              service: button.press
+              target:
+                entity_id: button.[[raum]]_sollwert_plus
+
+# -----------------------------------------------------------------------------
+# LÜFTEN — Empfehlung + Taupunkt als eine Kachel (Raum-Ansichten)
+# Ventilator-Logo: stark = fan-speed-3/rot, wenig = fan-speed-1/amber,
+# nicht lüften = fan-off/grau, okay = check-circle/grün.
+# Variablen: luftung, taupunkt, name (Standard "Lüften")
+# -----------------------------------------------------------------------------
+lueften:
+  default:
+    - name: Lüften
+  card:
+    type: custom:mushroom-template-card
+    entity: "[[luftung]]"
+    primary: "[[name]]"
+    secondary: "Taupunkt {{ states('[[taupunkt]]') }} °C · {{ states('[[luftung]]') }}"
+    icon: "{% set s = states('[[luftung]]') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
+    icon_color: "{% set s = states('[[luftung]]') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
+    multiline_secondary: true
+
+# -----------------------------------------------------------------------------
+# LÜFTEN — Detail-Kachel (Klima → Lüften): Werte + Empfehlung
+# Variablen: name, temp, feuchte, taupunkt, luftung
+# -----------------------------------------------------------------------------
+lueften_raum:
+  card:
+    type: custom:mushroom-template-card
+    entity: "[[luftung]]"
+    primary: "[[name]] · {{ states('[[luftung]]') }}"
+    secondary: "{{ states('[[temp]]') }} °C · {{ states('[[feuchte]]') }} % · Taupunkt {{ states('[[taupunkt]]') }} °C"
+    icon: "{% set s = states('[[luftung]]') %}{% if 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
+    icon_color: "{% set s = states('[[luftung]]') %}{% if 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
+    multiline_secondary: true
+
+# -----------------------------------------------------------------------------
+# KLIMA-KACHEL (Klima-Übersicht): nur Temperatur · Feuchte.
+# Hat der Raum eine Lüftungsempfehlung, ist das Icon das Lüften-Logo,
+# sonst das Raum-Icon. Taupunkt bewusst nicht — der steht in den Raum-
+# Ansichten und unter Klima → Lüften.
+# Variablen: name, temp, feuchte ('' = keine), luftung ('' = keine),
+#            icon, farbe (Raum-Icon-Farbe)
+# -----------------------------------------------------------------------------
+klima_raum:
+  default:
+    - feuchte: ""
+    - luftung: ""
+    - icon: mdi:home-thermometer
+    - farbe: grey
+  card:
+    type: custom:mushroom-template-card
+    entity: "[[temp]]"
+    primary: "[[name]]"
+    secondary: "{{ states('[[temp]]') }} °C{% if '[[feuchte]]' %} · {{ states('[[feuchte]]') }} %{% endif %}"
+    icon: "{% set l = '[[luftung]]' %}{% set s = states(l) if l else '' %}{% if not l %}[[icon]]{% elif 'stark' in s %}mdi:fan-speed-3{% elif 'wenig' in s %}mdi:fan-speed-1{% elif 'Nicht' in s %}mdi:fan-off{% else %}mdi:check-circle{% endif %}"
+    icon_color: "{% set l = '[[luftung]]' %}{% set s = states(l) if l else '' %}{% if not l %}[[farbe]]{% elif 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
+    tap_action:
+      action: more-info
