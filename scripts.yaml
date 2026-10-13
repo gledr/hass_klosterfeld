@@ -542,10 +542,19 @@ house_morning_weekend:
               - cover.bedroom_shutter
 
 
+# Messfahrt-Knopf (Dashboard). Gleicher Rahmen wie die 2-wöchentliche
+# Automation beschattung_messfahrt_2_wochen: Flag an, damit Konvergenz und
+# Manuell-Erkennung stillhalten — sonst fuhr die Konvergenz in die
+# Kalibrierung und jede Kalibrierfahrt sperrte den Raum 1 h als "Hand".
+# Bricht ein Neustart das Script im delay ab, räumt
+# beschattung_messfahrt_flag_watchdog das Flag ab.
 messfahrt_alle:
   alias: Alle Raffstores Messfahrt
   mode: single
   sequence:
+    - service: input_boolean.turn_on
+      target:
+        entity_id: input_boolean.beschattung_messfahrt_running
     - service: knx.send
       data: { address: "4/1/18", payload: 1 }
     - delay: "00:00:03"
@@ -592,6 +601,31 @@ messfahrt_alle:
 
     - service: knx.send
       data: { address: "4/2/98", payload: 1 }
+
+    # Fertig fahren lassen, Abschluss-Bewegung als Auto-Befehl stempeln,
+    # Flag aus → die Konvergenz holt alle Räume in den Sollzustand zurück.
+    - delay: "00:03:00"
+    - service: input_datetime.set_datetime
+      target:
+        entity_id:
+          - input_datetime.beschattung_letzter_auto_befehl
+          - input_datetime.beschattung_auto_garderobe
+          - input_datetime.beschattung_auto_abstellraum
+          - input_datetime.beschattung_auto_wc_eg
+          - input_datetime.beschattung_auto_kueche
+          - input_datetime.beschattung_auto_esszimmer
+          - input_datetime.beschattung_auto_wohnzimmer
+          - input_datetime.beschattung_auto_terrasse
+          - input_datetime.beschattung_auto_wc_og
+          - input_datetime.beschattung_auto_badezimmer
+          - input_datetime.beschattung_auto_gaestezimmer
+          - input_datetime.beschattung_auto_buero
+          - input_datetime.beschattung_auto_schlafzimmer
+      data:
+        datetime: "{{ now().isoformat() }}"
+    - service: input_boolean.turn_off
+      target:
+        entity_id: input_boolean.beschattung_messfahrt_running
 
 
 #########################################################
