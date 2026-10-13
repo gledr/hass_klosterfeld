@@ -76,21 +76,107 @@
           target:
             entity_id: cover.garage_door_garage_door
     mode: single
-  - id: wc_lights_auto_off
-    alias: WC Licht automatisch aus nach 30 Minuten
+  # ----------------------------------------------------------
+  # LICHT AUTO-AUS (harte Obergrenze ab dem Einschalten)
+  # Terrasse 4 h, Bad 2 h, WC 30 Min — Dauer steht am Timer
+  # (timer.auto_aus_<object_id des Lichts>, configuration.yaml).
+  # Timer statt "for:" — ein for-Trigger überlebt keinen HA-Neustart und
+  # beginnt nach jedem KNX-Reconnect (unavailable → on) neu zu zählen. So
+  # blieb das Bad-Licht einen ganzen Tag an. Dimmen startet nichts neu,
+  # nur ein echtes Aus → Ein.
+  # Neues Licht: hier in alle drei Listen + Timer anlegen.
+  # ----------------------------------------------------------
+  - id: licht_auto_aus_timer
+    alias: Licht Auto-Aus – Timer starten/stoppen
+    mode: queued
     trigger:
     - platform: state
       entity_id:
+      - light.terrace_light
+      - light.bathroom_main_light
+      - light.bathroom_mirror_light
       - light.wc_eg_light
       - light.wc_og_light
       to: 'on'
-      for:
-        minutes: 30
+    - platform: state
+      entity_id:
+      - light.terrace_light
+      - light.bathroom_main_light
+      - light.bathroom_mirror_light
+      - light.wc_eg_light
+      - light.wc_og_light
+      to: 'off'
+    action:
+    - variables:
+        timer: "{{ trigger.entity_id | replace('light.', 'timer.auto_aus_') }}"
+    - choose:
+      # Echt eingeschaltet → Timer (neu) starten
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.to_state.state == 'on' and trigger.from_state.state == 'off' }}"
+        sequence:
+        - service: timer.start
+          target:
+            entity_id: "{{ timer }}"
+      # Aus unavailable/unknown wieder on (Reconnect) → nur starten, wenn
+      # kein Timer läuft. Ein laufender Timer zählt weiter.
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.to_state.state == 'on' and not is_state(timer, 'active') }}"
+        sequence:
+        - service: timer.start
+          target:
+            entity_id: "{{ timer }}"
+      - conditions:
+        - condition: template
+          value_template: "{{ trigger.to_state.state == 'off' }}"
+        sequence:
+        - service: timer.cancel
+          target:
+            entity_id: "{{ timer }}"
+  - id: licht_auto_aus_ende
+    alias: Licht Auto-Aus – Timer abgelaufen
+    mode: queued
+    trigger:
+    - platform: event
+      event_type: timer.finished
+    condition:
+    - condition: template
+      value_template: "{{ trigger.event.data.entity_id.startswith('timer.auto_aus_') }}"
     action:
     - service: light.turn_off
       target:
-        entity_id: '{{ trigger.entity_id }}'
-    mode: restart
+        entity_id: "{{ trigger.event.data.entity_id | replace('timer.auto_aus_', 'light.') }}"
+  # Sicherheitsnetz nach Neustart (wie Handtuchheizkörper): Ist ein Licht an,
+  # ohne dass sein Timer läuft (Timer während der Downtime abgelaufen oder
+  # Licht in der Downtime eingeschaltet) → Timer starten. Nicht sofort aus,
+  # sonst geht ein gerade eingeschaltetes Licht beim Neustart aus.
+  - id: licht_auto_aus_startup_check
+    alias: Licht Auto-Aus – Check nach Neustart
+    mode: single
+    trigger:
+    - platform: homeassistant
+      event: start
+    action:
+    - delay:
+        seconds: 60
+    - repeat:
+        for_each:
+        - light.terrace_light
+        - light.bathroom_main_light
+        - light.bathroom_mirror_light
+        - light.wc_eg_light
+        - light.wc_og_light
+        sequence:
+        - if:
+          - condition: template
+            value_template: >-
+              {{ is_state(repeat.item, 'on')
+                 and not is_state(repeat.item | replace('light.', 'timer.auto_aus_'), 'active') }}
+          then:
+          - service: timer.start
+            target:
+              entity_id: "{{ repeat.item | replace('light.', 'timer.auto_aus_') }}"
   - id: wohnkueche_lichtmodus_setzen
     alias: Wohnküche Lichtmodus setzen
     trigger:
@@ -253,6 +339,12 @@
         entity_id: input_select.wohnkueche_lichtmodus
         id: modus
     condition:
+      # Gästemodus: Gast schläft auf der Couch → Präsenzmelder schaltet
+      # gar nichts (weder ein noch aus, auch keine Modus-Wechsel).
+      # Von Hand schalten geht weiter.
+      - condition: state
+        entity_id: input_boolean.gast_modus_wohnkueche
+        state: 'off'
       - condition: or
         conditions:
           # Präsenz AUS → durchlassen (Lichter aus)
@@ -1264,6 +1356,21 @@
       # Terrassentür bewegt → Terrasse neu bewerten
       - platform: state
         entity_id: binary_sensor.bthome_sensor_fb9c_fenster
+      # Bad: Handtuchheizkörper an/aus → nachts Lamellen Sichtschutz/zu.
+      # Privacy-Ende mit 30 s Abstand, damit die Privacy-Wiederherstellung
+      # ihre Fahrt fertig hat, bevor die Konvergenz auf Sichtschutz stellt.
+      - platform: state
+        entity_id: switch.handtuchheizkoerper
+        to:
+          - "on"
+          - "off"
+      - platform: state
+        entity_id: input_boolean.badezimmer_privacy_active
+        to: "off"
+        for: "00:00:30"
+      # Gästemodus Wohnküche umgeschaltet → sofort neu bewerten
+      - platform: state
+        entity_id: input_boolean.gast_modus_wohnkueche
       # Nacht-Verzögerung verstellt → sofort neu bewerten (statt bis zum
       # nächsten /15-Lauf zu warten)
       - platform: state
@@ -1371,6 +1478,10 @@
               type: raffstore
               dir: west
               hitze_tilt: 10
+              # Gästemodus: Gast auf der Couch → erst um 10:00 auf (jeden Tag)
+              waketime: true
+              waketime_aktiv: input_boolean.gast_modus_wohnkueche
+              waketime_fix: 10
               lock: input_boolean.beschattung_lock_kueche
               manual: input_boolean.beschattung_manual_kueche
             - name: Esszimmer
@@ -1378,6 +1489,10 @@
               type: raffstore
               dir: west
               hitze_tilt: 10
+              # Gästemodus: Gast auf der Couch → erst um 10:00 auf (jeden Tag)
+              waketime: true
+              waketime_aktiv: input_boolean.gast_modus_wohnkueche
+              waketime_fix: 10
               lock: input_boolean.beschattung_lock_esszimmer
               manual: input_boolean.beschattung_manual_esszimmer
             - name: Wohnzimmer
@@ -1394,6 +1509,10 @@
               praesenz: binary_sensor.praesenzmelder_wohnzimmer
               praesenz_hold: true
               praesenz_nachlauf: 1800
+              # Gästemodus: Gast auf der Couch → erst um 10:00 auf (jeden Tag)
+              waketime: true
+              waketime_aktiv: input_boolean.gast_modus_wohnkueche
+              waketime_fix: 10
               lock: input_boolean.beschattung_lock_wohnzimmer
               manual: input_boolean.beschattung_manual_wohnzimmer
             - name: Terrasse
@@ -1411,6 +1530,10 @@
               praesenz: binary_sensor.praesenzmelder_wohnzimmer
               praesenz_hold: true
               praesenz_nachlauf: 1800
+              # Gästemodus: Gast auf der Couch → erst um 10:00 auf (jeden Tag)
+              waketime: true
+              waketime_aktiv: input_boolean.gast_modus_wohnkueche
+              waketime_fix: 10
               lock: input_boolean.beschattung_lock_terrasse
               manual: input_boolean.beschattung_manual_terrasse
             - name: WC OG
@@ -1429,6 +1552,10 @@
               # Nach dem Duschen von Hand zum Lüften aufgemacht → die manuelle
               # Sperre gilt hier auch nachts (1 h, dann regulär zu).
               manual_nacht: true
+              # Handtuchheizkörper an = es wurde geduscht → lüften. Nachts
+              # Lamellen auf Sichtschutz (wie tagsüber) statt zu, solange kein
+              # Licht an ist (sonst Privacy). Heizkörper aus → Lamellen zu.
+              nacht_sichtschutz: switch.handtuchheizkoerper
               lock: input_boolean.beschattung_lock_badezimmer
               manual: input_boolean.beschattung_manual_badezimmer
             # Rollo: Position ändert sich (100 offen / 0 zu)
@@ -1612,18 +1739,29 @@
                   {{ repeat.item.get('praesenz_hold', false)
                      and (anwesend | string | lower == 'true')
                      and cur_pos | int(-1) >= 50 }}
-                # Wake-Zeit: Schlafzimmer immer; Gästezimmer/Büro nur bei
-                # aktivem Gast-Toggle (waketime_aktiv). Ohne Toggle → true.
+                # Wake-Zeit: Schlafzimmer immer; Gästezimmer/Büro/Wohnküche nur
+                # bei aktivem Gast-Toggle (waketime_aktiv). Ohne Toggle → true.
+                # waketime_fix (Wohnküche): feste Stunde jeden Tag statt
+                # Werktag 7 / Wochenende 10.
                 tag_erlaubt: >-
                   {% if repeat.item.get('waketime', false) %}
                     {% set akt = repeat.item.get('waketime_aktiv') %}
                     {% set aktiv = true if akt is none else is_state(akt, 'on') %}
                     {% set workday = is_state('binary_sensor.workday_sensor', 'on') %}
                     {% set h = now().hour %}
-                    {% if aktiv %}
+                    {% set fix = repeat.item.get('waketime_fix') %}
+                    {% if aktiv and fix is not none %}
+                      {{ h >= fix }}
+                    {% elif aktiv %}
                       {{ (workday and h >= 7) or (not workday and h >= 10) }}
                     {% else %}true{% endif %}
                   {% else %}true{% endif %}
+                # Bad nachts: Handtuchheizkörper an → Lamellen Sichtschutz statt
+                # zu (lüften nach dem Duschen). Licht an greift vorher über
+                # privacy in 'gesperrt'. Ein einziger {{ }}-Ausdruck (siehe anwesend).
+                sichtschutz_nacht: >-
+                  {% set h = repeat.item.get('nacht_sichtschutz') %}
+                  {{ h is not none and is_state(h, 'on') }}
                 # Gesperrt (auch wenn der Zustand nicht lesbar ist) → skip
                 gesperrt: >-
                   {{ not lesbar or locked or wind or fenster_blockt or manual_block
@@ -1634,7 +1772,11 @@
                   {% if gesperrt %}skip
                   {% elif morgen %}morgen
                   {% elif nacht %}nacht
-                  {% elif hitze and not repeat.item.get('no_hitze', false) %}hitze
+                  {# Raffstore vor der Wake-Zeit (Gästemodus Wohnküche): kein
+                     Hitzeschutz — der würde die Lamellen von 0 (Nacht) auf
+                     hitze_tilt AUFmachen und den Gast wecken. #}
+                  {% elif hitze and not repeat.item.get('no_hitze', false)
+                          and (tag_erlaubt or rtype != 'raffstore') %}hitze
                   {% elif blendung | string | lower == 'true' %}blend
                   {% elif hold %}skip
                   {% elif tag_erlaubt %}tag
@@ -1670,7 +1812,7 @@
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% if mode == 'skip' %}-1
                   {% elif rtype == 'raffstore' %}
-                    {% if mode == 'nacht' %}0
+                    {% if mode == 'nacht' %}{{ 50 if sichtschutz_nacht | string | lower == 'true' else 0 }}
                     {% elif mode == 'hitze' %}{{ repeat.item.hitze_tilt }}
                     {% elif default == 'Offen' %}-1
                     {% elif default == 'Lamellen halb' %}50
@@ -2060,6 +2202,11 @@
       - condition: state
         entity_id: device_tracker.iphone_von_sebastian
         state: "not_home"
+      # Gast schläft auf der Couch → keine Messfahrt (fährt alle Raffstores
+      # in der Wohnküche hoch). Fällt dann auf den nächsten Termin.
+      - condition: state
+        entity_id: input_boolean.gast_modus_wohnkueche
+        state: "off"
       # Kein Hitzeschutz aktiv (auf keiner Fassade)
       - condition: state
         entity_id: binary_sensor.sonne_trifft_nord

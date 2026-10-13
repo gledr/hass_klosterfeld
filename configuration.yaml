@@ -1038,6 +1038,13 @@ input_boolean:
   beschattung_gast_aktiv_buero:
     name: Gast aktiv Büro
     icon: mdi:bed-empty
+  # Gästemodus Wohnküche: Gast schläft auf der Couch. Wenn ON, schaltet der
+  # Präsenzmelder kein Licht mehr (weder ein noch aus, auch keine Modus-
+  # Wechsel) und die vier Wohnküchen-Raffstores öffnen erst um 10:00 (jeden
+  # Tag). Kein Auto-Reset — wird von Hand wieder ausgeschaltet.
+  gast_modus_wohnkueche:
+    name: Gästemodus Wohnküche
+    icon: mdi:sofa
   badezimmer_privacy_active:
     name: Badezimmer Privacy Mode Aktiv
   beschattung_messfahrt_running:
@@ -1193,6 +1200,36 @@ timer:
     name: Handtuchheizkörper Auto-Aus
     duration: "01:00:00"
     icon: mdi:radiator
+    restore: true
+
+  # Licht Auto-Aus: harte Obergrenze ab dem Einschalten (Automation
+  # licht_auto_aus_*). Name muss auto_aus_<object_id des Lichts> sein — die
+  # Automations leiten Timer und Licht per Namen voneinander ab. Dimmen
+  # startet den Timer nicht neu, ein HA-Neustart auch nicht (restore).
+  auto_aus_terrace_light:
+    name: Auto-Aus Terrassenlicht
+    duration: "04:00:00"
+    icon: mdi:lightbulb-off
+    restore: true
+  auto_aus_bathroom_main_light:
+    name: Auto-Aus Bad Deckenlicht
+    duration: "02:00:00"
+    icon: mdi:lightbulb-off
+    restore: true
+  auto_aus_bathroom_mirror_light:
+    name: Auto-Aus Bad Spiegellicht
+    duration: "02:00:00"
+    icon: mdi:lightbulb-off
+    restore: true
+  auto_aus_wc_eg_light:
+    name: Auto-Aus WC EG
+    duration: "00:30:00"
+    icon: mdi:lightbulb-off
+    restore: true
+  auto_aus_wc_og_light:
+    name: Auto-Aus WC OG
+    duration: "00:30:00"
+    icon: mdi:lightbulb-off
     restore: true
 
 
