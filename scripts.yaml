@@ -506,42 +506,6 @@ notify_garage_offen:
         title: "🚗 Garagentor offen"
         message: "{{ message }}"
 
-#########################################################
-# HAUS – MORGENMODUS (ROLLOS ÖFFNEN)
-# Wird durch Haus-Tagesmodus getriggert
-# Erweiterbar: Licht, Heizung, Musik
-#########################################################
-
-house_morning_workday:
-  alias: Haus – Morgen Werktag
-  mode: single
-  sequence:
-    - if:
-        - condition: state
-          entity_id: input_boolean.beschattung_lock_schlafzimmer
-          state: "off"
-      then:
-        - service: cover.open_cover
-          target:
-            entity_id:
-              - cover.bedroom_shutter
-
-
-house_morning_weekend:
-  alias: Haus – Morgen Wochenende
-  mode: single
-  sequence:
-    - if:
-        - condition: state
-          entity_id: input_boolean.beschattung_lock_schlafzimmer
-          state: "off"
-      then:
-        - service: cover.open_cover
-          target:
-            entity_id:
-              - cover.bedroom_shutter
-
-
 # Messfahrt-Knopf (Dashboard). Gleicher Rahmen wie die 2-wöchentliche
 # Automation beschattung_messfahrt_2_wochen: Flag an, damit Konvergenz und
 # Manuell-Erkennung stillhalten — sonst fuhr die Konvergenz in die
