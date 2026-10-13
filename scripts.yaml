@@ -396,10 +396,15 @@ wohnkueche_alles_aus:
 
 
 #########################################################
-# ALLE GERÄTE – dynamische Benachrichtigung
-# Ermittelt alle gerade registrierten mobile_app-Notify-Ziele
-# aus states.notify. Überlebt Umbenennungen/Neuregistrierungen,
-# statt auf tote notify.*-Namen zu zeigen.
+# ALLE GERÄTE – Benachrichtigung
+# Feste Liste der mobile_app-Notify-DIENSTE. Nicht aus states.notify
+# ermitteln: die Companion App registriert nur Dienste
+# (notify.mobile_app_<gerät>), keine notify-Entities. states.notify war
+# deshalb leer, die Schleife lief nie — seit 2026-09-13 kam keine einzige
+# Warnung mehr aufs Handy, ohne Fehler im Log.
+# Neues Gerät: Entwicklerwerkzeuge → Aktionen → "notify.mobile_app" tippen,
+# den Namen hier ergänzen. Ein toter Eintrag bricht nichts ab
+# (continue_on_error), die übrigen Geräte bekommen die Nachricht trotzdem.
 #########################################################
 
 notify_alle:
@@ -415,11 +420,11 @@ notify_alle:
       example: Rauchmelder Keller hat ausgelöst!
   sequence:
     - variables:
-        targets: >-
-          {{ states.notify
-             | selectattr('entity_id', 'search', 'mobile_app')
-             | map(attribute='entity_id')
-             | list }}
+        targets:
+          - notify.mobile_app_iphone_von_sebastian
+          - notify.mobile_app_ipad_von_sebastian
+          - notify.mobile_app_macbook_von_sebastian
+          - notify.mobile_app_sebastians_company_macbook_pro
     - repeat:
         for_each: "{{ targets }}"
         sequence:
