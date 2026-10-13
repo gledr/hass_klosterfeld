@@ -2,7 +2,7 @@
     alias: "Garage – Lüftung Taupunkt-Steuerung"
     description: >
       Schaltet die Garagenlüftung ein wenn der Lüftungssensor "Lüften stark" meldet,
-      es nicht Nacht ist (07:00–21:00), die Außentemperatur mind. 5°C beträgt
+      es nicht Nacht ist (07:00–20:45), die Außentemperatur mind. 5°C beträgt
       und das Garagentor geschlossen ist. Mindestlaufzeit 60 Minuten.
     trigger:
       - platform: time_pattern
@@ -10,11 +10,27 @@
       - platform: state
         entity_id: sensor.luftung_garage
     variables:
-      garage_closed: "{{ states('sensor.garage_door_garage_door_position') | int(0) == 0 }}"
-      is_daytime: "{{ now().hour >= 7 and now().hour < 21 }}"
+      vent_is_on: "{{ is_state('switch.garage_door_garage_door_vent', 'on') }}"
+      # Die Lüftungsposition öffnet das Tor einen Spalt → Position > 0. Nur
+      # "Position == 0" hieß: nach 60 Min Mindestlaufzeit galt das Tor als
+      # offen, die Lüftung ging aus und 15 Min später wieder an.
+      # Als "zu" zählt deshalb auch GENAU die Lüftungsstellung: Lüftungs-
+      # Switch an UND höchstens vent_max_pos offen. Alles darüber ist ein
+      # offenes Tor (Sicherheit: da kommt man rein) und zählt nie als zu.
+      # vent_max_pos bewusst eng — lieber taktet die Lüftung, als dass ein
+      # halb offenes Tor als geschlossen gilt. Wert = Position, die das Tor
+      # in Lüftungsstellung meldet (Verlauf von
+      # sensor.garage_door_garage_door_position), plus kleine Toleranz.
+      vent_max_pos: 15
+      garage_closed: >-
+        {% set pos = states('sensor.garage_door_garage_door_position') | int(0) %}
+        {{ pos == 0 or (vent_is_on and pos <= vent_max_pos | int) }}
+      # Ende 20:45 statt 21:00: um 21:00 prüft garage_abend_warnung_2100, ob
+      # das Tor offen ist — in derselben Sekunde wie das Abschalten hier.
+      # Der /15-Lauf um 20:45 schließt das Tor vorher.
+      is_daytime: "{{ now().hour >= 7 and (now().hour * 60 + now().minute) < 20 * 60 + 45 }}"
       warm_enough: "{{ states('sensor.outdoor_temperature') | float(0) >= 5 }}"
       should_vent: "{{ garage_closed and is_daytime and warm_enough and states('sensor.luftung_garage') == 'Lüften stark' }}"
-      vent_is_on: "{{ is_state('switch.garage_door_garage_door_vent', 'on') }}"
       vent_min_runtime_met: "{{ not vent_is_on or (now() - states.switch.garage_door_garage_door_vent.last_changed).total_seconds() >= 3600 }}"
     action:
       - choose:
@@ -666,6 +682,8 @@
           entity_id: binary_sensor.bewegungsmelder_galerie_og
           state: 'off'
         sequence:
+        # 5 Min nach der letzten Bewegung in der Galerie — bewusst kurz:
+        # nachts nur der schnelle Gang aufs WC, keine lange Sitzung.
         - delay: 00:05:00
         - target:
             entity_id: light.wc_og_light
