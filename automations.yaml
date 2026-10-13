@@ -202,16 +202,11 @@
       at: '22:00:00'
     - platform: time
       at: '23:00:00'
-    condition:
-      - condition: state
-        entity_id: input_boolean.wohnkueche_override_kochen
-        state: 'off'
-      - condition: state
-        entity_id: input_boolean.wohnkueche_override_tv
-        state: 'off'
-      - condition: state
-        entity_id: input_boolean.wohnkueche_override_szene
-        state: 'off'
+    # Keine Override-Bedingung hier: der Modus muss auch während Kochen/TV/
+    # Szene der Uhrzeit folgen. Sonst blieb er z. B. nach TV um 22:00 auf
+    # "Relax" stehen und die nächste Präsenz um Mitternacht machte Relax-
+    # statt Nacht-Licht. Dass ein Override nicht überschrieben wird, prüft
+    # wohnkueche_licht_master beim modus-Trigger ohnehin.
     action:
     - choose:
       # --- WERKTAG ---
@@ -324,8 +319,13 @@
     alias: Wohnküche Licht – Master
     mode: restart
     trigger:
+      # not_to: Melder unavailable (KNX-Reconnect) landete sonst im
+      # default-Zweig → alle Wohnküchen-Lichter aus + Overrides weg.
       - platform: state
         entity_id: binary_sensor.praesenzmelder_wohnzimmer
+        not_to:
+          - unavailable
+          - unknown
         id: praesenz
       - platform: numeric_state
         entity_id: sensor.helligkeit_sud
@@ -550,9 +550,13 @@
                 - light.esszimmer_licht
                 - light.livingroom_main_light_2
                 - light.livingroom_reading_light
+  # Stufe kommt aus der Trigger-ID, nicht aus dem aktuellen Wert: steigt die
+  # Feuchte schnell, feuert "über 60 seit 1 h" bei z. B. 67 % — vorher landete
+  # das im 65er-Zweig und meldete fälschlich "seit 3 Stunden über 65 %".
+  # queued: alle drei Räume können gleichzeitig auslösen.
   - alias: Keller Luftfeuchte Warnungen
     description: Mehrstufige Warnungen bei erhöhter Keller-Luftfeuchte
-    mode: single
+    mode: queued
     trigger:
     - platform: numeric_state
       entity_id:
@@ -561,6 +565,7 @@
       - sensor.storage_humidity
       above: 60
       for: 01:00:00
+      id: hinweis
     - platform: numeric_state
       entity_id:
       - sensor.hobby_humidity
@@ -568,6 +573,7 @@
       - sensor.storage_humidity
       above: 65
       for: 03:00:00
+      id: warnung
     - platform: numeric_state
       entity_id:
       - sensor.hobby_humidity
@@ -575,17 +581,18 @@
       - sensor.storage_humidity
       above: 70
       for: 01:00:00
+      id: alarm
     action:
     - variables:
         raeume:
           sensor.hobby_humidity: Hobbyraum
           sensor.engineering_humidity: Technikraum
           sensor.storage_humidity: Lager
-        feuchte: '{{ states(trigger.entity_id) | float }}'
+        feuchte: '{{ states(trigger.entity_id) | float(0) }}'
     - choose:
       - conditions:
-        - condition: template
-          value_template: '{{ feuchte >= 60 and feuchte < 65 }}'
+        - condition: trigger
+          id: hinweis
         sequence:
         - service: script.notify_alle
           data:
@@ -595,8 +602,8 @@
 
               '
       - conditions:
-        - condition: template
-          value_template: '{{ feuchte >= 65 and feuchte < 70 }}'
+        - condition: trigger
+          id: warnung
         sequence:
         - service: script.notify_alle
           data:
@@ -606,8 +613,8 @@
 
               '
       - conditions:
-        - condition: template
-          value_template: '{{ feuchte >= 70 }}'
+        - condition: trigger
+          id: alarm
         sequence:
         - service: script.notify_alle
           data:
@@ -1227,6 +1234,9 @@
     trigger:
       - platform: state
         entity_id: sensor.bthome_sensor_5447_humidity
+    condition:
+      - condition: template
+        value_template: "{{ states('sensor.bthome_sensor_5447_humidity') | is_number }}"
     action:
       - service: knx.send
         data:
@@ -1981,6 +1991,15 @@
           {% set last = state_attr('input_datetime.beschattung_auto_' ~ raum, 'timestamp') %}
           {% set seit = (now().timestamp() - last) if last is not none else 99999 %}
           {{ not is_state('input_boolean.beschattung_messfahrt_running', 'on') and seit > 180 }}
+      # Nach HA-Neustart oder KNX-Reconnect kommt die Position erstmals (wieder)
+      # rein: Attribut None → Wert bzw. Cover unavailable → verfügbar. Das ist
+      # keine Handbedienung — sonst wäre nach jedem Neustart tagsüber jeder
+      # Raum 1 h gesperrt.
+      - condition: template
+        value_template: >
+          {{ trigger.from_state is not none
+             and trigger.from_state.state not in ['unavailable', 'unknown']
+             and trigger.from_state.attributes.get(trigger.attribute) is not none }}
     action:
       # Schon gesperrt → kurz aus und wieder an, damit last_changed neu
       # gestempelt wird. Sonst verlängert eine zweite Handbedienung die
@@ -2132,9 +2151,13 @@
         entity_id: binary_sensor.bthome_sensor_fb9c_fenster
         to: "off"
     condition:
+      # last_updated, nicht last_changed: ein Neustart des LAUFENDEN Timers
+      # lässt den State auf 'active' — last_changed bleibt dann auf dem
+      # ersten Start stehen, und nach der ersten Minute ging jedes Flattern
+      # wieder durch. last_updated wird bei jedem timer.start neu gesetzt.
       - condition: template
         value_template: >
-          {% set sec = (now() - states.timer.terrassentuer_aussperrschutz.last_changed).total_seconds() %}
+          {% set sec = (now() - states.timer.terrassentuer_aussperrschutz.last_updated).total_seconds() %}
           {{ sec > 60 }}
     action:
       - service: timer.start
