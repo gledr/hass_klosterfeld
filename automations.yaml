@@ -1011,7 +1011,7 @@
                   address: "9/1/6"
                   type: "string"
                   payload: >-
-                    {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
+                    {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend','alles_aus':'Aus'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
     mode: single
 
   - id: glaspanel_wohnzimmer_toggle
@@ -1056,7 +1056,7 @@
                   address: "9/1/6"
                   type: "string"
                   payload: >-
-                    {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
+                    {{ {'fruehstueck':'Fruehstueck','werktag_abend_aktiv':'Abend aktiv','werktag_relax':'Relax','spaetabend':'Spaetabend','nacht':'Nacht','wochenende_tag':'WE Tag','wochenende_nachmittag':'WE Nachmittag','wochenende_abend':'WE Abend','alles_aus':'Aus'}[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
     mode: single
 
   - id: smart55_next_scene
@@ -1235,7 +1235,8 @@
                       'nacht':                'Nacht',
                       'wochenende_tag':       'WE Tag',
                       'wochenende_nachmittag':'WE Nachmittag',
-                      'wochenende_abend':     'WE Abend'
+                      'wochenende_abend':     'WE Abend',
+                      'alles_aus':            'Aus'
                     }[states('input_select.wohnkueche_lichtmodus')] | default('?') }}
         default:
           - service: knx.send
@@ -1261,6 +1262,49 @@
           address: "7/3/21"
           type: "9.007"   # KNX DPT für Luftfeuchtigkeit (%)
           payload: "{{ states('sensor.bthome_sensor_5447_humidity') | float }}"
+
+  # ----------------------------------------------------------
+  # RAUCHALARM → Push (kritische Mitteilung)
+  # Die Melder piepen vor Ort; diese Automation sorgt dafür, dass man es
+  # auch unterwegs erfährt. Raumnamen wie auf dem Sicherheits-Dashboard —
+  # die Shelly-Zuordnung hängt an der MAC im entity_id (dort als TODO
+  # markiert). Unbekannter Melder → friendly_name.
+  # Neuer Melder: hier im Trigger UND im Dict ergänzen.
+  # ----------------------------------------------------------
+  - id: rauchalarm_push
+    alias: "Rauchalarm – Push an alle Geräte"
+    mode: queued
+    trigger:
+      - platform: state
+        entity_id:
+          - binary_sensor.shellyplussmoke_2cbcbbf67960_smoke
+          - binary_sensor.shellyplussmoke_2cbcbbf73fc0_smoke
+          - binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke
+          - binary_sensor.shellyplussmoke_2cbcbbf68278_smoke
+          - binary_sensor.shellyplussmoke_2cbcbbf68028_smoke
+          - binary_sensor.shellyplussmoke_2cbcbbf59758_smoke
+          - binary_sensor.shellyplussmoke_2cbcbbf70698_smoke
+          - binary_sensor.rauchmelder_hobbyraum_smoke
+          - binary_sensor.rauchmelder_kg_eg_smoke
+          - binary_sensor.rauchmelder_lager_smoke
+        from: "off"
+        to: "on"
+    action:
+      - service: script.notify_smoke_alarm
+        data:
+          location: >-
+            {{ {
+              'binary_sensor.shellyplussmoke_2cbcbbf67960_smoke': 'Wohnzimmer',
+              'binary_sensor.shellyplussmoke_2cbcbbf73fc0_smoke': 'Garderobe',
+              'binary_sensor.shellyplussmoke_2cbcbbf6852c_smoke': 'Galerie',
+              'binary_sensor.shellyplussmoke_2cbcbbf68278_smoke': 'Gästezimmer',
+              'binary_sensor.shellyplussmoke_2cbcbbf68028_smoke': 'Schlafzimmer',
+              'binary_sensor.shellyplussmoke_2cbcbbf59758_smoke': 'Büro',
+              'binary_sensor.shellyplussmoke_2cbcbbf70698_smoke': 'Technikraum',
+              'binary_sensor.rauchmelder_hobbyraum_smoke': 'Keller Hobbyraum',
+              'binary_sensor.rauchmelder_kg_eg_smoke': 'Stiege Keller/EG',
+              'binary_sensor.rauchmelder_lager_smoke': 'Keller Lager'
+            }.get(trigger.entity_id, trigger.to_state.name) }}
 
   - id: windalarm_notification_1
     alias: "Windalarm Notification"

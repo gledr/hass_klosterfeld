@@ -418,6 +418,11 @@ notify_alle:
       description: Nachrichtentext
       required: true
       example: Rauchmelder Keller hat ausgelöst!
+    data:
+      description: >-
+        Optionale Zusatzdaten für die Companion App, z. B. kritische
+        Mitteilung (iOS: push.sound.critical — kommt auch bei Stumm/Fokus)
+      example: "{push: {sound: {name: default, critical: 1, volume: 1.0}}}"
   sequence:
     - variables:
         targets:
@@ -433,6 +438,7 @@ notify_alle:
             data:
               title: "{{ title | default('') }}"
               message: "{{ message }}"
+              data: "{{ data | default({}) }}"
 
 #########################################################
 # RAUCHALARM – BENACHRICHTIGUNGEN
@@ -447,10 +453,18 @@ notify_smoke_alarm:
       example: Hobbyraum Keller
 
   sequence:
+    # Kritische Mitteilung: kommt auf dem iPhone auch bei Stummschalter und
+    # Fokus durch, mit voller Lautstärke. macOS ignoriert das Feld.
     - service: script.notify_alle
       data:
         title: "🚨 Rauchalarm"
         message: "🚨 Rauchmelder {{ location }} hat ausgelöst!"
+        data:
+          push:
+            sound:
+              name: default
+              critical: 1
+              volume: 1.0
 
 #########################################################
 # WINDALARM – BENACHRICHTIGUNGEN
@@ -605,6 +619,7 @@ heizung_betriebsart_umschalten:
 # GARAGE – TOGGLE (Apple Watch / Companion App)
 # Öffnet wenn geschlossen, schließt wenn offen
 #########################################################
+# Im Repo ruft sie nichts auf — trotzdem NICHT löschen (Apple Watch im Auto).
 garage_toggle:
   alias: Garage – Toggle
   icon: mdi:garage-variant
