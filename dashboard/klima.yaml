@@ -76,6 +76,11 @@ views:
                 - entity_id: sensor.outdoor_*
                 - entity_id: sensor.garagentor_*
                 - entity_id: sensor.taupunkt_*
+                # LWP-Systemtemperaturen (Außenfühler, Vorlauf, Warmwasser)
+                # sind keine Raumluft-Temperaturen.
+                - entity_id: sensor.altherma_climatecontrol_outdoor_*
+                - entity_id: sensor.altherma_climatecontrol_leaving_water_*
+                - entity_id: sensor.altherma_domestichotwatertank_tank_*
             sort:
               method: state
               numeric: true
@@ -102,6 +107,11 @@ views:
                 - entity_id: sensor.storage_*
                 - entity_id: sensor.hobby_*
                 - entity_id: sensor.stairs_*
+                # LWP-Systemtemperaturen (Außenfühler, Vorlauf, Warmwasser)
+                # sind keine Raumluft-Temperaturen.
+                - entity_id: sensor.altherma_climatecontrol_outdoor_*
+                - entity_id: sensor.altherma_climatecontrol_leaving_water_*
+                - entity_id: sensor.altherma_domestichotwatertank_tank_*
             sort:
               method: state
               numeric: true
