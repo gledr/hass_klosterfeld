@@ -69,10 +69,9 @@ sections:
         badges:
           # TODO sensor.kind2_temperature ist laut altem Dashboard die Büro-Temp.
           # Rename empfohlen: sensor.kind2_temperature → sensor.office_temperature
+          # (H&T-Sensor bthome_sensor_ace1 steht jetzt auf der Terrasse.)
           - type: entity
             entity: sensor.kind2_temperature
-          - type: entity
-            entity: sensor.bthome_sensor_ace1_humidity
 
       - type: custom:mushroom-light-card
         entity: light.office_light

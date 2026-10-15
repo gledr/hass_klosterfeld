@@ -81,6 +81,8 @@ views:
                 - entity_id: sensor.altherma_climatecontrol_outdoor_*
                 - entity_id: sensor.altherma_climatecontrol_leaving_water_*
                 - entity_id: sensor.altherma_domestichotwatertank_tank_*
+                # Shelly/BTHome H&T auf der Terrasse — kein Innenraum.
+                - entity_id: sensor.bthome_sensor_ace1_temperature
             sort:
               method: state
               numeric: true
@@ -112,6 +114,8 @@ views:
                 - entity_id: sensor.altherma_climatecontrol_outdoor_*
                 - entity_id: sensor.altherma_climatecontrol_leaving_water_*
                 - entity_id: sensor.altherma_domestichotwatertank_tank_*
+                # Shelly/BTHome H&T auf der Terrasse — kein Innenraum.
+                - entity_id: sensor.bthome_sensor_ace1_temperature
             sort:
               method: state
               numeric: true
@@ -130,6 +134,8 @@ views:
               exclude:
                 - entity_id: sensor.outdoor_humidity
                 - entity_id: sensor.garagentor_*
+                # Shelly/BTHome H&T auf der Terrasse — kein Innenraum.
+                - entity_id: sensor.bthome_sensor_ace1_humidity
             sort:
               method: state
               numeric: true
@@ -226,12 +232,12 @@ views:
               - feuchte: sensor.bedroom_humidity
               - luftung: sensor.luftung_schlafzimmer
           # TODO sensor.kind2_temperature = Büro laut altem Dashboard → office_temperature
+          # (H&T-Sensor steht auf der Terrasse, liefert also keine Büro-Feuchte mehr.)
           - type: custom:decluttering-card
             template: klima_raum
             variables:
               - name: Büro
               - temp: sensor.kind2_temperature
-              - feuchte: sensor.bthome_sensor_ace1_humidity
               - icon: mdi:desk
               - farbe: deep-orange
           - type: custom:decluttering-card
