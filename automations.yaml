@@ -772,10 +772,19 @@
               - service: input_boolean.turn_off
                 target:
                   entity_id: input_boolean.badezimmer_privacy_active
-              # Von Hand aufgemacht (z.B. Lüften nach dem Duschen) → stehen lassen
-              - condition: state
-                entity_id: input_boolean.beschattung_manual_badezimmer
-                state: "off"
+              # Von Hand aufgemacht (z.B. Lüften nach dem Duschen) → stehen lassen.
+              # Nur gelten lassen, wenn der Behang tatsächlich offen ist: während
+              # Privacy kann die KNX-Rückmeldung (0 → 1/2, >3 Min nach dem Stempel)
+              # fälschlich die Manuell-Sperre setzen — dann blieb das Bad dunkel,
+              # weil Wiederherstellung UND Konvergenz übersprungen wurden.
+              - condition: template
+                value_template: >-
+                  {{ is_state('input_boolean.beschattung_manual_badezimmer', 'off')
+                     or state_attr('cover.bathroom_blinds', 'current_position') | int(0) > 10
+                     or state_attr('cover.bathroom_blinds', 'current_tilt_position') | int(0) > 10 }}
+              - service: input_boolean.turn_off
+                target:
+                  entity_id: input_boolean.beschattung_manual_badezimmer
               - service: input_datetime.set_datetime
                 target:
                   entity_id:
@@ -881,10 +890,19 @@
       - service: input_boolean.turn_off
         target:
           entity_id: input_boolean.badezimmer_privacy_active
-      # Von Hand aufgemacht → stehen lassen
-      - condition: state
-        entity_id: input_boolean.beschattung_manual_badezimmer
-        state: "off"
+      # Von Hand aufgemacht (z.B. Lüften nach dem Duschen) → stehen lassen.
+      # Nur gelten lassen, wenn der Behang tatsächlich offen ist: während
+      # Privacy kann die KNX-Rückmeldung (0 → 1/2, >3 Min nach dem Stempel)
+      # fälschlich die Manuell-Sperre setzen — dann blieb das Bad dunkel,
+      # weil Wiederherstellung UND Konvergenz übersprungen wurden.
+      - condition: template
+        value_template: >-
+          {{ is_state('input_boolean.beschattung_manual_badezimmer', 'off')
+             or state_attr('cover.bathroom_blinds', 'current_position') | int(0) > 10
+             or state_attr('cover.bathroom_blinds', 'current_tilt_position') | int(0) > 10 }}
+      - service: input_boolean.turn_off
+        target:
+          entity_id: input_boolean.beschattung_manual_badezimmer
       - service: input_datetime.set_datetime
         target:
           entity_id:
