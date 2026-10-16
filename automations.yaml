@@ -795,6 +795,18 @@
                   entity_id: cover.bathroom_blinds
                 data:
                   tilt_position: "{{ states('input_number.raffstore_badezimmer_tilt_vorher') | int }}"
+              # "Vorher" kann veraltet sein (z.B. Nacht-Zustand, inzwischen ist
+              # es Tag) → Konvergenz sofort anstoßen, statt auf den 30-s-Trigger
+              # (Privacy-Flag aus) oder den /15-Lauf zu warten.
+              - delay:
+                  seconds: 5
+              - service: automation.trigger
+                target:
+                  entity_id: automation.beschattung_konvergenz_tag_nacht_hitzeschutz
+                data:
+                  skip_condition: false
+                  variables:
+                    nur_raum: Badezimmer
 
   - id: badezimmer_privacy_tilt_enforce
     alias: Badezimmer Privacy Tilt Sicherstellen
@@ -1676,7 +1688,11 @@
               lock: input_boolean.beschattung_lock_schlafzimmer
               manual: input_boolean.beschattung_manual_schlafzimmer
       - repeat:
-          for_each: "{{ rooms }}"
+          # nur_raum (nur per automation.trigger gesetzt, z.B. Bad-Privacy-
+          # Ende): nur diesen einen Raum bewerten, alle anderen unberührt.
+          for_each: >-
+            {{ rooms if nur_raum is not defined
+               else rooms | selectattr('name', 'eq', nur_raum) | list }}
           sequence:
             - variables:
                 cover: "{{ repeat.item.cover }}"
