@@ -803,7 +803,11 @@
                 target:
                   entity_id: cover.bathroom_blinds
                 data:
-                  tilt_position: "{{ states('input_number.raffstore_badezimmer_tilt_vorher') | int }}"
+                  # "Vorher" ≤ 10 (z.B. Privacy-Start im geschlossenen Zustand) →
+                  # tagsüber trotzdem auf Sichtschutz-Lamellen, nicht dunkel lassen.
+                  tilt_position: >-
+                    {% set v = states('input_number.raffstore_badezimmer_tilt_vorher') | int(0) %}
+                    {{ 50 if v <= 10 and is_state('switch.twilight', 'on') else v }}
               # "Vorher" kann veraltet sein (z.B. Nacht-Zustand, inzwischen ist
               # es Tag) → Konvergenz sofort anstoßen, statt auf den 30-s-Trigger
               # (Privacy-Flag aus) oder den /15-Lauf zu warten.
@@ -921,7 +925,9 @@
         target:
           entity_id: cover.bathroom_blinds
         data:
-          tilt_position: "{{ states('input_number.raffstore_badezimmer_tilt_vorher') | int }}"
+          tilt_position: >-
+            {% set v = states('input_number.raffstore_badezimmer_tilt_vorher') | int(0) %}
+            {{ 50 if v <= 10 and is_state('switch.twilight', 'on') else v }}
   - id: handtuchheizkoerper_dusche_feuchte
     alias: Handtuchheizkoerper Dusche
     mode: single
