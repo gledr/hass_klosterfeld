@@ -1708,6 +1708,10 @@
               # (Herbst/Winter), fährt das Rollo auf einen Spalt statt zu
               # bleiben. Ganz auf erst mit der Dämmerung (Tag-Modus).
               morgen_spalt: 25
+              # Von Hand geöffnet (morgens vor der Wake-Zeit, abends zum
+              # Lüften) → die Sperre gilt auch nachts (1 h). Sonst fuhr die
+              # Konvergenz das Rollo im Nacht-Modus sofort wieder zu.
+              manual_nacht: true
               fenster: binary_sensor.fenster_schlafzimmer_window
               lock: input_boolean.beschattung_lock_schlafzimmer
               manual: input_boolean.beschattung_manual_schlafzimmer
