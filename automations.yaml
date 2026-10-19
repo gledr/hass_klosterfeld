@@ -1299,6 +1299,23 @@
           type: "9.007"   # KNX DPT für Luftfeuchtigkeit (%)
           payload: "{{ states('sensor.bthome_sensor_5447_humidity') | float }}"
 
+  - id: "knx_temperatur_7_3_20"
+    alias: "Temperatur Badezimmer auf KNX schreiben"
+    description: "Sendet die Temperatur von sensor.bthome_sensor_5447_temperature auf KNX GA 7/3/20 (Glastaster-Fühler defekt) bei jeder Änderung"
+    mode: single
+    trigger:
+      - platform: state
+        entity_id: sensor.bthome_sensor_5447_temperature
+    condition:
+      - condition: template
+        value_template: "{{ states('sensor.bthome_sensor_5447_temperature') | is_number }}"
+    action:
+      - service: knx.send
+        data:
+          address: "7/3/20"
+          type: "9.001"   # KNX DPT für Temperatur (°C)
+          payload: "{{ states('sensor.bthome_sensor_5447_temperature') | float }}"
+
   # ----------------------------------------------------------
   # RAUCHALARM → Push (kritische Mitteilung)
   # Die Melder piepen vor Ort; diese Automation sorgt dafür, dass man es
