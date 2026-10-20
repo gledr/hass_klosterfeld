@@ -103,7 +103,7 @@ binary_sensor:
     state: "{{ is_state('select.heizung_betriebsart', 'Winter') }}"
 
   # Status der Wärmepumpe: Heizbetrieb läuft oder nicht. Quelle ist der
-  # HVAC-Mode von climate.altherma_leaving_water_temperature ("heat").
+  # HVAC-Mode des Altherma-Climate (per Discovery, siehe unten; "heat").
   # WICHTIG für die spätere Automatisierung: Das ist nur der Status, noch
   # keine Umschalt-Freigabe. "Heizt nicht" heißt auch "gerade kein Bedarf"
   # (Nachtabsenkung, milder Tag) — eine Sommer/Winter-Automation darf darauf
@@ -115,8 +115,20 @@ binary_sensor:
     device_class: heat
     # Integration nicht erreichbar -> "unbekannt" statt "heizt nicht",
     # sonst sieht eine Automation das als Sommerbetrieb.
-    availability: "{{ states('climate.altherma_leaving_water_temperature') not in ['unknown', 'unavailable'] }}"
-    state: "{{ states('climate.altherma_leaving_water_temperature') == 'heat' }}"
+    # Die entity_id stammt aus der UI-Integration und war geraten
+    # (climate.altherma_leaving_water_temperature gibt es offenbar nicht -> "WP ?").
+    # Deshalb Discovery: das Altherma-Climate mit "leaving_water" im Namen,
+    # sonst das erste Altherma-Climate.
+    availability: >-
+      {% set c = states.climate | selectattr('entity_id', 'search', 'altherma') | list %}
+      {% set lw = c | selectattr('entity_id', 'search', 'leaving_water') | list %}
+      {% set e = (lw + c) | first | default(none) %}
+      {{ e is not none and e.state not in ['unknown', 'unavailable'] }}
+    state: >-
+      {% set c = states.climate | selectattr('entity_id', 'search', 'altherma') | list %}
+      {% set lw = c | selectattr('entity_id', 'search', 'leaving_water') | list %}
+      {% set e = (lw + c) | first | default(none) %}
+      {{ e is not none and e.state == 'heat' }}
 
   # Heizsaison = "es ist kalt genug, um zu heizen" (on = Winterbetrieb).
   # Das ist die Quelle für die automatische Sommer/Winter-Umschaltung —

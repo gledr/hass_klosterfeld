@@ -530,35 +530,35 @@ views:
             template: sollwert
             variables:
               - raum: schlafzimmer
-              - name: Schlafzimmer
+              - titel: Schlafzimmer
             grid_options:
               columns: 6
           - type: custom:decluttering-card
             template: sollwert
             variables:
               - raum: buro
-              - name: Büro
+              - titel: Büro
             grid_options:
               columns: 6
           - type: custom:decluttering-card
             template: sollwert
             variables:
               - raum: gastezimmer
-              - name: Gästezimmer
+              - titel: Gästezimmer
             grid_options:
               columns: 6
           - type: custom:decluttering-card
             template: sollwert
             variables:
               - raum: badezimmer
-              - name: Badezimmer
+              - titel: Badezimmer
             grid_options:
               columns: 6
           - type: custom:decluttering-card
             template: sollwert
             variables:
               - raum: wc_og
-              - name: WC OG
+              - titel: WC OG
             grid_options:
               columns: 6
 

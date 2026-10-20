@@ -235,6 +235,28 @@ knx:
   # SENSORS
   # ========================
   sensor:
+    # HEIZUNG – VENTILSTELLUNG OG (Stellgröße Heizen in %, DPT 5.001)
+    # Quelle: Stellantriebe, KO "Control value Heating send status"
+    - name: "WC OG Ventil"
+      state_address: "7/3/31"
+      type: percent
+      sync_state: true
+    - name: "Gästezimmer Ventil"
+      state_address: "7/3/46"
+      type: percent
+      sync_state: true
+    - name: "Büro Ventil"
+      state_address: "7/3/61"
+      type: percent
+      sync_state: true
+    - name: "Schlafzimmer Ventil"
+      state_address: "7/3/76"
+      type: percent
+      sync_state: true
+    - name: "Badezimmer Ventil"
+      state_address: "7/3/91"
+      type: percent
+      sync_state: true
     # TEMPERATURE
     - name: "Office Temperature"
       state_address: "7/3/10"
@@ -918,6 +940,23 @@ knx:
   # BINARY SENSORS – ALLE EXISTIERENDEN PLUS WINDALARM
   # ========================
   binary_sensor:
+    # HEIZUNG – VENTIL OFFEN OG (Stellgröße > 0 %, DPT 1.011)
+    # KO "Control value >0% send status" des jeweiligen Stellantriebs
+    - name: "WC OG Ventil offen"
+      state_address: "7/3/30"
+      sync_state: true
+    - name: "Gästezimmer Ventil offen"
+      state_address: "7/3/45"
+      sync_state: true
+    - name: "Büro Ventil offen"
+      state_address: "7/3/60"
+      sync_state: true
+    - name: "Schlafzimmer Ventil offen"
+      state_address: "7/3/75"
+      sync_state: true
+    - name: "Badezimmer Ventil offen"
+      state_address: "7/3/90"
+      sync_state: true
     # Bewegungsmelder / Präsenz / Locks / Twilight
     - name: "Twilight"
       state_address: "8/4/0"

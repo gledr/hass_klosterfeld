@@ -94,14 +94,18 @@ beschattung_raum:
 #
 # Variablen: raum (z. B. wc_og, buro, gastezimmer, schlafzimmer, badezimmer)
 #            name (Zeilen-Titel, Standard "Heizung")
+#            titel (Karten-Überschrift, z. B. Raumname; Standard leer —
+#                   der Slider lässt dem Zeilen-Titel kaum Platz)
 # -----------------------------------------------------------------------------
 sollwert:
   default:
     - name: Heizung
+    - titel: ""
   card:
     type: vertical-stack
     cards:
       - type: entities
+        title: "[[titel]]"
         show_header_toggle: false
         entities:
           - entity: number.[[raum]]_sollwert
@@ -122,6 +126,22 @@ sollwert:
             im ETS-Parameter des Stellantriebs.
           icon: mdi:information-outline
           icon_color: grey
+      - type: custom:mushroom-template-card
+        entity: binary_sensor.[[raum]]_ventil_offen
+        primary: >-
+          Ventil {{ states('sensor.[[raum]]_ventil') | replace('unknown','?') | replace('unavailable','?') }} %
+        secondary: >-
+          {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}offen — heizt
+          {% elif is_state('binary_sensor.[[raum]]_ventil_offen', 'off') %}zu
+          {% else %}Ventilstatus unbekannt{% endif %}
+          · {% if is_state('binary_sensor.heizsaison', 'on') %}Heizsaison{% else %}Sommerzeit{% endif %}
+          · {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}WP heizt{% else %}WP aus{% endif %}
+        icon: >-
+          {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}mdi:valve-open{% else %}mdi:valve-closed{% endif %}
+        icon_color: >-
+          {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}deep-orange{% elif is_state('binary_sensor.[[raum]]_ventil_offen', 'off') %}blue{% else %}grey{% endif %}
+        tap_action:
+          action: more-info
       - type: custom:mushroom-chips-card
         alignment: center
         chips:
@@ -193,6 +213,7 @@ lueften_raum:
 # Hat der Raum eine Lüftungsempfehlung, ist das Icon das Lüften-Logo,
 # sonst das Raum-Icon. Taupunkt bewusst nicht — der steht in den Raum-
 # Ansichten und unter Klima → Lüften.
+# Tippen = Verlauf Temperatur, Halten/Doppeltippen = Verlauf Feuchte.
 # Variablen: name, temp, feuchte ('' = keine), luftung ('' = keine),
 #            icon, farbe (Raum-Icon-Farbe)
 # -----------------------------------------------------------------------------
@@ -211,3 +232,11 @@ klima_raum:
     icon_color: "{% set l = '[[luftung]]' %}{% set s = states(l) if l else '' %}{% if not l %}[[farbe]]{% elif 'stark' in s %}red{% elif 'wenig' in s %}amber{% elif 'Nicht' in s %}grey{% else %}green{% endif %}"
     tap_action:
       action: more-info
+    # Tippen = Temperatur verlaufen, Halten/Doppeltippen = Feuchte. Eine Kachel
+    # hat nur ein more-info; ohne feuchte ('' = keine) fällt es auf temp zurück.
+    hold_action:
+      action: more-info
+      entity: "[[feuchte]]"
+    double_tap_action:
+      action: more-info
+      entity: "[[feuchte]]"
