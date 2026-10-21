@@ -257,6 +257,30 @@ knx:
       state_address: "7/3/91"
       type: percent
       sync_state: true
+    # HEIZUNG – SOLLWERT-RÜCKMELDUNG OG (Present Setpoint, DPT 9.001)
+    # Dieselben GAs wie state_address der number-Entities, aber als eigener
+    # Sensor: zeigt ausschließlich, was der Antrieb zurückmeldet. Der
+    # Schieber springt dagegen schon beim Schreiben auf den neuen Wert.
+    - name: "WC OG Sollwert Ist"
+      state_address: "7/3/37"
+      type: temperature
+      sync_state: true
+    - name: "Gästezimmer Sollwert Ist"
+      state_address: "7/3/52"
+      type: temperature
+      sync_state: true
+    - name: "Büro Sollwert Ist"
+      state_address: "7/3/67"
+      type: temperature
+      sync_state: true
+    - name: "Schlafzimmer Sollwert Ist"
+      state_address: "7/3/82"
+      type: temperature
+      sync_state: true
+    - name: "Badezimmer Sollwert Ist"
+      state_address: "7/3/97"
+      type: temperature
+      sync_state: true
     # TEMPERATURE
     - name: "Office Temperature"
       state_address: "7/3/10"

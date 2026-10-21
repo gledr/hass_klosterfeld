@@ -127,6 +127,24 @@ sollwert:
           icon: mdi:information-outline
           icon_color: grey
       - type: custom:mushroom-template-card
+        entity: sensor.[[raum]]_sollwert_ist
+        primary: >-
+          Antrieb meldet {{ states('sensor.[[raum]]_sollwert_ist') | replace('unknown','?') | replace('unavailable','?') }} °C
+        secondary: >-
+          {% set ist = states('sensor.[[raum]]_sollwert_ist') | float(none) %}
+          {% set soll = states('number.[[raum]]_sollwert') | float(none) %}
+          {% if ist is none %}keine Rückmeldung vom Antrieb
+          {% elif soll is none %}Schieber ohne Wert
+          {% elif (ist - soll) | abs < 0.25 %}stimmt mit Schieber überein
+          {% else %}weicht vom Schieber ({{ soll }} °C) ab — nicht übernommen oder noch unterwegs{% endif %}
+        icon: mdi:thermostat-box
+        icon_color: >-
+          {% set ist = states('sensor.[[raum]]_sollwert_ist') | float(none) %}
+          {% set soll = states('number.[[raum]]_sollwert') | float(none) %}
+          {% if ist is none %}grey{% elif soll is not none and (ist - soll) | abs >= 0.25 %}orange{% else %}green{% endif %}
+        tap_action:
+          action: more-info
+      - type: custom:mushroom-template-card
         entity: binary_sensor.[[raum]]_ventil_offen
         primary: >-
           Ventil {{ states('sensor.[[raum]]_ventil') | replace('unknown','?') | replace('unavailable','?') }} %
