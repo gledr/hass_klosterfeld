@@ -651,14 +651,14 @@ garagen_seitentur_toggle:
 # HEIZUNG – WC OG SOLLWERT-STATUS ABFRAGEN
 # Der Stellantrieb hat kein Display, deshalb bleibt nur der Bus
 # als Beobachtungspunkt. Diese Abfrage schickt ein GroupValueRead
-# auf 7/3/37 und zwingt den Antrieb, seinen tatsächlichen
+# auf 7/3/39 und zwingt den Antrieb, seinen tatsächlichen
 # Sollwert zurückzumelden.
 #
 # Warum das nötig ist: die Kachel im Dashboard zeigt den Wert, den
 # HASS zuletzt GESCHICKT hat. xknx übernimmt den Wert in den
 # Entity-State, sobald das eigene Telegram abgesetzt ist — die
 # Kachel springt also sofort, unabhängig davon, ob der Antrieb
-# den Wert übernommen hat. Erst die Antwort auf 7/3/37 macht die
+# den Wert übernommen hat. Erst die Antwort auf 7/3/39 macht die
 # Anzeige zur Wahrheit. Weicht der zurückgemeldete Wert ab, hat
 # der Antrieb den Sollwert nicht übernommen — Grenze im Gerät,
 # Klemmung oder eine andere Regelung hat Vorrang.
@@ -674,13 +674,13 @@ wc_og_sollwert_status_abfragen:
   sequence:
     - service: knx.read
       data:
-        address: "7/3/37"
+        address: "7/3/39"
 
 
 #########################################################
 # HEIZUNG – WC OG AUF STANDARDSOLLWERT STELLEN
 # Ein bewusst einfacher Einzweck-Befehl: schreibt den
-# Standardsollwert (20 °C) auf das KO "Sollwert setzen" 7/3/39
+# Standardsollwert (20 °C) auf das KO "Sollwert setzen" 7/3/37
 # des WC-Stellantriebs. Damit lässt sich der Antrieb jederzeit
 # auf den Ausgangswert zurückstellen, ohne den Regler zu
 # öffnen – praktisch, wenn nach dem Testen wieder Normalbetrieb
@@ -718,7 +718,7 @@ gaestezimmer_sollwert_status_abfragen:
   sequence:
     - service: knx.read
       data:
-        address: "7/3/52"
+        address: "7/3/54"
 
 gaestezimmer_sollwert_standard:
   alias: Heizung – Gästezimmer Sollwert auf Standard (20 °C)
@@ -738,7 +738,7 @@ buro_sollwert_status_abfragen:
   sequence:
     - service: knx.read
       data:
-        address: "7/3/67"
+        address: "7/3/69"
 
 buro_sollwert_standard:
   alias: Heizung – Büro Sollwert auf Standard (20 °C)
@@ -758,7 +758,7 @@ schlafzimmer_sollwert_status_abfragen:
   sequence:
     - service: knx.read
       data:
-        address: "7/3/82"
+        address: "7/3/84"
 
 schlafzimmer_sollwert_standard:
   alias: Heizung – Schlafzimmer Sollwert auf Standard (20 °C)
@@ -778,7 +778,7 @@ badezimmer_sollwert_status_abfragen:
   sequence:
     - service: knx.read
       data:
-        address: "7/3/97"
+        address: "7/3/99"
 
 badezimmer_sollwert_standard:
   alias: Heizung – Badezimmer Sollwert auf Standard (20 °C)

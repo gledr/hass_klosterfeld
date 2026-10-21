@@ -46,7 +46,7 @@ sections:
         name: Rollo
         show_position_control: true
         show_buttons_control: true
-      # Heizung: schreiben 7/3/84, zurücklesen 7/3/82
+      # Heizung: schreiben 7/3/82, zurücklesen 7/3/84
       - type: custom:decluttering-card
         template: sollwert
         variables:
@@ -82,7 +82,7 @@ sections:
         name: Rollo
         show_position_control: true
         show_buttons_control: true
-      # Heizung: schreiben 7/3/69, zurücklesen 7/3/67
+      # Heizung: schreiben 7/3/67, zurücklesen 7/3/69
       - type: custom:decluttering-card
         template: sollwert
         variables:
@@ -110,7 +110,7 @@ sections:
         name: Rollo
         show_position_control: true
         show_buttons_control: true
-      # Heizung: schreiben 7/3/54, zurücklesen 7/3/52
+      # Heizung: schreiben 7/3/52, zurücklesen 7/3/54
       - type: custom:decluttering-card
         template: sollwert
         variables:
@@ -162,7 +162,7 @@ sections:
         entity: cover.bathroom_blinds
         name: Raffstore (Lamellen)
         show_tilt_position_control: true
-      # Heizung: schreiben 7/3/99, zurücklesen 7/3/97
+      # Heizung: schreiben 7/3/97, zurücklesen 7/3/99
       - type: custom:decluttering-card
         template: sollwert
         variables:
@@ -196,7 +196,7 @@ sections:
         entity: cover.wc_og_blinds
         name: Raffstore (Lamellen)
         show_tilt_position_control: true
-      # Heizung: schreiben 7/3/39, zurücklesen 7/3/37, Korrektur-KO 7/3/34
+      # Heizung: schreiben 7/3/37, zurücklesen 7/3/39, Korrektur-KO 7/3/34
       - type: custom:decluttering-card
         template: sollwert
         variables:

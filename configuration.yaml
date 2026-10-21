@@ -262,23 +262,23 @@ knx:
     # Sensor: zeigt ausschließlich, was der Antrieb zurückmeldet. Der
     # Schieber springt dagegen schon beim Schreiben auf den neuen Wert.
     - name: "WC OG Sollwert Ist"
-      state_address: "7/3/37"
+      state_address: "7/3/39"
       type: temperature
       sync_state: true
     - name: "Gästezimmer Sollwert Ist"
-      state_address: "7/3/52"
+      state_address: "7/3/54"
       type: temperature
       sync_state: true
     - name: "Büro Sollwert Ist"
-      state_address: "7/3/67"
+      state_address: "7/3/69"
       type: temperature
       sync_state: true
     - name: "Schlafzimmer Sollwert Ist"
-      state_address: "7/3/82"
+      state_address: "7/3/84"
       type: temperature
       sync_state: true
     - name: "Badezimmer Sollwert Ist"
-      state_address: "7/3/97"
+      state_address: "7/3/99"
       type: temperature
       sync_state: true
     # TEMPERATURE
@@ -807,10 +807,10 @@ knx:
   # ========================
   # Alle OG-Raeume (WC OG, Guest/Buero/Schlafzimmer/Badezimmer) nutzen dasselbe
   # KO-Schema; der WC war der Pilotfall. GAs je Raum aus ets_ga2.csv.
-  # 7/3/39 = Sollwert schreiben, 7/3/37 = aktueller Sollwert zurücklesen.
+  # 7/3/37 = Sollwert schreiben, 7/3/39 = aktueller Sollwert zurücklesen.
   # DPT 9.001 ist ein 2-Byte-Float in °C, deshalb type: temperature — HASS
   # rechnet °C selbst in das KNX-Telegramm um, es wird kein Rohwert
-  # angezeigt. Die Rückmeldung auf 7/3/37 ist wichtig: zeigt der Wert nach
+  # angezeigt. Die Rückmeldung auf 7/3/39 ist wichtig: zeigt der Wert nach
   # dem Schreiben plausibel °C an (21.5), stimmt die Kodierung.
   # min/step: Der WC ist klein und wird schnell überheizt — 5…30 °C in
   # 0,5-Schritten deckt Komfort, ECO und Nachtbetrieb ab.
@@ -818,14 +818,14 @@ knx:
   # Standard-Sollwert: 20 °C. Der eingestellte Wert steckt im Stellantrieb
   # selbst (Parameter in ETS), NICHT in dieser YAML — HASS kennt für number
   # kein "initial:" und schreibt beim Start auch nichts an den Bus, es liest
-  # den Sollwert nur über 7/3/37 zurück. Deshalb zeigt die Kachel im
+  # den Sollwert nur über 7/3/39 zurück. Deshalb zeigt die Kachel im
   # Dashboard 20 °C als Standard an, solange der Antrieb noch nichts
   # gemeldet hat. Damit im Gerät wirklich 20 °C stehen, muss der Wert im
   # ETS-Parameter des Stellantriebs hinterlegt sein.
   number:
     - name: "WC OG Sollwert"
-      address: "7/3/39"
-      state_address: "7/3/37"
+      address: "7/3/37"
+      state_address: "7/3/39"
       type: temperature
       min: 5
       max: 30
@@ -833,8 +833,8 @@ knx:
       mode: slider
       device_class: temperature
     - name: "Gästezimmer Sollwert"
-      address: "7/3/54"
-      state_address: "7/3/52"
+      address: "7/3/52"
+      state_address: "7/3/54"
       type: temperature
       min: 5
       max: 30
@@ -842,8 +842,8 @@ knx:
       mode: slider
       device_class: temperature
     - name: "Büro Sollwert"
-      address: "7/3/69"
-      state_address: "7/3/67"
+      address: "7/3/67"
+      state_address: "7/3/69"
       type: temperature
       min: 5
       max: 30
@@ -851,8 +851,8 @@ knx:
       mode: slider
       device_class: temperature
     - name: "Schlafzimmer Sollwert"
-      address: "7/3/84"
-      state_address: "7/3/82"
+      address: "7/3/82"
+      state_address: "7/3/84"
       type: temperature
       min: 5
       max: 30
@@ -860,8 +860,8 @@ knx:
       mode: slider
       device_class: temperature
     - name: "Badezimmer Sollwert"
-      address: "7/3/99"
-      state_address: "7/3/97"
+      address: "7/3/97"
+      state_address: "7/3/99"
       type: temperature
       min: 5
       max: 30
