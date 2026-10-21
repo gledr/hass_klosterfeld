@@ -1028,6 +1028,14 @@ knx:
 # INPUT BOOLEANS
 # ========================
 input_boolean:
+  # Sperre für die Heizungs-Sollwert-Schieber im Dashboard (global, alle Räume).
+  # ON = Schieber und +/- ausgeblendet, damit nichts versehentlich verstellt wird.
+  # Schaltet sich per Automation heizung_sollwert_sperre_auto 5 Min nach dem
+  # Entsperren wieder ein. Nur UI-Schutz, kein Schutz auf dem Bus.
+  heizung_sollwert_sperre:
+    name: Heizung Sollwert gesperrt
+    icon: mdi:lock
+    initial: true
   wohnkueche_override_kochen:
     name: Wohnküche Override Kochen
   wohnkueche_override_tv:
