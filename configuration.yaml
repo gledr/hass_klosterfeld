@@ -907,6 +907,8 @@ knx:
     - name: "Reset Einspeisung L1"
       address: "2/0/47"
 
+    # payload_length: 0 = 1-Bit-Telegramm (DPT 1). "1" würde ein volles Byte
+    # senden, das das 1-Bit-KO des Antriebs verwirft.
     # Sollwert-Korrektur des WC-Stellantriebs: 1 = eine Stufe höher,
     # 0 = eine Stufe niedriger (DPT 1.004). Bewusst button und nicht switch —
     # das ist ein Tastbefehl ohne Zustand, kein Schaltzustand. Ein switch
@@ -914,11 +916,11 @@ knx:
     - name: "WC OG Sollwert Plus"
       address: "7/3/34"
       payload: 1
-      payload_length: 1
+      payload_length: 0
     - name: "WC OG Sollwert Minus"
       address: "7/3/34"
       payload: 0
-      payload_length: 1
+      payload_length: 0
 
     # Sollwert-Korrektur der übrigen OG-Stellantriebe: das 1-Bit-KO
     # "Manual setpoint shift" (1 = eine Stufe höher, 0 = eine Stufe
@@ -929,35 +931,35 @@ knx:
     - name: "Gästezimmer Sollwert Plus"
       address: "7/3/49"
       payload: 1
-      payload_length: 1
+      payload_length: 0
     - name: "Gästezimmer Sollwert Minus"
       address: "7/3/49"
       payload: 0
-      payload_length: 1
+      payload_length: 0
     - name: "Büro Sollwert Plus"
       address: "7/3/64"
       payload: 1
-      payload_length: 1
+      payload_length: 0
     - name: "Büro Sollwert Minus"
       address: "7/3/64"
       payload: 0
-      payload_length: 1
+      payload_length: 0
     - name: "Schlafzimmer Sollwert Plus"
       address: "7/3/79"
       payload: 1
-      payload_length: 1
+      payload_length: 0
     - name: "Schlafzimmer Sollwert Minus"
       address: "7/3/79"
       payload: 0
-      payload_length: 1
+      payload_length: 0
     - name: "Badezimmer Sollwert Plus"
       address: "7/3/94"
       payload: 1
-      payload_length: 1
+      payload_length: 0
     - name: "Badezimmer Sollwert Minus"
       address: "7/3/94"
       payload: 0
-      payload_length: 1
+      payload_length: 0
 
 
   # ========================
