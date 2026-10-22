@@ -178,6 +178,27 @@ sollwert:
           {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}deep-orange{% elif is_state('binary_sensor.[[raum]]_ventil_offen', 'off') %}blue{% else %}grey{% endif %}
         tap_action:
           action: more-info
+      # Zweiter Heizkreis (nur wo vorhanden, z. B. Schlafzimmer): erscheint,
+      # sobald binary_sensor.<raum>_ventil_2_offen existiert.
+      - type: conditional
+        conditions:
+          - condition: state
+            entity: binary_sensor.[[raum]]_ventil_2_offen
+            state:
+              - "on"
+              - "off"
+        card:
+          type: custom:mushroom-template-card
+          entity: binary_sensor.[[raum]]_ventil_2_offen
+          primary: Ventil Kreis 2
+          secondary: >-
+            {% if is_state('binary_sensor.[[raum]]_ventil_2_offen', 'on') %}offen — heizt{% else %}zu{% endif %}
+          icon: >-
+            {% if is_state('binary_sensor.[[raum]]_ventil_2_offen', 'on') %}mdi:valve-open{% else %}mdi:valve-closed{% endif %}
+          icon_color: >-
+            {% if is_state('binary_sensor.[[raum]]_ventil_2_offen', 'on') %}deep-orange{% else %}blue{% endif %}
+          tap_action:
+            action: more-info
       - type: custom:mushroom-chips-card
         alignment: center
         chips:

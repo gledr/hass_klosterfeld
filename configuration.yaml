@@ -105,19 +105,6 @@ knx:
     - address: "9/1/3"         # Smart 55 – Vorherige Szene
     - address: "9/1/4"         # Smart 55 – Reset
     - address: "9/1/5"         # Smart 55 – Default Szene A (TBD)
-    # Heizung OG – Sollwert-Rückmeldung (Send current setpoint). Nur zur
-    # Diagnose: zeigt unter Entwicklerwerkzeuge → Ereignisse (knx_event), ob
-    # HA die Telegramme auf diesen GAs überhaupt vom Bus bekommt.
-    - address: "7/3/39"        # WC OG
-      type: temperature
-    - address: "7/3/54"        # Gästezimmer
-      type: temperature
-    - address: "7/3/69"        # Büro
-      type: temperature
-    - address: "7/3/84"        # Schlafzimmer
-      type: temperature
-    - address: "7/3/99"        # Badezimmer
-      type: temperature
 
   # ========================
   # LIGHTS
@@ -992,6 +979,10 @@ knx:
       sync_state: true
     - name: "Schlafzimmer Ventil offen"
       state_address: "7/3/75"
+      sync_state: true
+    # Schlafzimmer hat zwei Heizkreise; Kreis 2 meldet nur 1 Bit (kein %)
+    - name: "Schlafzimmer Ventil 2 offen"
+      state_address: "7/3/88"
       sync_state: true
     - name: "Badezimmer Ventil offen"
       state_address: "7/3/90"
