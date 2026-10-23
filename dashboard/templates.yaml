@@ -295,7 +295,7 @@ lueften_raum:
 # Hat der Raum eine Lüftungsempfehlung, ist das Icon das Lüften-Logo,
 # sonst das Raum-Icon. Taupunkt bewusst nicht — der steht in den Raum-
 # Ansichten und unter Klima → Lüften.
-# Tippen = Verlauf Temperatur, Halten/Doppeltippen = Verlauf Feuchte.
+# Tippen = Verlauf Temperatur, Icon antippen/Halten/Doppeltippen = Verlauf Feuchte.
 # Variablen: name, temp, feuchte ('' = keine), luftung ('' = keine),
 #            icon, farbe (Raum-Icon-Farbe)
 # -----------------------------------------------------------------------------
@@ -317,6 +317,10 @@ klima_raum:
     # Tippen = Temperatur verlaufen, Halten/Doppeltippen = Feuchte. Eine Kachel
     # hat nur ein more-info; ohne feuchte ('' = keine) fällt es auf temp zurück.
     hold_action:
+      action: more-info
+      entity: "[[feuchte]]"
+    # Icon antippen = Feuchte (ohne Halten/Doppeltippen erreichbar, z. B. am Handy)
+    icon_tap_action:
       action: more-info
       entity: "[[feuchte]]"
     double_tap_action:

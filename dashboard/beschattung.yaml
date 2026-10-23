@@ -54,7 +54,7 @@ views:
             primary: >
               {% if is_state('switch.twilight', 'on') %}Tag{% else %}Nacht{% endif %}
             secondary: >
-              {% set t = states.switch.twilight.last_changed %}
+              {% set t = states.switch.twilight.last_changed | as_local %}
               {% set delay = states('input_number.beschattung_nacht_verzoegerung') | float(30) %}
               {% set stamp = states('input_datetime.beschattung_daemmerung_ende') | as_datetime | as_local %}
               {% set close = (stamp if stamp else t) + timedelta(minutes=delay) %}
