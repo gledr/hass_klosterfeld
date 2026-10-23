@@ -171,7 +171,7 @@ sollwert:
           {% elif is_state('binary_sensor.[[raum]]_ventil_offen', 'off') %}zu
           {% else %}Ventilstatus unbekannt{% endif %}
           · {% if is_state('binary_sensor.heizsaison', 'on') %}Heizsaison{% else %}Sommerzeit{% endif %}
-          · {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}WP heizt{% else %}WP aus{% endif %}
+          · {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}WP heizt{% elif is_state('binary_sensor.waermepumpe_heizen', 'off') %}WP aus{% else %}WP unbekannt{% endif %}
         icon: >-
           {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}mdi:valve-open{% else %}mdi:valve-closed{% endif %}
         icon_color: >-

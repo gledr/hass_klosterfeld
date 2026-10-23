@@ -115,18 +115,24 @@ binary_sensor:
     device_class: heat
     # Integration nicht erreichbar -> "unbekannt" statt "heizt nicht",
     # sonst sieht eine Automation das als Sommerbetrieb.
-    # Die entity_id stammt aus der UI-Integration und war geraten
-    # (climate.altherma_leaving_water_temperature gibt es offenbar nicht -> "WP ?").
-    # Deshalb Discovery: das Altherma-Climate mit "leaving_water" im Namen,
-    # sonst das erste Altherma-Climate.
+    # Die entity_id kommt aus der UI-Integration (Daikin Onecta) und ist
+    # nicht stabil. Deshalb Discovery, aber gezielt: "leaving_water" allein
+    # trifft auch climate.altherma_leaving_water_offset — ein reines
+    # Einstell-Entity, das je nach Anlage dauerhaft "unavailable" ist. Stand
+    # das vorne in der Liste, zeigte der Chip dauerhaft "WP ?". Deshalb
+    # Offsets ausschließen und das Temperatur-Climate bevorzugen.
     availability: >-
-      {% set c = states.climate | selectattr('entity_id', 'search', 'altherma') | list %}
-      {% set lw = c | selectattr('entity_id', 'search', 'leaving_water') | list %}
+      {% set c = states.climate
+                   | selectattr('entity_id', 'search', 'altherma')
+                   | rejectattr('entity_id', 'search', 'offset') | list %}
+      {% set lw = c | selectattr('entity_id', 'search', 'leaving_water_temperature') | list %}
       {% set e = (lw + c) | first | default(none) %}
       {{ e is not none and e.state not in ['unknown', 'unavailable'] }}
     state: >-
-      {% set c = states.climate | selectattr('entity_id', 'search', 'altherma') | list %}
-      {% set lw = c | selectattr('entity_id', 'search', 'leaving_water') | list %}
+      {% set c = states.climate
+                   | selectattr('entity_id', 'search', 'altherma')
+                   | rejectattr('entity_id', 'search', 'offset') | list %}
+      {% set lw = c | selectattr('entity_id', 'search', 'leaving_water_temperature') | list %}
       {% set e = (lw + c) | first | default(none) %}
       {{ e is not none and e.state == 'heat' }}
 
