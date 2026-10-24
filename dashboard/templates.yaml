@@ -167,15 +167,24 @@ sollwert:
         primary: >-
           Ventil {{ states('sensor.[[raum]]_ventil') | replace('unknown','?') | replace('unavailable','?') }} %
         secondary: >-
-          {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}offen — heizt
-          {% elif is_state('binary_sensor.[[raum]]_ventil_offen', 'off') %}zu
-          {% else %}Ventilstatus unbekannt{% endif %}
+          {# Das Bit ist "Stellwert > 0 %" (Regler fordert Wärme), NICHT der echte
+             Ventilzustand: bei PWM ist das Ventil nur einen Teil des Zyklus offen. #}
+          {% set p = states('sensor.[[raum]]_ventil') | float(none) %}
+          {% set b = states('binary_sensor.[[raum]]_ventil_offen') %}
+          {% if b not in ['on', 'off'] %}Ventilstatus unbekannt
+          {% elif p is not none and (p > 0) != (b == 'on') %}Widerspruch: Stellwert {{ p | round(0) }} % ↔ Bit {{ 'an' if b == 'on' else 'aus' }}
+          {% elif b == 'on' %}Regler fordert Wärme
+          {% else %}kein Bedarf{% endif %}
           · {% if is_state('binary_sensor.heizsaison', 'on') %}Heizsaison{% else %}Sommerzeit{% endif %}
           · {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}WP heizt{% elif is_state('binary_sensor.waermepumpe_heizen', 'off') %}WP aus{% else %}WP unbekannt{% endif %}
         icon: >-
           {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}mdi:valve-open{% else %}mdi:valve-closed{% endif %}
         icon_color: >-
-          {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}deep-orange{% elif is_state('binary_sensor.[[raum]]_ventil_offen', 'off') %}blue{% else %}grey{% endif %}
+          {% set p = states('sensor.[[raum]]_ventil') | float(none) %}
+          {% set b = states('binary_sensor.[[raum]]_ventil_offen') %}
+          {% if b not in ['on', 'off'] %}grey
+          {% elif p is not none and (p > 0) != (b == 'on') %}red
+          {% elif b == 'on' %}deep-orange{% else %}blue{% endif %}
         tap_action:
           action: more-info
       # Zweiter Heizkreis (nur wo vorhanden, z. B. Schlafzimmer): erscheint,
