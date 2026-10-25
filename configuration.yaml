@@ -235,32 +235,35 @@ knx:
   # SENSORS
   # ========================
   sensor:
-    # HEIZUNG – VENTILSTELLUNG OG (Stellgröße Heizen in %, DPT 5.001)
-    # Quelle: Stellantriebe, KO "Control value Heating send status"
-    - name: "WC OG Ventil"
+    # HEIZUNG – STELLWERT OG (PWM-Tastverhältnis, DPT 5.001)
+    # Quelle: MDT AKH, KO "Control value Heating send status" (Objekt 12).
+    # Achtung: Das ist kein Ventilhub, sondern die Einschaltdauer im PWM-Takt
+    # (z. B. 40 % = 4 von 10 Minuten bestromt). Die Thermostellantriebe selbst
+    # kennen nur auf/zu.
+    - name: "WC OG Stellwert"
       state_address: "7/3/31"
       type: percent
       sync_state: true
-    - name: "Gästezimmer Ventil"
+    - name: "Gästezimmer Stellwert"
       state_address: "7/3/46"
       type: percent
       sync_state: true
-    - name: "Büro Ventil"
+    - name: "Büro Stellwert"
       state_address: "7/3/61"
       type: percent
       sync_state: true
-    - name: "Schlafzimmer Ventil"
+    - name: "Schlafzimmer Stellwert"
       state_address: "7/3/76"
       type: percent
       sync_state: true
-    - name: "Badezimmer Ventil"
+    - name: "Badezimmer Stellwert"
       state_address: "7/3/91"
       type: percent
       sync_state: true
-    # HEIZUNG – SOLLWERT-RÜCKMELDUNG OG (Present Setpoint, DPT 9.001)
-    # Dieselben GAs wie state_address der number-Entities, aber als eigener
-    # Sensor: zeigt ausschließlich, was der Antrieb zurückmeldet. Der
-    # Schieber springt dagegen schon beim Schreiben auf den neuen Wert.
+    # HEIZUNG – SOLLWERT-RÜCKMELDUNG OG (DPT 9.001)
+    # Liest das Status-KO "Send current setpoint" (Objekt 8) des AKH.
+    # Die number-Entities lesen dieselbe GA als state_address; dieser Sensor
+    # bleibt für Anzeige und History getrennt.
     - name: "WC OG Sollwert Ist"
       state_address: "7/3/39"
       type: temperature
@@ -968,25 +971,28 @@ knx:
   # BINARY SENSORS – ALLE EXISTIERENDEN PLUS WINDALARM
   # ========================
   binary_sensor:
-    # HEIZUNG – VENTIL OFFEN OG (Stellgröße > 0 %, DPT 1.011)
-    # KO "Control value >0% send status" des jeweiligen Stellantriebs
-    - name: "WC OG Ventil offen"
+    # HEIZUNG – WÄRMEANFORDERUNG OG (Stellwert > 0 %, DPT 1.011)
+    # KO "Control value >0% send status" (Objekt 14): 1 = Regler fordert
+    # Wärme. Das ist NICHT "Ventil ist offen" — bei PWM wird der thermische
+    # Antrieb im Takt bestromt. Echten Ventilstatus liefert Objekt 15
+    # (nur für Schlafzimmer Kreis 2 auf 7/3/88 vorhanden).
+    - name: "WC OG Wärmeanforderung"
       state_address: "7/3/30"
       sync_state: true
-    - name: "Gästezimmer Ventil offen"
+    - name: "Gästezimmer Wärmeanforderung"
       state_address: "7/3/45"
       sync_state: true
-    - name: "Büro Ventil offen"
+    - name: "Büro Wärmeanforderung"
       state_address: "7/3/60"
       sync_state: true
-    - name: "Schlafzimmer Ventil offen"
+    - name: "Schlafzimmer Wärmeanforderung"
       state_address: "7/3/75"
       sync_state: true
     # Schlafzimmer hat zwei Heizkreise; Kreis 2 meldet nur 1 Bit (kein %)
-    - name: "Schlafzimmer Ventil 2 offen"
+    - name: "Schlafzimmer Ventil Kreis 2 offen"
       state_address: "7/3/88"
       sync_state: true
-    - name: "Badezimmer Ventil offen"
+    - name: "Badezimmer Wärmeanforderung"
       state_address: "7/3/90"
       sync_state: true
     # Bewegungsmelder / Präsenz / Locks / Twilight
