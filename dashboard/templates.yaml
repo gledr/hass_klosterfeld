@@ -170,15 +170,12 @@ sollwert:
           {% elif b == 'off' %}kein Wärmebedarf
           {% else %}Wärmeanforderung unbekannt{% endif %}
         secondary: >-
-          {# Der Prozentwert ist die Einschaltdauer im PWM-Takt, kein
-             Ventilhub. Die thermischen Antriebe kennen nur auf/zu. #}
+          {# Prozentwert = Einschaltdauer im Regelzyklus, kein Ventilhub. #}
           {% set p = states('sensor.[[raum]]_ventil') | float(none) %}
           {% set b = states('binary_sensor.[[raum]]_ventil_offen') %}
-          {% if p is none %}Stellwert unbekannt
-          {% elif b in ['on', 'off'] and (p > 0) != (b == 'on') %}Widerspruch: Stellwert {{ p | round(0) }} % ↔ Bit {{ 'an' if b == 'on' else 'aus' }}
-          {% else %}Stellwert {{ p | round(0) }} % (Einschaltdauer, kein Ventilhub){% endif %}
-          · {% if is_state('binary_sensor.heizsaison', 'on') %}Heizsaison{% else %}Sommerzeit{% endif %}
-          · {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}WP heizt{% elif is_state('binary_sensor.waermepumpe_heizen', 'off') %}WP aus{% else %}WP unbekannt{% endif %}
+          {% if p is none %}Stellwert ?
+          {% elif b in ['on', 'off'] and (p > 0) != (b == 'on') %}Widerspruch {{ p | round(0) | int }} % / {{ 'an' if b == 'on' else 'aus' }}
+          {% else %}{{ p | round(0) | int }} % Einschaltdauer{% endif %}
         icon: >-
           {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}mdi:radiator{% else %}mdi:radiator-off{% endif %}
         icon_color: >-
