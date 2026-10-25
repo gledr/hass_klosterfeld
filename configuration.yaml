@@ -783,19 +783,21 @@ knx:
   # ========================
   # HEIZUNG – BETRIEBSART SOMMER/WINTER
   # ========================
-  # 7/0/0 ist ein 1-Bit-Schalter: 1 = Sommer (Heizung abgeschaltet),
-  # 0 = Winter (Heizung aktiv). Bewusst als select und nicht als switch,
-  # damit die Zuordnung "1 = Sommer" nicht invertiert im YAML steht.
+  # 7/0/0 ist ein 1-Bit-Schalter (DPT 1.001): 1 = Sommer (Heizung
+  # abgeschaltet), 0 = Winter (Heizung aktiv). Bewusst als select und nicht
+  # als switch, damit die Zuordnung "1 = Sommer" nicht invertiert im YAML
+  # steht. payload_length MUSS 0 sein (1-Bit); 1 würde ein volles Byte
+  # senden, das das 1-Bit-KO des Heizungsaktors verwirft.
   # Es gibt keine Status-GA, d. h. HA kennt nur den zuletzt gesendeten
   # Wert (Restore-State) – wird am Taster umgestellt, sieht HASS das erst
-  # beim nächsten Schreiben. Wenn die Altherma später eine Betriebsart
-  # meldet, kommt eine state_address hier rein.
+  # beim nächsten Schreiben. Der AKH hat ein Status-KO (Objekt 162); sobald
+  # es in der ETS auf eine GA gelegt ist, hier als state_address eintragen.
   # binary_sensor.heizung_aktiv (template.yaml) ist die Schnittstelle für
   # die spätere Automatisierung über die Wärmepumpen-Integration.
   select:
     - name: "Heizung Betriebsart"
       address: "7/0/0"
-      payload_length: 1
+      payload_length: 0
       options:
         - option: Winter
           payload: 0

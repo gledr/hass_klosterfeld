@@ -76,6 +76,9 @@ views:
                 - entity_id: sensor.outdoor_*
                 - entity_id: sensor.garagentor_*
                 - entity_id: sensor.taupunkt_*
+                # Sollwert-Rückmeldungen der Heizungsaktoren sind keine
+                # Raumluft-Temperaturen (z. B. Nachtsollwert 17 °C).
+                - entity_id: sensor.*_sollwert_ist
                 # LWP-Systemtemperaturen (Außenfühler, Vorlauf, Warmwasser)
                 # sind keine Raumluft-Temperaturen.
                 - entity_id: sensor.altherma_climatecontrol_outdoor_*
@@ -109,6 +112,9 @@ views:
                 - entity_id: sensor.storage_*
                 - entity_id: sensor.hobby_*
                 - entity_id: sensor.stairs_*
+                # Sollwert-Rückmeldungen der Heizungsaktoren sind keine
+                # Raumluft-Temperaturen (z. B. Nachtsollwert 17 °C).
+                - entity_id: sensor.*_sollwert_ist
                 # LWP-Systemtemperaturen (Außenfühler, Vorlauf, Warmwasser)
                 # sind keine Raumluft-Temperaturen.
                 - entity_id: sensor.altherma_climatecontrol_outdoor_*

@@ -705,10 +705,11 @@ wc_og_sollwert_standard:
 #########################################################
 # HEIZUNG – ÜBRIGE OG-RÄUME – STANDARD + STATUS
 # Gleiches Muster wie beim WC (siehe oben): "Status" schickt ein
-# GroupValueRead auf das jeweilige "Present Setpoint"-KO, "Standard"
-# schreibt 20 °C auf das "Send current setpoint"-KO. GA-Zuordnung siehe
-# configuration.yaml (number/button). 20 °C muss zusätzlich im
-# ETS-Parameter des jeweiligen Stellantriebs hinterlegt sein.
+# GroupValueRead auf das jeweilige "Send current setpoint"-KO (Objekt 8),
+# "Standard" schreibt 20 °C über number.* auf "Preset setpoint" (Objekt 2).
+# GA-Zuordnung siehe configuration.yaml (number/button). 20 °C ist der
+# ETS-Grundwert des jeweiligen Aktorkanals; der Schreibbefehl setzt den
+# Sollwert des gerade aktiven Betriebsmodus, nicht dauerhaft alle Modi.
 #########################################################
 
 gaestezimmer_sollwert_status_abfragen:
