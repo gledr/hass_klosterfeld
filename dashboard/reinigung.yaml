@@ -1,0 +1,264 @@
+###############################################################################
+# REINIGUNG — Dashboard mit Tab "Wischroboter Erdgeschoss"                     #
+#                                                                              #
+# Roborock QV 35A (Integration roborock). Das Gerät hat mehrere Karten         #
+# (Keller / EG / OG); hier nur das, was fürs Erdgeschoss gebraucht wird.       #
+# Die Entities stammen aus core.entity_registry — die EG-Karte heißt dort      #
+# tatsächlich "Ersgeschoss" (Tippfehler in der Roborock-App), daher            #
+# image.roborock_qv_35a_ersgeschoss. Die Schnellstart-Buttons sind in der      #
+# App gespeicherte Routinen.                                                   #
+#                                                                              #
+# URL: /lovelace-reinigung/wischroboter-eg                                     #
+###############################################################################
+title: Reinigung
+views:
+  - title: Wischroboter Erdgeschoss
+    path: wischroboter-eg
+    icon: mdi:robot-vacuum
+    type: sections
+    max_columns: 3
+
+    badges:
+      - type: entity
+        entity: sensor.roborock_qv_35a_batterie
+        name: Akku
+      - type: entity
+        entity: sensor.roborock_qv_35a_aktueller_raum
+        name: Raum
+        visibility:
+          - condition: state
+            entity: binary_sensor.roborock_qv_35a_reinigen
+            state: "on"
+
+    sections:
+
+      #########################################################################
+      # STATUS + STEUERUNG                                                    #
+      #########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Status
+            icon: mdi:robot-vacuum
+
+          - type: custom:mushroom-vacuum-card
+            entity: vacuum.roborock_qv_35a
+            icon_animation: true
+            commands:
+              - start_pause
+              - stop
+              - return_home
+              - locate
+
+          - type: custom:mushroom-entity-card
+            entity: sensor.roborock_qv_35a_status
+            name: Zustand
+            icon: mdi:information-outline
+            secondary_info: none
+
+          - type: custom:mushroom-entity-card
+            entity: sensor.roborock_qv_35a_reinigungsfortschritt
+            name: Fortschritt
+            icon: mdi:progress-clock
+            visibility:
+              - condition: state
+                entity: binary_sensor.roborock_qv_35a_reinigen
+                state: "on"
+
+          # Fehler nur, wenn einer anliegt
+          - type: custom:mushroom-entity-card
+            entity: sensor.roborock_qv_35a_staubsauger_fehler
+            name: Roboter-Fehler
+            icon: mdi:alert-circle
+            icon_color: red
+            visibility:
+              - condition: state
+                entity: sensor.roborock_qv_35a_staubsauger_fehler
+                state_not: "none"
+              - condition: state
+                entity: sensor.roborock_qv_35a_staubsauger_fehler
+                state_not: "unknown"
+              - condition: state
+                entity: sensor.roborock_qv_35a_staubsauger_fehler
+                state_not: "unavailable"
+          - type: custom:mushroom-entity-card
+            entity: sensor.roborock_qv_35a_dock_fehler
+            name: Dock-Fehler
+            icon: mdi:alert-circle
+            icon_color: red
+            visibility:
+              - condition: state
+                entity: sensor.roborock_qv_35a_dock_fehler
+                state_not: "ok"
+              - condition: state
+                entity: sensor.roborock_qv_35a_dock_fehler
+                state_not: "unknown"
+              - condition: state
+                entity: sensor.roborock_qv_35a_dock_fehler
+                state_not: "unavailable"
+
+      #########################################################################
+      # KARTE + SCHNELLSTART                                                  #
+      #########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Erdgeschoss
+            icon: mdi:floor-plan
+
+          - type: picture-entity
+            entity: image.roborock_qv_35a_ersgeschoss
+            show_name: false
+            show_state: false
+
+          - type: heading
+            heading: Schnellstart
+            heading_style: subtitle
+
+          - type: custom:mushroom-template-card
+            primary: Wischen Fliesen EG
+            secondary: Routine aus der Roborock-App
+            icon: mdi:water
+            icon_color: blue
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.roborock_qv_35a_wischen_fliesen_eg
+          - type: custom:mushroom-template-card
+            primary: Saugen Erdgeschoss
+            secondary: Routine aus der Roborock-App
+            icon: mdi:robot-vacuum
+            icon_color: blue
+            tap_action:
+              action: perform-action
+              perform_action: button.press
+              target:
+                entity_id: button.roborock_qv_35a_saugen_erdgeschoss
+
+      #########################################################################
+      # WISCHEN + DOCK                                                        #
+      #########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Wischen
+            icon: mdi:water-pump
+            badges:
+              - type: entity
+                entity: binary_sensor.roborock_qv_35a_wasserknappheit
+                visibility:
+                  - condition: state
+                    entity: binary_sensor.roborock_qv_35a_wasserknappheit
+                    state: "on"
+
+          - type: entities
+            state_color: true
+            entities:
+              - entity: select.eg_gaderobe_roborock_qv_35a_reinigungsmodus
+                name: Reinigungsmodus
+              - entity: select.roborock_qv_35a_mopp_modus
+                name: Wisch-Modus
+              - entity: select.roborock_qv_35a_wisch_intensitat
+                name: Wisch-Intensität
+              - entity: binary_sensor.roborock_qv_35a_mopp_angebracht
+                name: Mopp angebracht
+              - entity: binary_sensor.roborock_qv_35a_wasserkasten_angebracht
+                name: Wasserkasten angebracht
+
+          - type: heading
+            heading: Ladestation
+            icon: mdi:home-lightning-bolt
+
+          - type: entities
+            state_color: true
+            entities:
+              - entity: binary_sensor.roborock_qv_35a_ladestatus
+                name: Lädt
+              - entity: binary_sensor.roborock_qv_35a_dock_frischwassertank
+                name: Frischwassertank
+              - entity: binary_sensor.roborock_qv_35a_dock_schmutzwassertank
+                name: Schmutzwassertank
+              - entity: binary_sensor.roborock_qv_35a_dock_reinigungsflussigkeit
+                name: Reinigungsflüssigkeit
+              - entity: switch.roborock_qv_35a_dock_moppwasche
+                name: Moppwäsche
+              - entity: switch.roborock_qv_35a_dock_mopp_trocknung
+                name: Mopp-Trocknung
+              - entity: sensor.roborock_qv_35a_verbleibende_zeit_zum_trocknen_des_mopps
+                name: Trocknung verbleibend
+              - entity: switch.roborock_qv_35a_dock_staubentleerung
+                name: Staubentleerung
+
+      #########################################################################
+      # VERLAUF + WARTUNG (eingeklappt)                                       #
+      #########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Letzte Reinigung & Wartung
+            icon: mdi:wrench-clock
+
+          - type: custom:expander-card
+            title: Letzte Reinigung & Statistik
+            expanded: false
+            cards:
+              - type: entities
+                entities:
+                  - entity: sensor.roborock_qv_35a_letzter_reinigungsbeginn
+                    name: Letzter Beginn
+                  - entity: sensor.roborock_qv_35a_letztes_reinigungsende
+                    name: Letztes Ende
+                  - entity: sensor.roborock_qv_35a_reinigungszeit
+                    name: Dauer
+                  - entity: sensor.roborock_qv_35a_reinigungsbereich
+                    name: Fläche
+                  - entity: sensor.roborock_qv_35a_gesamtzahl_reinigungen
+                    name: Reinigungen gesamt
+                  - entity: sensor.roborock_qv_35a_gesamtreinigungszeit
+                    name: Zeit gesamt
+                  - entity: sensor.roborock_qv_35a_gesamter_reinigungsbereich
+                    name: Fläche gesamt
+
+          - type: custom:expander-card
+            title: Verbrauchsmaterial
+            expanded: false
+            cards:
+              - type: entities
+                entities:
+                  - entity: sensor.roborock_qv_35a_verbleibende_zeit_der_hauptburste
+                    name: Hauptbürste
+                  - entity: sensor.roborock_qv_35a_verbleibende_zeit_der_seitenburste
+                    name: Seitenbürste
+                  - entity: sensor.roborock_qv_35a_verbleibende_filterzeit
+                    name: Filter
+                  - entity: sensor.roborock_qv_35a_verbleibende_sensorzeit
+                    name: Sensoren
+                  - entity: sensor.roborock_qv_35a_dock_schmutzfanger_verbleibend
+                    name: Schmutzfänger (Dock)
+
+          - type: custom:expander-card
+            title: Einstellungen
+            expanded: false
+            cards:
+              - type: entities
+                state_color: true
+                entities:
+                  - entity: number.roborock_qv_35a_lautstarke
+                    name: Lautstärke
+                  - entity: switch.roborock_qv_35a_bitte_nicht_storen
+                    name: Bitte nicht stören
+                  - entity: time.roborock_qv_35a_bitte_nicht_storen_beginn
+                    name: DND Beginn
+                  - entity: time.roborock_qv_35a_bitte_nicht_storen_ende
+                    name: DND Ende
+                  - entity: switch.roborock_qv_35a_kindersicherung
+                    name: Kindersicherung
+                  - entity: select.roborock_qv_35a_dock_entleerungsmodus
+                    name: Entleerungsmodus
+                  - entity: select.roborock_qv_35a_ausgewahlte_karte
+                    name: Aktive Karte

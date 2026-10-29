@@ -12,6 +12,7 @@ YAML-Dashboards, git-getrackt. Registriert in `configuration.yaml` unter `lovela
 | Klima | `klima.yaml` | Übersicht · Heizung · Lüften |
 | Sicherheit | `sicherheit.yaml` | — |
 | Energie | `energie.yaml` | Übersicht · Details |
+| Reinigung | `reinigung.yaml` | Wischroboter Erdgeschoss |
 
 Die Stockwerks-Dateien sind **einzelne Views** (kein `title:`/`views:`-Kopf), `raeume.yaml`
 bindet sie per `!include` ein. URLs: `/lovelace-raeume/eg`, `/og`, `/keller`, `/aussen`.

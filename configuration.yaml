@@ -91,6 +91,13 @@ lovelace:
       icon: mdi:lightning-bolt
       show_in_sidebar: true
       require_admin: false
+    lovelace-reinigung:
+      mode: yaml
+      filename: dashboard/reinigung.yaml
+      title: Reinigung
+      icon: mdi:robot-vacuum
+      show_in_sidebar: true
+      require_admin: false
 
 #########################################################
 # KNX INTEGRATION
