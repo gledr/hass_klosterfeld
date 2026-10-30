@@ -1920,7 +1920,7 @@
                   {# Blendschutz-Position nach Sonnenhöhe: je tiefer die Sonne,
                      desto weiter scheint sie in den Raum → weiter zu. #}
                   {% set elev = state_attr('sun.sun', 'elevation') | float(0) %}
-                  {% set blend_pos = 25 if elev < 25 else (50 if elev < 45 else 75) %}
+                  {% set blend_pos = 50 if elev < 20 else (65 if elev < 40 else 80) %}
                   {% if mode == 'skip' %}-1
                   {% elif mode == 'morgen' %}{{ repeat.item.morgen_spalt }}
                   {% elif mode == 'nacht' %}0
