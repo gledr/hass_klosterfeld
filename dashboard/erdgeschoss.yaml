@@ -30,12 +30,12 @@ sections:
             show_state: false
             color: green
 
-      # _2 ist das Wandlicht — sein Leuchtmittel kann unter 50 % nicht,
+      # _2 ist das Deckenlicht — sein Leuchtmittel kann unter 50 % nicht,
       # deshalb Festwert-Knöpfe statt eines Schiebers, dessen untere
       # Hälfte nur flackern produziert.
       - type: custom:mushroom-light-card
         entity: light.livingroom_main_light_2
-        name: Wandlicht
+        name: Deckenlicht
       - type: custom:mushroom-chips-card
         alignment: center
         chips:
@@ -72,6 +72,10 @@ sections:
       - type: custom:mushroom-light-card
         entity: light.livingroom_reading_light
         name: Leselicht
+        show_brightness_control: true
+      - type: custom:mushroom-light-card
+        entity: light.livingroom_led_stripes
+        name: LED-Stripes
         show_brightness_control: true
       - type: custom:mushroom-cover-card
         entity: cover.livingroom_blinds
