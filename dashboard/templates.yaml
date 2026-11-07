@@ -166,24 +166,24 @@ sollwert:
         entity: binary_sensor.[[raum]]_ventil_offen
         primary: >-
           {% set b = states('binary_sensor.[[raum]]_ventil_offen') %}
-          {% if b == 'on' %}Regler fordert Wärme
+          {% if b == 'on' %}Wärmebedarf
           {% elif b == 'off' %}kein Wärmebedarf
-          {% else %}Wärmeanforderung unbekannt{% endif %}
+          {% else %}Wärmebedarf unbekannt{% endif %}
         secondary: >-
-          {# Prozentwert = Einschaltdauer im Regelzyklus, kein Ventilhub. #}
+          {# Bedarf (Stellwert > 0 %) ist NICHT der Ventilzustand: bei PWM bleibt er
+             den ganzen Zyklus an, der Antrieb ist aber nur teilweise bestromt. #}
           {% set p = states('sensor.[[raum]]_ventil') | float(none) %}
           {% set b = states('binary_sensor.[[raum]]_ventil_offen') %}
           {% if p is none %}Stellwert ?
           {% elif b in ['on', 'off'] and (p > 0) != (b == 'on') %}Widerspruch {{ p | round(0) | int }} % / {{ 'an' if b == 'on' else 'aus' }}
-          {% else %}{{ p | round(0) | int }} % Einschaltdauer{% endif %}
-        icon: >-
-          {% if is_state('binary_sensor.[[raum]]_ventil_offen', 'on') %}mdi:radiator{% else %}mdi:radiator-off{% endif %}
+          {% else %}{{ p | round(0) | int }} % Einschaltdauer · Ventilzustand nicht gemeldet{% endif %}
+        icon: mdi:radiator
         icon_color: >-
           {% set p = states('sensor.[[raum]]_ventil') | float(none) %}
           {% set b = states('binary_sensor.[[raum]]_ventil_offen') %}
           {% if b not in ['on', 'off'] %}grey
           {% elif p is not none and (p > 0) != (b == 'on') %}red
-          {% elif b == 'on' %}deep-orange{% else %}blue{% endif %}
+          {% elif b == 'on' %}amber{% else %}blue{% endif %}
         tap_action:
           action: more-info
       # Zweiter Heizkreis (nur wo vorhanden, z. B. Schlafzimmer): erscheint,
