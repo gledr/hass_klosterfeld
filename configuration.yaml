@@ -30,19 +30,19 @@ template: !include template.yaml
 lovelace:
   resource_mode: yaml
   resources:
-    - url: /hacsfiles/lovelace-mushroom/mushroom.js
+    - url: /local/community/lovelace-mushroom/mushroom.js
       type: module
-    - url: /hacsfiles/mini-graph-card/mini-graph-card-bundle.js
+    - url: /local/community/mini-graph-card/mini-graph-card-bundle.js
       type: module
-    - url: /hacsfiles/apexcharts-card/apexcharts-card.js
+    - url: /local/community/apexcharts-card/apexcharts-card.js
       type: module
-    - url: /hacsfiles/lovelace-auto-entities/auto-entities.js
+    - url: /local/community/lovelace-auto-entities/auto-entities.js
       type: module
     # Karten-Vorlagen (dashboard/templates.yaml) — custom-cards/decluttering-card
-    - url: /hacsfiles/decluttering-card/decluttering-card.js
+    - url: /local/community/decluttering-card/decluttering-card.js
       type: module
     # Einklappbare Bereiche für Erklärungen/Diagnose — MelleD/lovelace-expander-card
-    - url: /hacsfiles/lovelace-expander-card/expander-card.js
+    - url: /local/community/lovelace-expander-card/expander-card.js
       type: module
   # Sidebar: 6 statt 10 Einträge. Erdgeschoss/Obergeschoss/Keller/Aussen sind
   # jetzt Tabs von "Räume", Lüften ist ein Tab von "Klima".
