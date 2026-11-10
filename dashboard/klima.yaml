@@ -86,6 +86,8 @@ views:
                 - entity_id: sensor.altherma_domestichotwatertank_tank_*
                 # Shelly/BTHome H&T auf der Terrasse — kein Innenraum.
                 - entity_id: sensor.bthome_sensor_ace1_temperature
+                # BTHome-Original zum KNX-Klon sensor.bathroom_temperature — sonst doppelt.
+                - entity_id: sensor.bthome_sensor_5447_temperature
             sort:
               method: state
               numeric: true
@@ -122,6 +124,8 @@ views:
                 - entity_id: sensor.altherma_domestichotwatertank_tank_*
                 # Shelly/BTHome H&T auf der Terrasse — kein Innenraum.
                 - entity_id: sensor.bthome_sensor_ace1_temperature
+                # BTHome-Original zum KNX-Klon sensor.bathroom_temperature — sonst doppelt.
+                - entity_id: sensor.bthome_sensor_5447_temperature
             sort:
               method: state
               numeric: true
@@ -142,6 +146,8 @@ views:
                 - entity_id: sensor.garagentor_*
                 # Shelly/BTHome H&T auf der Terrasse — kein Innenraum.
                 - entity_id: sensor.bthome_sensor_ace1_humidity
+                # KNX-Klon (GA 7/3/21) des BTHome-Sensors 5447 — sonst doppelt.
+                - entity_id: sensor.bathroom_humidity
             sort:
               method: state
               numeric: true
