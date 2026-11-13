@@ -2538,17 +2538,17 @@
     condition:
       - condition: template
         value_template: >
-          {{ not is_state('cover.garage_door_garage_door', 'closed')
-             or not is_state('lock.garagen_seitentur', 'locked') }}
+          {{ states('cover.garage_door_garage_door') in ['open', 'opening', 'closing']
+             or states('lock.garagen_seitentur') in ['unlocked', 'unlocking', 'open', 'opening'] }}
     action:
       - service: script.notify_garage_offen
         data:
           message: >
             {% set parts = [] %}
-            {% if not is_state('cover.garage_door_garage_door', 'closed') %}
+            {% if states('cover.garage_door_garage_door') in ['open', 'opening', 'closing'] %}
               {% set parts = parts + ['Garagentor'] %}
             {% endif %}
-            {% if not is_state('lock.garagen_seitentur', 'locked') %}
+            {% if states('lock.garagen_seitentur') in ['unlocked', 'unlocking', 'open', 'opening'] %}
               {% set parts = parts + ['Garagen-Seitentür'] %}
             {% endif %}
             🚗 {{ parts | join(' und ') }} ist um 21 Uhr noch offen!
