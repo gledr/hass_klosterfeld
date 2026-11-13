@@ -1589,6 +1589,9 @@
               type: raffstore
               dir: nord
               hitze_tilt: 0
+              # Von Hand zum Lüften geöffnet → die manuelle Sperre gilt auch
+              # nachts (1 h, dann regulär zu).
+              manual_nacht: true
               lock: input_boolean.beschattung_lock_abstellraum
               manual: input_boolean.beschattung_manual_abstellraum
             # WC EG: kein Hitzeschutz (Carport)
