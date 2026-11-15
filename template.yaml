@@ -93,6 +93,21 @@ binary_sensor:
          and state_attr('sun.sun', 'elevation') | float(0) > 5
          and states('sensor.helligkeit_sud') | float(0) > 8000 }}
 
+  # Blendschutz Wohnzimmer — wie Büro unabhängig von Temperatur und Saison
+  # (tiefe Wintersonne im Gesicht). Azimut ab 100° (Südost, Wintersonne
+  # am Vormittag), ab 3° Elevation, Lux-Schwelle 8000. Kein Werktag-/Anwesenheits-Gate (blend_werktag nur im Büro).
+  - name: "Blendung Wohnzimmer"
+    unique_id: blendung_wohnzimmer
+    delay_on:
+      minutes: 2
+    delay_off:
+      minutes: 10
+    state: >
+      {{ state_attr('sun.sun', 'azimuth') | float(0) > 100
+         and state_attr('sun.sun', 'azimuth') | float(0) < 250
+         and state_attr('sun.sun', 'elevation') | float(0) > 3
+         and states('sensor.helligkeit_sud') | float(0) > 8000 }}
+
   # Betriebsart der Heizung (KNX 7/0/0): on = Winter = Heizung aktiv,
   # off = Sommer = Heizung abgeschaltet. Bewusst als binary_sensor, damit
   # spätere Automationen nicht die 1/0-Logik der GA kennen müssen.

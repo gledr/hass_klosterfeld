@@ -1459,7 +1459,9 @@
           - binary_sensor.sonne_trifft_west
       # Blendung Büro (auch im Winter, ohne Temperatur-Bedingung)
       - platform: state
-        entity_id: binary_sensor.blendung_buero
+        entity_id:
+          - binary_sensor.blendung_buero
+          - binary_sensor.blendung_wohnzimmer
       # Präsenz-Hold abgelaufen → Wohnzimmer/Terrasse wieder normal bewerten.
       # Der Hold hält einen von Hand geöffneten Raffstore offen, solange
       # jemand in der Wohnküche ist, plus praesenz_nachlauf (1800 s). Der
@@ -1628,6 +1630,19 @@
               type: raffstore
               dir: sued
               hitze_tilt: 25
+              # Sonnenstand-Nachführung: im Hitzeschutz werden die Lamellen
+              # nach dem Profilwinkel der Sonne geführt statt fest auf
+              # hitze_tilt. Mindest-/Höchstwert begrenzen die Lamellen
+              # (hitze_tilt bleibt Fallback, falls die Sonne nicht lesbar ist).
+              sonnenstand: true
+              fassade_az: 180
+              sonnenstand_reserve: 10
+              sonnenstand_min: 10
+              sonnenstand_max: 70
+              # Blendschutz auch im Winter: tiefstehende Sonne im Gesicht,
+              # unabhängig von Temperatur/Saison und Wochentag. Lamellen
+              # folgen dem Sonnenstand (wie im Hitzeschutz).
+              blend_sensor: binary_sensor.blendung_wohnzimmer
               # Präsenz-Hold: Die Automation fährt hier NICHTS mehr von selbst
               # hoch. Wer den Raffstore von Hand aufmacht, während jemand in
               # der Wohnküche ist, behält ihn offen — der Tag-Modus fasst ihn
@@ -1707,6 +1722,7 @@
               # Blendschutz auch ohne Hitze (Winter, kühle Tage) — nur
               # Werktag + zuhause, sonst darf die Sonne rein (Wärme).
               blend_sensor: binary_sensor.blendung_buero
+              blend_werktag: true
               fenster: binary_sensor.shelly_blu_door_window_a173_window
               # Gast-Modus: gleiche Logik wie Gästezimmer, da Schlafcouch
               waketime: true
@@ -1831,9 +1847,10 @@
                 # arbeitet. Ein einziger {{ }}-Ausdruck (siehe anwesend).
                 blendung: >-
                   {% set b = repeat.item.get('blend_sensor') %}
-                  {{ twilight_on and b is not none and is_state(b, 'on')
-                     and is_state('binary_sensor.workday_sensor', 'on')
-                     and is_state('device_tracker.iphone_von_sebastian', 'home') }}
+                  {% set gate = (not repeat.item.get('blend_werktag', false))
+                                or (is_state('binary_sensor.workday_sensor', 'on')
+                                    and is_state('device_tracker.iphone_von_sebastian', 'home')) %}
+                  {{ twilight_on and b is not none and is_state(b, 'on') and gate }}
                 # Manuelle Sperre: Standard 1 h (Terrasse 2 h). Terrasse zusätzlich:
                 # solange komplett offen, keine Aktion (skip_fully_open).
                 # Nachts greift die Sperre nie — die Konvergenz schließt trotzdem.
@@ -1848,9 +1865,13 @@
                   {% set default = states('input_select.beschattung_default_' ~ room_key) %}
                   {% set skip = repeat.item.get('skip_fully_open', false) and cur_pos | int(-1) >= 99
                                 and default not in ['Offen'] %}
-                  {% set zuhause = not repeat.item.get('praesenz') or (anwesend | string | lower == 'true') %}
+                  {# Kein Präsenz-Gate: 'anwesend' heißt "Melder in der Wohnküche
+                     on + 30 Min Nachlauf", nicht "jemand ist zuhause". Mit Gate
+                     fiel die Sperre von Wohnzimmer/Terrasse weg, sobald der
+                     Melder aus war — der Raffstore fuhr nach Handbedienung
+                     (z.B. Blendung → zu) sofort wieder auf. #}
                   {{ manual and (not nacht or morgen or repeat.item.get('manual_nacht', false))
-                     and zuhause and (frisch or skip) }}
+                     and (frisch or skip) }}
                 # PRÄSENZ-HOLD (Wohnzimmer + Terrasse)
                 # Von Hand aufgemachter Raffstore + jemand in der Wohnküche →
                 # der Tag-Modus fasst ihn nicht mehr an. Kein Timeout wie bei
@@ -1913,7 +1934,8 @@
                      hitze_tilt AUFmachen und den Gast wecken. #}
                   {% elif hitze and not repeat.item.get('no_hitze', false)
                           and (tag_erlaubt or rtype != 'raffstore') %}hitze
-                  {% elif blendung | string | lower == 'true' %}blend
+                  {% elif blendung | string | lower == 'true'
+                          and (tag_erlaubt or rtype != 'raffstore') %}blend
                   {% elif hold %}skip
                   {% elif tag_erlaubt %}tag
                   {% else %}skip{% endif %}
@@ -1927,7 +1949,7 @@
                   {% if mode == 'skip' %}-1
                   {% elif mode == 'morgen' %}{{ repeat.item.morgen_spalt }}
                   {% elif mode == 'nacht' %}0
-                  {% elif mode == 'blend' %}{{ blend_pos }}
+                  {% elif mode == 'blend' %}{{ 0 if rtype == 'raffstore' else blend_pos }}
                   {% elif mode == 'hitze' %}
                     {% if rtype == 'raffstore' %}0
                     {% elif repeat.item.get('blend', false) %}
@@ -1949,6 +1971,24 @@
                   {% if mode == 'skip' %}-1
                   {% elif rtype == 'raffstore' %}
                     {% if mode == 'nacht' %}{{ 50 if sichtschutz_nacht | string | lower == 'true' else 0 }}
+                    {% elif mode in ['hitze', 'blend'] and repeat.item.get('sonnenstand', false)
+                            and state_attr('sun.sun', 'elevation') is not none %}
+                      {# Profilwinkel p = atan(tan(Höhe) / cos(Azimut-Differenz zur
+                         Fassade)). Lamellen müssen mindestens p + Reserve geneigt
+                         sein, damit kein direkter Strahl durchfällt. Konvention
+                         wie im Nacht-Modus: 0 % = zu (~90°), 100 % = waagerecht.
+                         Auf 5 % gerastet, damit die Nachführung nicht bei jedem
+                         Lauf um 1 % zuckt. #}
+                      {% set elev = state_attr('sun.sun', 'elevation') | float(0) %}
+                      {% set az = state_attr('sun.sun', 'azimuth') | float(180) %}
+                      {% set c = cos((az - repeat.item.get('fassade_az', 180)) | radians) %}
+                      {% if c <= 0.05 or elev <= 0 %}{{ repeat.item.hitze_tilt }}
+                      {% else %}
+                        {% set p = atan(tan(elev | radians) / c) | degrees %}
+                        {% set w = p + repeat.item.get('sonnenstand_reserve', 10) %}
+                        {% set t = ((100 * (1 - w / 90)) / 5) | round(0) * 5 %}
+                        {{ [repeat.item.get('sonnenstand_min', 10), [t, repeat.item.get('sonnenstand_max', 70)] | min] | max | int }}
+                      {% endif %}
                     {% elif mode == 'hitze' %}{{ repeat.item.hitze_tilt }}
                     {% elif default == 'Offen' %}-1
                     {% elif default == 'Lamellen halb' %}50
@@ -1967,7 +2007,9 @@
                     {% elif mode == 'morgen' %}{{ cur_pos | int(-1) < target_pos | int }}
                     {% elif rtype == 'raffstore' %}
                       {{ (cur_pos | int(-1) - target_pos | int) | abs > 2
-                         or (target_tilt | int(-1) >= 0 and cur_tilt | int(-1) != target_tilt | int) }}
+                         or (target_tilt | int(-1) >= 0
+                             and (cur_tilt | int(-1) - target_tilt | int) | abs
+                                 > (5 if repeat.item.get('sonnenstand', false) and mode in ['hitze', 'blend'] else 0)) }}
                     {% else %}
                       {{ cur_pos | int(-1) != target_pos | int }}
                     {% endif %}
@@ -2027,7 +2069,11 @@
                 # Push nur beim (Neu-)Eintreten in den Hitzeschutz
                 - if:
                     - condition: template
-                      value_template: "{{ mode == 'hitze' }}"
+                      # Sonnenstand-Räume: Nachführung der Lamellen ist keine
+                      # Meldung wert, nur das Zufahren des Behangs.
+                      value_template: >-
+                        {{ mode == 'hitze' and (not repeat.item.get('sonnenstand', false)
+                                                or (cur_pos | int(-1) - target_pos | int) | abs > 2) }}
                   then:
                     - variables:
                         msg: >-
