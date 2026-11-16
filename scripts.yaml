@@ -519,6 +519,11 @@ messfahrt_alle:
     - service: input_boolean.turn_on
       target:
         entity_id: input_boolean.beschattung_messfahrt_running
+    # Pause nach dem Flag: ein gerade laufender Konvergenz-Lauf (mode single,
+    # 15-Min-Takt) kann den ersten Raum noch anfahren. Ein Fahrbefehl im
+    # selben Moment überstimmt die Messfahrt — betraf zuerst die Garderobe,
+    # weil sie als Erste direkt nach dem Flag dran ist.
+    - delay: "00:00:10"
     - service: knx.send
       data: { address: "4/1/18", payload: 1 }
     - delay: "00:00:03"

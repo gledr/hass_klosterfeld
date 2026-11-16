@@ -2417,88 +2417,13 @@
         entity_id: binary_sensor.windalarm_schwelle_1
         state: "off"
     action:
-      - service: input_boolean.turn_on
-        target:
-          entity_id: input_boolean.beschattung_messfahrt_running
       - service: script.notify_alle
         data:
           title: Beschattung – Messfahrt
-          message: "KNX-Messfahrt aller Raffstores/Rollos startet jetzt (~40 s)."
-      # Pro Raum Messfahrt (KNX-Switch kurz an)
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_garderobe
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_abstellraum
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_wc_eg
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_kuche
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_esszimmer
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_wohnzimmer
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_terrasse
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_bad
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_raffstore_wc_og
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_rollo_schlafzimmer
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_rollo_gast
-      - delay: "00:00:03"
-      - service: switch.turn_on
-        target:
-          entity_id: switch.messfahrt_rollo_buro
-      # Messfahrt-Flag nach 3 Min zurücksetzen — Covers sind dann fertig gefahren.
-      # Der Reset triggert die Konvergenz (beschattung_messfahrt_running -> off),
-      # sodass alle Beschattungen zurück in den Tag-Modus gehen.
-      - delay: "00:03:00"
-      # Die Abschluss-Bewegung als Auto-Befehl markieren, damit die
-      # Manuell-Erkennung die letzten Kalibrierfahrten nicht ankreidet.
-      - service: input_datetime.set_datetime
-        target:
-          entity_id:
-            - input_datetime.beschattung_letzter_auto_befehl
-            - input_datetime.beschattung_auto_garderobe
-            - input_datetime.beschattung_auto_abstellraum
-            - input_datetime.beschattung_auto_wc_eg
-            - input_datetime.beschattung_auto_kueche
-            - input_datetime.beschattung_auto_esszimmer
-            - input_datetime.beschattung_auto_wohnzimmer
-            - input_datetime.beschattung_auto_terrasse
-            - input_datetime.beschattung_auto_wc_og
-            - input_datetime.beschattung_auto_badezimmer
-            - input_datetime.beschattung_auto_gaestezimmer
-            - input_datetime.beschattung_auto_buero
-            - input_datetime.beschattung_auto_schlafzimmer
-        data:
-          datetime: "{{ now().isoformat() }}"
-      - service: input_boolean.turn_off
-        target:
-          entity_id: input_boolean.beschattung_messfahrt_running
+          message: "KNX-Messfahrt aller Raffstores/Rollos startet jetzt (~1 Min)."
+      # Ablauf (Flag, Telegramme, Abschluss-Stempel) liegt zentral im Script,
+      # damit Dashboard-Knopf und 2-Wochen-Automation identisch fahren.
+      - service: script.messfahrt_alle
 
   # ----------------------------------------------------------
   # MESSFAHRT-FLAG WATCHDOG
