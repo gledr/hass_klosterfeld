@@ -1684,6 +1684,9 @@
               type: raffstore
               dir: west
               hitze_tilt: 0
+              # Von Hand zum Lüften geöffnet → die manuelle Sperre gilt auch
+              # nachts (1 h, dann regulär zu).
+              manual_nacht: true
               lock: input_boolean.beschattung_lock_wc_og
               manual: input_boolean.beschattung_manual_wc_og
             - name: Badezimmer
