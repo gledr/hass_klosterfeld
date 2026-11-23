@@ -10,12 +10,18 @@ YAML-Dashboards, git-getrackt. Registriert in `configuration.yaml` unter `lovela
 | Räume | `raeume.yaml` | EG (`erdgeschoss.yaml`) · OG (`obergeschoss.yaml`) · Keller (`keller.yaml`) · Außen (`aussen.yaml`) |
 | Beschattung | `beschattung.yaml` | Räume · Einstellungen |
 | Klima | `klima.yaml` | Übersicht · Heizung · Lüften |
+| Heizung | `heizung.yaml` | Wärmepumpe · Verlauf (Altherma-Livewerte, Warmwasser, Verbrauch) |
 | Sicherheit | `sicherheit.yaml` | — |
 | Energie | `energie.yaml` | Übersicht · Details |
 | Reinigung | `reinigung.yaml` | Wischroboter Erdgeschoss |
 
 Die Stockwerks-Dateien sind **einzelne Views** (kein `title:`/`views:`-Kopf), `raeume.yaml`
 bindet sie per `!include` ein. URLs: `/lovelace-raeume/eg`, `/og`, `/keller`, `/aussen`.
+
+`heizung.yaml` ist das Detail-Dashboard für die Daikin Altherma (Systemwerte,
+Warmwasser-Sollwert, Verbrauch, Verläufe). `Klima → Heizung` bleibt die kompakte
+Steuerung mit allen Raum-Sollwerten; die Betriebsart-Schalter sind im neuen
+Dashboard für den direkten Zugriff noch einmal vorhanden.
 
 Früher waren das 10 Sidebar-Einträge (Erdgeschoss, Obergeschoss, Keller, Aussen, Lüften
 einzeln). Alte Lesezeichen / Handy-Shortcuts auf `/lovelace-erdgeschoss` usw. zeigen ins Leere.

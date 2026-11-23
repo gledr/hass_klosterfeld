@@ -1,0 +1,416 @@
+###############################################################################
+# HEIZUNG — Dedicated Dashboard für die Daikin Altherma Wärmepumpe              #
+#                                                                              #
+# Ergänzt Klima → Heizung (Betriebsart + Raum-Sollwerte) um die Live-Werte der  #
+# Onecta-Integration: Systemtemperaturen, Warmwasser, Modi, Verbrauch, Verlauf. #
+# Die Altherma-IDs stammen aus der UI-Integration; bei Neuaufnahme können sie   #
+# sich ändern — deshalb im Gerätebereich zusätzlich auto-entities.             #
+###############################################################################
+title: Heizung
+views:
+  #############################################################################
+  # TAB 1 — WÄRMEPUMPE                                                        #
+  #############################################################################
+  - title: Wärmepumpe
+    path: waermepumpe
+    icon: mdi:heat-pump
+    type: sections
+    max_columns: 3
+
+    badges:
+      - type: entity
+        entity: sensor.outdoor_temperature
+        name: Außen
+      - type: entity
+        entity: sensor.outdoor_temperature_avg
+        name: Ø Außen
+      - type: entity
+        entity: sensor.altherma_climatecontrol_leaving_water_temperature
+        name: Vorlauf
+      - type: entity
+        entity: sensor.altherma_domestichotwatertank_tank_temperature
+        name: Warmwasser
+      - type: entity
+        entity: select.heizung_betriebsart
+        name: Heizung
+
+    sections:
+
+      ###########################################################################
+      # STATUS — eine Kachel, die alles Wichtige zusammenfasst                  #
+      ###########################################################################
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Zustand
+            icon: mdi:heat-pump-outline
+
+          - type: custom:mushroom-template-card
+            primary: >-
+              {% if is_state('binary_sensor.waermepumpe_heizen', 'on') %}Wärmepumpe heizt
+              {% elif is_state('binary_sensor.waermepumpe_heizen', 'off') %}Wärmepumpe in Pause
+              {% else %}Wärmepumpe — Status unbekannt{% endif %}
+            secondary: >-
+              Vorlauf {{ states('sensor.altherma_climatecontrol_leaving_water_temperature') }} °C ·
+              Außen {{ states('sensor.altherma_climatecontrol_outdoor_temperature') }} °C ·
+              Modus {{ states('sensor.altherma_climatecontrol_control_mode') }} ·
+              Fehler {{ states('sensor.altherma_climatecontrol_error_code') }}
+            icon: "{{ 'mdi:fire' if is_state('binary_sensor.waermepumpe_heizen', 'on') else 'mdi:heat-pump-outline' }}"
+            icon_color: "{{ 'deep-orange' if is_state('binary_sensor.waermepumpe_heizen', 'on') else 'grey' }}"
+            multiline_secondary: true
+            tap_action:
+              action: navigate
+              navigation_path: /lovelace-heizung/verlauf
+
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: "{% if is_state('binary_sensor.heizsaison', 'on') %}mdi:snowflake{% else %}mdi:weather-sunny{% endif %}"
+                content: >-
+                  {% if is_state('binary_sensor.heizsaison', 'on') %}Heizsaison
+                  {% elif is_state('binary_sensor.heizsaison', 'off') %}Sommerzeit
+                  {% else %}Heizsaison ?{% endif %}
+                icon_color: "{% if is_state('binary_sensor.heizsaison', 'on') %}blue{% elif is_state('binary_sensor.heizsaison', 'off') %}amber{% else %}grey{% endif %}"
+              - type: template
+                icon: mdi:radiator
+                content: >-
+                  {% if is_state('binary_sensor.heizung_aktiv', 'on') %}Heizung an
+                  {% elif is_state('binary_sensor.heizung_aktiv', 'off') %}Heizung aus
+                  {% else %}Heizung ?{% endif %}
+                icon_color: "{% if is_state('binary_sensor.heizung_aktiv', 'on') %}deep-orange{% else %}grey{% endif %}"
+              - type: template
+                icon: mdi:thermostat
+                content: "{{ states('select.heizung_betriebsart') }}"
+                icon_color: "{% if is_state('select.heizung_betriebsart', 'Winter') %}deep-orange{% elif is_state('select.heizung_betriebsart', 'Sommer') %}light-blue{% else %}grey{% endif %}"
+
+          # Erklärt "Status unbekannt": Der Status kommt aus dem Altherma-Climate.
+          # Ist das Entity unavailable, sind die Sensorwerte zwar da, die Pumpe
+          # lässt sich aber nicht als "heizt/pause" einordnen.
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.waermepumpe_heizen
+                state:
+                  - unknown
+                  - unavailable
+            card:
+              type: custom:mushroom-template-card
+              primary: WP-Status nicht verfügbar
+              secondary: >-
+                Das Climate-Entity der Altherma liefert gerade keinen Status.
+                Die Systemwerte unten stammen aus separaten Sensoren und können
+                trotzdem aktuell sein. Meist ist die Onecta-Integration oder das
+                Gateway ({{ states('sensor.altherma_gateway_ip_address') }}) gerade
+                nicht vollständig erreichbar.
+              icon: mdi:alert-outline
+              icon_color: amber
+              multiline_secondary: true
+
+      ###########################################################################
+      # SYSTEMWERTE — die von Onecta gelieferten Altherma-Sensoren               #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Systemwerte
+            icon: mdi:thermometer
+
+          - type: entities
+            state_color: true
+            entities:
+              - entity: sensor.altherma_climatecontrol_outdoor_temperature
+                name: Außenfühler
+              - entity: sensor.altherma_climatecontrol_leaving_water_temperature
+                name: Vorlauf
+              - entity: sensor.altherma_climatecontrol_room_temperature
+                name: Raumfühler
+              - entity: sensor.altherma_climatecontrol_control_mode
+                name: Steuermodus
+              - entity: sensor.altherma_climatecontrol_setpoint_mode
+                name: Sollwertmodus
+              - entity: sensor.altherma_climatecontrol_error_code
+                name: Fehlercode
+
+          - type: entities
+            state_color: true
+            title: Meldungen
+            entities:
+              - entity: binary_sensor.altherma_climatecontrol_is_in_error_state
+                name: Fehler
+              - entity: binary_sensor.altherma_climatecontrol_is_in_warning_state
+                name: Warnung
+              - entity: binary_sensor.altherma_climatecontrol_is_in_emergency_state
+                name: Notfall
+              - entity: binary_sensor.altherma_climatecontrol_is_holiday_mode_active
+                name: Urlaubsmodus
+
+      ###########################################################################
+      # WARMWASSER — Sollwert ist direkt stellbar                                #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Warmwasser
+            icon: mdi:water-boiler
+
+          - type: thermostat
+            entity: water_heater.altherma
+
+          - type: entities
+            state_color: true
+            entities:
+              - entity: sensor.altherma_domestichotwatertank_tank_temperature
+                name: Tanktemperatur
+              - entity: sensor.altherma_domestichotwatertank_setpoint_mode
+                name: Sollwertmodus
+              - entity: sensor.altherma_domestichotwatertank_heatup_mode
+                name: Aufheizmodus
+              - entity: select.altherma_domestichotwatertank_schedule
+                name: Zeitplan
+              - entity: binary_sensor.altherma_domestichotwatertank_is_powerful_mode_active
+                name: Power-Modus
+              - entity: binary_sensor.altherma_domestichotwatertank_is_in_error_state
+                name: Fehler
+
+      ###########################################################################
+      # BETRIEBSART — Winter/Sommer + Handbetrieb (wie Klima → Heizung)           #
+      ###########################################################################
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Betriebsart
+            icon: mdi:sun-snowflake
+
+          - type: custom:mushroom-template-card
+            primary: Heizung umschalten
+            secondary: >-
+              {% set mode = states('select.heizung_betriebsart') %}
+              {% if mode == 'Winter' %}Winterbetrieb — Heizung aktiv
+              {% elif mode == 'Sommer' %}Sommerbetrieb — Heizung abgeschaltet
+              {% else %}Betriebsart unbekannt{% endif %}
+              · Ø-Außen {{ states('sensor.outdoor_temperature_avg') }} °C
+            icon: mdi:heat-pump
+            icon_color: "{% if is_state('select.heizung_betriebsart', 'Winter') %}deep-orange{% elif is_state('select.heizung_betriebsart', 'Sommer') %}light-blue{% else %}grey{% endif %}"
+            tap_action:
+              action: call-service
+              service: script.heizung_betriebsart_umschalten
+
+          - type: custom:mushroom-chips-card
+            alignment: center
+            chips:
+              - type: template
+                icon: mdi:snowflake
+                content: Winter
+                icon_color: "{% if is_state('select.heizung_betriebsart', 'Winter') %}blue{% else %}grey{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: select.select_option
+                  data:
+                    entity_id: select.heizung_betriebsart
+                    option: Winter
+              - type: template
+                icon: mdi:white-balance-sunny
+                content: Sommer
+                icon_color: "{% if is_state('select.heizung_betriebsart', 'Sommer') %}amber{% else %}grey{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: select.select_option
+                  data:
+                    entity_id: select.heizung_betriebsart
+                    option: Sommer
+              - type: template
+                icon: "{% if is_state('input_boolean.heizung_betriebsart_manuell', 'on') %}mdi:hand-back-right{% else %}mdi:robot-outline{% endif %}"
+                content: "{% if is_state('input_boolean.heizung_betriebsart_manuell', 'on') %}Handbetrieb{% else %}Automatik{% endif %}"
+                icon_color: "{% if is_state('input_boolean.heizung_betriebsart_manuell', 'on') %}amber{% else %}green{% endif %}"
+                tap_action:
+                  action: call-service
+                  service: input_boolean.toggle
+                  data:
+                    entity_id: input_boolean.heizung_betriebsart_manuell
+
+          - type: entities
+            entities:
+              - entity: input_number.heizsaison_temp_schwelle
+                name: Heizsaison ab (Ø-Außen)
+
+      ###########################################################################
+      # GERÄTE — discovery statt fester IDs (UI-Integration)                     #
+      ###########################################################################
+      - type: grid
+        column_span: 3
+        cards:
+          - type: heading
+            heading: Altherma — Geräte & Modi
+            icon: mdi:information-outline
+
+          - type: custom:auto-entities
+            card:
+              type: entities
+              state_color: true
+            filter:
+              include:
+                - domain: climate
+                  entity_id: "*altherma*"
+                - domain: water_heater
+                  entity_id: "*altherma*"
+              exclude:
+                - entity_id: "*offset*"
+            sort:
+              method: friendly_name
+            show_empty: false
+
+          - type: custom:expander-card
+            title: Was bedeutet "unavailable" beim Climate-Entity?
+            expanded: false
+            cards:
+              - type: markdown
+                content: >-
+                  Die Onecta-Integration liefert Most-Werte als eigene Sensoren,
+                  das `climate.altherma_leaving_water_temperature` ist aber der
+                  Schaltzustand der Heizkreis-Regelung. Solange es `unavailable`
+                  ist, kann Home Assistant nicht zwischen „WP heizt" und
+                  „WP Pause" unterscheiden — `binary_sensor.waermepumpe_heizen`
+                  ist dann ebenfalls unbekannt. Die Temperaturwerte oben sind
+                  davon unabhängig und bleiben nutzbar.
+
+  #############################################################################
+  # TAB 2 — VERLAUF                                                           #
+  #############################################################################
+  - title: Verlauf
+    path: verlauf
+    icon: mdi:chart-line
+    type: sections
+    max_columns: 2
+
+    badges:
+      - type: entity
+        entity: sensor.altherma_climatecontrol_leaving_water_temperature
+        name: Vorlauf
+      - type: entity
+        entity: sensor.altherma_domestichotwatertank_tank_temperature
+        name: Warmwasser
+      - type: entity
+        entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+        name: Heizen heute
+
+    sections:
+      - type: grid
+        column_span: 2
+        cards:
+          - type: heading
+            heading: Temperaturen 24 h
+            icon: mdi:thermometer
+
+          - type: custom:apexcharts-card
+            header:
+              show: true
+              title: Vorlauf / Außen / Raum
+              show_states: false
+            graph_span: 24h
+            series:
+              - entity: sensor.altherma_climatecontrol_leaving_water_temperature
+                name: Vorlauf
+                stroke_width: 3
+              - entity: sensor.altherma_climatecontrol_outdoor_temperature
+                name: Außen
+              - entity: sensor.altherma_climatecontrol_room_temperature
+                name: Raum
+
+          - type: custom:mini-graph-card
+            name: Warmwasser 24 h
+            entities:
+              - entity: sensor.altherma_domestichotwatertank_tank_temperature
+                name: Tank
+                color: '#0284c7'
+            hours_to_show: 24
+            points_per_hour: 4
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+              fill: true
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Stromverbrauch Heizen
+            icon: mdi:lightning-bolt
+
+          - type: glance
+            columns: 4
+            entities:
+              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heute
+              - entity: sensor.altherma_climatecontrol_heating_weekly_electrical_consumption
+                name: Woche
+              - entity: sensor.altherma_climatecontrol_monatlicher_stromverbrauch_heizung
+                name: Monat
+              - entity: sensor.altherma_climatecontrol_heating_yearly_electrical_consumption
+                name: Jahr
+
+          - type: custom:mini-graph-card
+            name: Tagesverbrauch 7 Tage
+            entities:
+              - entity: sensor.altherma_climatecontrol_heating_daily_electrical_consumption
+                name: Heizen
+                color: '#d97706'
+            hours_to_show: 168
+            points_per_hour: 1
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      - type: grid
+        column_span: 1
+        cards:
+          - type: heading
+            heading: Stromverbrauch Warmwasser
+            icon: mdi:water-boiler
+
+          - type: glance
+            columns: 4
+            entities:
+              - entity: sensor.altherma_domestichotwatertank_heating_daily_electrical_consumption
+                name: Heute
+              - entity: sensor.altherma_domestichotwatertank_heating_weekly_electrical_consumption
+                name: Woche
+              - entity: sensor.altherma_domestichotwatertank_monatlicher_stromverbrauch_heizung
+                name: Monat
+              - entity: sensor.altherma_domestichotwatertank_heating_yearly_electrical_consumption
+                name: Jahr
+
+          - type: custom:mini-graph-card
+            name: Tagesverbrauch 7 Tage
+            entities:
+              - entity: sensor.altherma_domestichotwatertank_heating_daily_electrical_consumption
+                name: Warmwasser
+                color: '#0284c7'
+            hours_to_show: 168
+            points_per_hour: 1
+            line_width: 2
+            show:
+              labels: true
+              extrema: true
+
+      - type: grid
+        column_span: 2
+        cards:
+          - type: custom:expander-card
+            title: Woher kommen die Verbrauchswerte?
+            expanded: false
+            cards:
+              - type: markdown
+                content: >-
+                  Alle Verbrauchszähler kommen direkt aus der Daikin-Onecta-
+                  Integration (nicht aus dem Hausstromzähler). „Heute/Woche/Jahr"
+                  sind die Original-Zähler der Anlage, „Monat" ist ein
+                  abgeleiteter Helper. Die Werte sind kWh und können bei
+                  Neustart der Integration kurzzeitig zurückspringen.
+                  Der Gesamtstrombezug des Hauses steht unter **Energie**.

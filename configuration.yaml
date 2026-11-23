@@ -44,8 +44,10 @@ lovelace:
     # Einklappbare Bereiche für Erklärungen/Diagnose — MelleD/lovelace-expander-card
     - url: /local/community/lovelace-expander-card/expander-card.js
       type: module
-  # Sidebar: 6 statt 10 Einträge. Erdgeschoss/Obergeschoss/Keller/Aussen sind
-  # jetzt Tabs von "Räume", Lüften ist ein Tab von "Klima".
+  # Sidebar: 7 statt 10 Einträge. Erdgeschoss/Obergeschoss/Keller/Aussen sind
+  # jetzt Tabs von "Räume", Lüften ist ein Tab von "Klima". "Heizung" ist ein
+  # eigenes Dashboard für die Altherma-Livewerte (Klima → Heizung bleibt für
+  # Betriebsart und Raum-Sollwerte).
   # button-card und layout-card wurden von keinem Dashboard benutzt und sind
   # aus den Ressourcen raus (in HACS können sie bleiben).
   dashboards:
@@ -75,6 +77,13 @@ lovelace:
       filename: dashboard/klima.yaml
       title: Klima
       icon: mdi:home-thermometer
+      show_in_sidebar: true
+      require_admin: false
+    lovelace-heizung:
+      mode: yaml
+      filename: dashboard/heizung.yaml
+      title: Heizung
+      icon: mdi:heat-pump
       show_in_sidebar: true
       require_admin: false
     lovelace-sicherheit:
