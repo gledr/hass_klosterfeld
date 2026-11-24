@@ -2208,6 +2208,14 @@
       - platform: state
         entity_id: switch.twilight
         to: "off"
+    # KNX-Reconnect: switch.twilight springt nach "unavailable" wieder auf
+    # "off" — auch mitten in der Nacht. Ohne Flanken-Prüfung wäre "jetzt"
+    # der Dämmerungs-Ende-Stempel und die Konvergenz würde 30 min später
+    # alle Raffstores zufahren (Nacht 23./24.11.2026).
+    condition:
+      - condition: template
+        value_template: >-
+          {{ trigger.from_state.state == 'on' and 15 <= now().hour <= 23 }}
     action:
       - service: input_datetime.set_datetime
         target:
@@ -2243,6 +2251,21 @@
       - platform: state
         entity_id: switch.twilight
         to: "off"
+    # Dieselbe Reconnect-Flanke darf die manuellen Sperren nicht mitten in
+    # der Nacht löschen. Echte Flanken: Abend on->off (15-23 h),
+    # Morgen off->on (4-11 h). binary_sensor.twilight existiert nicht mehr.
+    condition:
+      - condition: template
+        value_template: >-
+          {% set to = trigger.to_state.state %}
+          {% set from = trigger.from_state.state %}
+          {% if to == 'off' %}
+            {{ from == 'on' and 15 <= now().hour <= 23 }}
+          {% elif to == 'on' %}
+            {{ from == 'off' and 4 <= now().hour <= 11 }}
+          {% else %}
+            false
+          {% endif %}
     action:
       - service: input_boolean.turn_off
         target:
