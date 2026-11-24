@@ -33,6 +33,9 @@ views:
       - type: entity
         entity: select.heizung_betriebsart
         name: Heizung
+      - type: entity
+        entity: binary_sensor.heizungsaktor_og_fehler
+        name: OG Aktor
 
     sections:
 
@@ -84,6 +87,13 @@ views:
                 icon: mdi:thermostat
                 content: "{{ states('select.heizung_betriebsart') }}"
                 icon_color: "{% if is_state('select.heizung_betriebsart', 'Winter') %}deep-orange{% elif is_state('select.heizung_betriebsart', 'Sommer') %}light-blue{% else %}grey{% endif %}"
+              - type: template
+                icon: "{% if is_state('binary_sensor.heizungsaktor_og_fehler', 'on') %}mdi:alert-circle{% else %}mdi:check-circle{% endif %}"
+                content: >-
+                  {% if is_state('binary_sensor.heizungsaktor_og_fehler', 'on') %}Aktor OG Fehler
+                  {% elif is_state('binary_sensor.heizungsaktor_og_fehler', 'off') %}Aktor OG OK
+                  {% else %}Aktor OG ?{% endif %}
+                icon_color: "{% if is_state('binary_sensor.heizungsaktor_og_fehler', 'on') %}red{% elif is_state('binary_sensor.heizungsaktor_og_fehler', 'off') %}green{% else %}grey{% endif %}"
 
           # Erklärt "Status unbekannt": Der Status kommt aus dem Altherma-Climate.
           # Ist das Entity unavailable, sind die Sensorwerte zwar da, die Pumpe
@@ -106,6 +116,23 @@ views:
                 nicht vollständig erreichbar.
               icon: mdi:alert-outline
               icon_color: amber
+              multiline_secondary: true
+
+          # Störung des Heizungsaktors OG (KNX 10/2/0) — rot, mit Push bei
+          # Auftreten und Entwarnung (Automation heizungsaktor_og_fehler_push).
+          - type: conditional
+            conditions:
+              - condition: state
+                entity: binary_sensor.heizungsaktor_og_fehler
+                state: "on"
+            card:
+              type: custom:mushroom-template-card
+              primary: Heizungsaktor OG — Störung
+              secondary: >-
+                KNX 10/2/0 meldet einen Fehler. Bitte die Heizkreise im OG
+                prüfen. Beim Verschwinden der Störung geht ebenfalls eine Push.
+              icon: mdi:alert-circle
+              icon_color: red
               multiline_secondary: true
 
       ###########################################################################

@@ -1398,6 +1398,46 @@
 
     mode: single
 
+  # ----------------------------------------------------------
+  # HEIZUNGSaktor OG → Push (Störung KNX 10/2/0)
+  # Der Fehler-KO ist 1 = Störung. Meldung bei Auftreten UND bei
+  # Entwarnung, damit man weiß, dass wieder alles ok ist.
+  # ----------------------------------------------------------
+  - id: heizungsaktor_og_fehler_push
+    alias: "Heizungsaktor OG Fehler – Push an alle Geräte"
+    description: >
+      Benachrichtigt bei einer Störung des Heizungsaktors OG (KNX 10/2/0)
+      und bei der Entwarnung.
+    mode: queued
+    trigger:
+      - platform: state
+        entity_id: binary_sensor.heizungsaktor_og_fehler
+        from: "off"
+        to: "on"
+      - platform: state
+        entity_id: binary_sensor.heizungsaktor_og_fehler
+        from: "on"
+        to: "off"
+    condition:
+      # Kein Spam nach HA-Neustart / KNX-Rehydration (siehe Beschattung).
+      - condition: template
+        value_template: >
+          {{ trigger.from_state is not none
+             and trigger.to_state is not none
+             and trigger.from_state.state not in ['unknown', 'unavailable']
+             and trigger.to_state.state not in ['unknown', 'unavailable'] }}
+    action:
+      - service: script.notify_alle
+        data:
+          title: >-
+            {% if trigger.to_state.state == 'on' %}⚠️ Heizungsaktor OG Fehler{% else %}Heizungsaktor OG OK{% endif %}
+          message: >-
+            {% if trigger.to_state.state == 'on' %}
+              Störung am Heizungsaktor OG (KNX 10/2/0) erkannt. Bitte die Heizkreise im OG prüfen.
+            {% else %}
+              Die Störung am Heizungsaktor OG (KNX 10/2/0) ist behoben.
+            {% endif %}
+
   # =========================================================
   # BESCHATTUNGS-AUTOMATIK (refactored 2026-08)
   #

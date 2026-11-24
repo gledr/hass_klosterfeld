@@ -1051,6 +1051,15 @@ knx:
       state_address: "2/0/3"
       device_class: problem
 
+    # Heizung — Störung des Heizungsaktors OG (KNX 10/2/0, DPT 1).
+    # 1 = Fehler, 0 = kein Fehler (per GroupValueRead am 24.11. geprüft).
+    # sync_state holt den aktuellen Wert beim Start ab; die Push-Automation
+    # reagiert nur auf echte on/off-Flanken, nicht auf Rehydration.
+    - name: "Heizungsaktor OG Fehler"
+      state_address: "10/2/0"
+      device_class: problem
+      sync_state: true
+
     # WINDALARME NEU
     - name: "Windalarm Schwelle 1"
       state_address: "8/4/10"
